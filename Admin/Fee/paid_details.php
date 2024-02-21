@@ -188,7 +188,7 @@ error_reporting(0);
         <table class="table table-striped table-bordered" style="width:100%;">
             <thead class="bg-secondary text-white">
                 <tr>
-                    <th style="border:2px solid black;" class="text-center" colspan="4">Personal Details</th>
+                    <th style="border:2px solid black;background-color:#6c757d;color:white;" class="text-center" colspan="4">Personal Details</th>
                 </tr>
             </thead>
             <tbody>
@@ -227,7 +227,7 @@ error_reporting(0);
             </tbody>
             <thead class="bg-secondary text-white">
                 <tr>
-                    <th style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;" class="text-center" colspan="4">Fee Details</th>
+                    <th style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;background-color:#6c757d;color:white;" class="text-center" colspan="4">Fee Details</th>
                 </tr>
                 <tr class="text-center">
                     <td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;"><b>Bill No.</b></td>

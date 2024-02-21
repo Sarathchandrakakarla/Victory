@@ -132,14 +132,14 @@ error_reporting(0);
         $amount = (int)$row1['Amount'];
         echo '
             <tr>
-              <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;">' . $row1['AC_No'] . '</td>
-              <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;">' . $row1['Name'] . '</td>
-              <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;">' . $row1['Address'] . '</td>
-              <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;">' . $row1['Mobile'] . '</td>
-              <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;" id="amount">' . $row1['Amount'] . '</td>
-              <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;text-align:center;">' . $row1['DOC'] . '</td>
-              <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;text-align:center;" id="paid"></td>
-              <td style="border-width:2px 2px 2px 2px;border-color:black;border-style:solid;" id="balance"></td>
+              <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;">' . $row1['AC_No'] . '</td>
+              <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;">' . $row1['Name'] . '</td>
+              <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;">' . $row1['Address'] . '</td>
+              <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;">' . $row1['Mobile'] . '</td>
+              <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;" id="amount">' . $row1['Amount'] . '</td>
+              <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;text-align:center;">' . $row1['DOC'] . '</td>
+              <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;text-align:center;" id="paid"></td>
+              <td style="border-width:0px 2px 2px 2px;border-color:black;border-style:solid;" id="balance"></td>
             ';
       }
       echo '</tbody>
@@ -175,11 +175,11 @@ error_reporting(0);
         while ($row2 = mysqli_fetch_assoc($query2)) {
           echo '
                   <tr>
-                    <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;">' . $i . '</td>
-                    <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;">' . $row2['Amount'] . '</td>
-                    <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;">' . $row2['DOP'] . '</td>
-                    <td style="border-width:2px 0px 2px 2px;border-color:black;border-style:solid;">' . $row2['Bill_No'] . '</td>
-                    <td style="border-width:2px 2px 2px 2px;border-color:black;border-style:solid;">' . $row2['Purpose'] . '</td>
+                    <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;text-align:center;">' . $i . '</td>
+                    <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;text-align:center;">' . $row2['Amount'] . '</td>
+                    <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;text-align:center;">' . $row2['DOP'] . '</td>
+                    <td style="border-width:0px 0px 2px 2px;border-color:black;border-style:solid;text-align:center;">' . $row2['Bill_No'] . '</td>
+                    <td style="border-width:0px 2px 2px 2px;border-color:black;border-style:solid;">' . $row2['Purpose'] . '</td>
                   ';
           $paid  += $row2['Amount'];
           echo "<script>
