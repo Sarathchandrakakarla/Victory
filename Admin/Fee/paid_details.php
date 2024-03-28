@@ -275,8 +275,9 @@ error_reporting(0);
         function delete_row(e) {
             id_no = document.getElementById('id').value;
             bill_no = $(e).parent().siblings().eq(0).text();
-            fee_type = $(e).parent().siblings().eq(1).text();
-            date = $(e).parent().siblings().eq(2).text()
+            amount = $(e).parent().siblings().eq(1).text();
+            date = $(e).parent().siblings().eq(2).text();
+            fee_type = document.getElementById('fee_type').value;
             if (confirm('Confirm to Delete Payment ' + id_no + '  ' + bill_no + ' on ' + date + '?')) {
                 $.ajax({
                     type: 'post',
@@ -285,6 +286,7 @@ error_reporting(0);
                         Id_No: id_no,
                         Date: date,
                         Bill_No: bill_no,
+                        Amount:amount,
                         Fee_Type: fee_type
                     },
                     success: function(data) {

@@ -17,13 +17,15 @@ if (isset($_POST['route'])) {
 if (isset($_POST['Fee_Type'])) {
     $fee_type = $_POST['Fee_Type'];
     $id_no = $_POST['Id_No'];
+    $amount = $_POST['Amount'];
     $bill_no = $_POST['Bill_No'];
     $date = $_POST['Date'];
-    $query1 = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id_no' AND Bill_No = '$bill_no' AND Type = '$fee_type' AND DOP = '$date'");
+    echo $amount;
+    $query1 = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id_no' AND Fee = '$amount' AND Bill_No = '$bill_no' AND Type = '$fee_type' AND DOP = '$date'");
     if (mysqli_num_rows($query1) == 0) {
         echo "0";
     } else {
-        $query2 = mysqli_query($link, "DELETE FROM `stu_paid_fee` WHERE Id_No = '$id_no' AND Bill_No = '$bill_no' AND Type = '$fee_type' AND DOP = '$date' LIMIT 1");
+        $query2 = mysqli_query($link, "DELETE FROM `stu_paid_fee` WHERE Id_No = '$id_no' AND Fee = '$amount' AND Bill_No = '$bill_no' AND Type = '$fee_type' AND DOP = '$date' LIMIT 1");
         if ($query2) {
             echo "success";
         } else {
