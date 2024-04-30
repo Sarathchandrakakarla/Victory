@@ -150,21 +150,36 @@ error_reporting(0);
                             echo "<script>alert('Please Select Fee Type')</script>";
                         } else {
                             echo "<script>document.getElementById('fee_label').innerHTML = '" . $type . "'</script>";
-                            $sql = "SELECT * FROM `actual_fee` WHERE Type = '$type' ORDER BY S_No";
-                            $result = mysqli_query($link, $sql);
-                            $i = 1;
-                            while ($row = mysqli_fetch_assoc($result)) {
-                                echo '<tr>
-                        <td style="padding:5px;">' . $i . '</td>';
-                        if($type == "Vehicle Fee"){
-                            echo '<td style="padding:5px;">' . $row['Route'] . '</td>';
-                        }
-                        else{
-                            echo '<td style="padding:5px;">' . $row['Class'] . '</td>';
-                        }
-                        echo '<td style="padding:5px;">' . $row['Fee'] . '</td>
-                        </tr>';
-                                $i++;
+                            if ($type != "Vehicle Fee") {
+                                $classes = ["PreKG", "LKG", "UKG"];
+                                for ($i = 1; $i <= 10; $i++) {
+                                    array_push($classes, $i . " CLASS");
+                                }
+                                $i = 1;
+                                foreach ($classes as $class) {
+                                    $sql = "SELECT * FROM `actual_fee` WHERE Class = '$class' AND Type = '$type' ORDER BY S_No";
+                                    $result = mysqli_query($link, $sql);
+                                    while ($row = mysqli_fetch_assoc($result)) {
+                                        echo '<tr>
+                                              <td style="padding:5px;">' . $i . '</td>';
+                                        echo '<td style="padding:5px;">' . $row['Class'] . '</td>';
+                                        echo '<td style="padding:5px;">' . $row['Fee'] . '</td>
+                                              </tr>';
+                                    }
+                                    $i++;
+                                }
+                            } else {
+                                $sql = "SELECT * FROM `actual_fee` WHERE Type = '$type' ORDER BY S_No";
+                                $result = mysqli_query($link, $sql);
+                                $i = 1;
+                                while ($row = mysqli_fetch_assoc($result)) {
+                                    echo '<tr>
+                                          <td style="padding:5px;">' . $i . '</td>';
+                                    echo '<td style="padding:5px;">' . $row['Route'] . '</td>';
+                                    echo '<td style="padding:5px;">' . $row['Fee'] . '</td>
+                                          </tr>';
+                                    $i++;
+                                }
                             }
                         }
                     }
