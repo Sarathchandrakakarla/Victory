@@ -48,7 +48,7 @@ if (!$_SESSION['Type']) {
 if (isset($_POST['update'])) {
     if ($_POST['Fee_Type']) {
         $type = $_POST['Fee_Type'];
-        if ($type == "Vehicle_Fee") {
+        if ($type == "Vehicle Fee") {
             if ($_POST['Route']) {
                 $route = $_POST['Route'];
                 if ($_POST['Fee']) {
