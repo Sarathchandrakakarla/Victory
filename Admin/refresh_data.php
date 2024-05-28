@@ -44,7 +44,7 @@ if (isset($_POST['Save'])) {
         $temp = array();
         while ($row2 = mysqli_fetch_assoc($query2)) {
           array_push($temp, $row2['Id_No']);
-          if ($class == "10 CLASS") {
+          if ($class == "10 CLASS" || str_contains(strtolower($class), "drop")) {
             array_push($class_10, $row2['Id_No']);   //To get Class of 10th Student at the time of balance saving
           }
         }
@@ -142,7 +142,7 @@ if (isset($_POST['Save'])) {
         $temp = array();
         while ($row2 = mysqli_fetch_assoc($query2)) {
           array_push($temp, $row2['Id_No']);
-          if($row2['Class'] == "10 CLASS"){
+          if ($row2['Class'] == "10 CLASS" || str_contains(strtolower($row2['Class']), "drop")) {
             array_push($route_10, $row2['Id_No']);
           }
         }

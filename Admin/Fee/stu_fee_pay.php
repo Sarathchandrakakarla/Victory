@@ -125,6 +125,15 @@ if (isset($_POST['add'])) {
                     $sql2 = "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'";
                     */
                 }
+                //$fee_balance_sql = mysqli_query($link,"SELECT * FROM `fee_balances` ");
+                if(str_contains(strtolower($class),"others") || str_contains(strtolower($class),"drop")){
+                    $fee_balance_sql = mysqli_query($link,"SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
+                    while($fee_row = mysqli_fetch_assoc($fee_balance_sql)){
+                        $balance = (int)$fee_row['Last_Balance'];
+                    }
+                    $balance -= (int)$amount;
+                    mysqli_query($link,"UPDATE `stu_fee_master_data` SET Last_Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
+                }
                 if (mysqli_query($link, $sql)) {
                     echo "<script>alert('Fee Inserted Successfully!!')</script>";
                 } else {
