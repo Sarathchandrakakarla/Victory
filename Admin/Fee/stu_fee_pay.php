@@ -40,7 +40,6 @@ if (isset($_POST['Ok'])) {
 if (isset($_POST['add'])) {
     if ($_POST['Type']) {
         $type = $_POST['Type'];
-        echo "<script>console.log('$type');</script>";
         $date = $_POST['DOP'];
         $_SESSION['DOP'] = $date;
         if ($_POST['Id_No']) {
@@ -162,7 +161,7 @@ if (isset($_POST['add'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </head>
 <style>
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
 
     * {
         margin: 0;
@@ -311,6 +310,7 @@ if (isset($_POST['add'])) {
             flex-direction: column;
         }
     }
+
     #sign-out {
         display: none;
     }
@@ -343,12 +343,32 @@ if (isset($_POST['add'])) {
                     <div class="input-box">
                         <span class="details">Fee Type<span class="required">*</span></span>
                         <select name="Type" id="type">
-                            <option value="selectfeetype" disabled selected >-- Select Fee Type --</option>
-                            <option value="School Fee" <?php if(isset($type) && $type=="School Fee"){ echo 'selected';}else{echo "";} ?>>School Fee</option>
-                            <option value="Admission Fee" <?php if(isset($type) && $type=="Admission Fee"){ echo 'selected';}else{echo "";} ?>>Admission Fee</option>
-                            <option value="Examination Fee" <?php if(isset($type) && $type=="Examination Fee"){ echo 'selected';}else{echo "";} ?>>Examination Fee</option>
-                            <option value="Computer Fee" <?php if(isset($type) && $type=="Computer Fee"){ echo 'selected';}else{echo "";} ?>>Computer Fee</option>
-                            <option value="Vehicle Fee" <?php if(isset($type) && $type=="Vehicle Fee"){ echo 'selected';}else{echo "";} ?>>Vehicle Fee</option>
+                            <option value="selectfeetype" disabled selected>-- Select Fee Type --</option>
+                            <option value="School Fee" <?php if (isset($type) && $type == "School Fee") {
+                                                            echo 'selected';
+                                                        } else {
+                                                            echo "";
+                                                        } ?>>School Fee</option>
+                            <option value="Admission Fee" <?php if (isset($type) && $type == "Admission Fee") {
+                                                                echo 'selected';
+                                                            } else {
+                                                                echo "";
+                                                            } ?>>Admission Fee</option>
+                            <option value="Examination Fee" <?php if (isset($type) && $type == "Examination Fee") {
+                                                                echo 'selected';
+                                                            } else {
+                                                                echo "";
+                                                            } ?>>Examination Fee</option>
+                            <option value="Computer Fee" <?php if (isset($type) && $type == "Computer Fee") {
+                                                                echo 'selected';
+                                                            } else {
+                                                                echo "";
+                                                            } ?>>Computer Fee</option>
+                            <option value="Vehicle Fee" <?php if (isset($type) && $type == "Vehicle Fee") {
+                                                            echo 'selected';
+                                                        } else {
+                                                            echo "";
+                                                        } ?>>Vehicle Fee</option>
                         </select>
                     </div>
                     <div class="input-box">
@@ -389,7 +409,11 @@ if (isset($_POST['add'])) {
                     </div>
                     <div class="input-box">
                         <span class="details">Date of Payment</span>
-                        <input type="date" name="DOP" id="dop" value="<?php if(isset($_SESSION['DOP'])){echo $_SESSION['DOP'];}else{echo date('Y-m-d');} ?>" />
+                        <input type="date" name="DOP" id="dop" value="<?php if (isset($_SESSION['DOP'])) {
+                                                                            echo $_SESSION['DOP'];
+                                                                        } else {
+                                                                            echo date('Y-m-d');
+                                                                        } ?>" />
                     </div>
                     <div class="input-box">
                         <span class="details">Bill No.</span>

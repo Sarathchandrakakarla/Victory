@@ -35,6 +35,7 @@ if (isset($_POST['Save'])) {
       $paid = array();
       $total = array();
       $balance = array();
+      $class_10 = array();
 
 
       //Queries
@@ -43,6 +44,9 @@ if (isset($_POST['Save'])) {
         $temp = array();
         while ($row2 = mysqli_fetch_assoc($query2)) {
           array_push($temp, $row2['Id_No']);
+          if ($class == "10 CLASS") {
+            array_push($class_10, $row2['Id_No']);   //To get Class of 10th Student at the time of balance saving
+          }
         }
         $ids[$class] = $temp;
       }
@@ -89,12 +93,18 @@ if (isset($_POST['Save'])) {
         }
       }
 
+      //Deleting Previous Fee Balances Saved
+      mysqli_query($link, "DELETE FROM  `fee_balances`");
+
       //Update Balances in stu_fee_master_data
       foreach (array_keys($balance) as $id) {
         if (mysqli_num_rows(mysqli_query($link, "SELECT First_Name FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = 'School Fee'")) == 0) {
           continue;
         } else {
           $query5 = mysqli_query($link, "UPDATE `stu_fee_master_data` SET Last_Balance = '$balance[$id]' WHERE Id_No = '$id' AND Type = 'School Fee'");
+          if (in_array($id, $class_10)) {
+            $query6 = mysqli_query($link, "INSERT INTO `fee_balances` VALUES('','$id','School Fee','$balance[$id]')");
+          }
           if ($query5) {
             $balance_status = true;
           } else {
@@ -116,6 +126,7 @@ if (isset($_POST['Save'])) {
       $paid = array();
       $total = array();
       $balance = array();
+      $route_10 = array();
 
 
       //Queries
@@ -127,10 +138,13 @@ if (isset($_POST['Save'])) {
       }
 
       foreach ($routes as $route) {
-        $query2 = mysqli_query($link, "SELECT Id_No FROM `stu_fee_master_data` WHERE Route = '$route'");
+        $query2 = mysqli_query($link, "SELECT Id_No,Class FROM `stu_fee_master_data` WHERE Route = '$route'");
         $temp = array();
         while ($row2 = mysqli_fetch_assoc($query2)) {
           array_push($temp, $row2['Id_No']);
+          if($row2['Class'] == "10 CLASS"){
+            array_push($route_10, $row2['Id_No']);
+          }
         }
         $ids[$route] = $temp;
       }
@@ -181,6 +195,9 @@ if (isset($_POST['Save'])) {
           continue;
         } else {
           $query5 = mysqli_query($link, "UPDATE `stu_fee_master_data` SET Last_Balance = '$balance[$id]' WHERE Id_No = '$id' AND Type = 'Vehicle Fee'");
+          if (in_array($id, $route_10)) {
+            $query6 = mysqli_query($link, "INSERT INTO `fee_balances` VALUES('','$id','Vehicle Fee','$balance[$id]')");
+          }
           if ($query5) {
             $van_balance_status = true;
           } else {

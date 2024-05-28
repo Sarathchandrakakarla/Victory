@@ -30,7 +30,16 @@ if (isset($_POST['Ok'])) {
         if (str_contains(strtolower($class), "others") || str_contains(strtolower($class), "drop")) {
           $query3 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
           if (mysqli_num_rows($query3) == 0) {
-            echo "<script>alert('Student Not Found in Fee Master Data!')</script>";
+            $fee_save_query = mysqli_query($link,"SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
+            if(mysqli_num_rows($fee_save_query) != 0){
+              while($fee_row = mysqli_fetch_assoc($fee_save_query)){
+                $last = $fee_row['Balance'];
+                $committed = 0;
+                $total = (int)$last + (int)$committed;
+              }
+            } else{
+              echo "<script>alert('Student Not Found in Fee Master Data!')</script>";
+            }
           } else {
             while ($row4 = mysqli_fetch_assoc($query3)) {
               $route = $row4['Route'];
@@ -165,7 +174,7 @@ if (isset($_POST['add'])) {
     } else {
       $sql = "UPDATE `stu_fee_master_data` SET Class = '$class', Section = '$section', Street = '$village',Route = '$route', Last_Balance = '$last',Current_Balance = '$committed', Total = '$total' WHERE Id_No = '$id' AND Type = '$type'";
     }
-    if (mysqli_query($link, $sql)) {  
+    if (mysqli_query($link, $sql)) {
       echo "<script>alert('Fee Updated Successfully!!')</script>";
     } else {
       echo "<script>alert('Fee Updation Failed!!')</script>";
