@@ -245,6 +245,7 @@ error_reporting(0);
                             $exams = array();
                             $totals = array();
                             $temp_totals = array();
+                            $max_marks = array();
                             $class_type = $_SESSION['class_type'];
                             $class = $_SESSION['Class'];
                             echo "<script>document.getElementById('class').value = '" . $class . "';</script>";
@@ -270,6 +271,15 @@ error_reporting(0);
                             foreach ($_POST['exams'] as $exam) {
                                 array_push($exams, $exam);
                             }
+
+                            //Getting Max Marks of each exam
+                            $max_total = 0;
+                            foreach ($exams as $exam) {
+                                $max_query = mysqli_query($link, "SELECT * FROM `class_wise_examination` WHERE Class = '$class' AND Exam = '$exam'");
+                                while ($max_row = mysqli_fetch_assoc($max_query)) {
+                                    $max_total += (int)$max_row['Max_Marks'];
+                                }
+                            }
                             //Getting Student Total in each Exam
                             foreach ($ids as $id) {
                                 foreach ($exams as $exam) {
@@ -288,7 +298,10 @@ error_reporting(0);
                             foreach ($exams as $exam) {
                                 echo "<th>" . $exam . "</th>";
                             }
-                            echo '<th>Total</th>';
+                            echo '<th>Total</th>
+                            <th>Percentage</th>
+                            <th>Rank</th>
+                            ';
                             echo '
                                     </tr>
                                 </thead>
@@ -304,6 +317,8 @@ error_reporting(0);
                                 $temp_totals[$id] = (int)$sum;
                             }
                             arsort($temp_totals); //Sorting Based on Grand Totals
+                            $rank = 1;
+                            $t = array_values($temp_totals)[0];
                             $i = 1;
                             foreach (array_keys($temp_totals) as $id) {
                                 echo '
@@ -320,7 +335,14 @@ error_reporting(0);
                                 }
                                 echo '
                                         <td>' . $sum . '</td>
+                                        <td>' . round(((float)$sum / (float)$max_total) * 100,1) . '%</td>
                                         ';
+                                if ($sum != $t) {
+                                    $rank++;
+                                    $t = $sum;
+                                }
+                                echo '
+                                        <td>' . $rank . '</td>';
                                 echo '
                                 </tr>
                                 ';

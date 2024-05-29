@@ -1,12 +1,12 @@
 <?php
-include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
+    include_once('../../link.php');
+    session_start();
+    if (!$_SESSION['Admin_Id_No']) {
+        echo "<script>alert('Admin Id Not Rendered');
     location.replace('../admin_login.php');</script>";
-}
-error_reporting(0);
-?>
+    }
+    error_reporting(0);
+    ?>
 
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -259,6 +259,7 @@ error_reporting(0);
                                         echo "<th>Grade</th>
                                     <th>GPA</th>";
                                     }
+                                    echo "<th>Rank</th>";
 
                                     echo "</tr>";
                                     echo "</thead>";
@@ -278,6 +279,8 @@ error_reporting(0);
                                     }
 
                                     arsort($temp_total); //Sorting Based on Totals
+                                    $rank = 1;
+                                    $t = array_values($temp_total)[0];
 
                                     foreach (array_keys($temp_total) as $id) {
                                         $sql3 = mysqli_query($link, "SELECT * FROM `stu_marks` WHERE Id_No = '$id' AND Exam = '$exam'");
@@ -378,6 +381,11 @@ error_reporting(0);
                                             echo '<td style="text-align: center;">' . $grade . '</td>
                                         <td style="text-align: center;">' . $avg . '</td>';
                                         }
+                                        if ($details[$id]['Tot'] != $t) {
+                                            $rank++;
+                                            $t = $details[$id]['Tot'];
+                                        }
+                                        echo '<td style="text-align: center;">' . $rank . '</td>';
                                         echo '</tr>';
                                         $i++;
                                     }
@@ -396,7 +404,7 @@ error_reporting(0);
     </div>
     <iframe name="print_frame" width="0" height="0" frameborder="0" src="about:blank"></iframe>
 
-    <!-- Scripts --> 
+    <!-- Scripts -->
 
     <!-- Change labels -->
     <script type="text/javascript">
