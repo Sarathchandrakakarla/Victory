@@ -133,6 +133,7 @@ if (isset($_POST['add'])) {
                     }
                     $balance -= (int)$amount;
                     mysqli_query($link,"UPDATE `stu_fee_master_data` SET Last_Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
+                    mysqli_query($link,"UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
                 }
                 if (mysqli_query($link, $sql)) {
                     echo "<script>alert('Fee Inserted Successfully!!')</script>";
