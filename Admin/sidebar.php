@@ -151,6 +151,7 @@
                 <li><a href="/Victory/Admin/Admission/admission_entry.php">Admission Book Entry</a></li>
                 <li><a href="/Victory/Admin/Admission/admission_update.php">Admission Book Show/Modify</a></li>
                 <li><a href="/Victory/Admin/Admission/parent_letter.php">Parent Letter</a></li>
+                <li><a href="/Victory/Admin/Admission/study_certificate.php">Study Certificate</a></li>
             </ul>
         </li>
         <li>
