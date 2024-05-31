@@ -280,33 +280,33 @@ error_reporting(0);
                     $classes = formatClass($classes);
                 }
                 $text = "
-                <table width='100%' style='margin-top:1.9cm;font-family:Arial;'>
+                <table width='100%' style='margin-top:2cm;'>
                     <thead>
                         <tr>
-                            <th style='text-align:center;font-size:20px;'><span style='border:2px solid black;border-radius:10px;padding:5px;'>STUDY - CUM - BONAFIDE CERTIFICATE</span></th>
-                        </tr>
-                        <tr>
-                            <th style='font-size:18px;text-align:right;width:100%;padding-top:20px;padding-right:50px;'>Admn No. " . $adm_no . "</th>
+                            <th style='text-align:center;padding:5px;border:2px solid black;border-radius:10px;font-size:20px;'>STUDY - CUM - BONAFIDE CERTIFICATE</th>
+                            <th style='font-size:18px;'>Admn No. " . $adm_no . "</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td style='padding-top:20px;' colspan='2'>
-                                <p style='font-size:21px;line-height:30px;'>
+                                <p style='font-size:23px;line-height:30px;'>
                                     This is to certify that " . $name_prefix . " <u>" . $name . "</u><br/>
                                     " . $gender . " of Sri <u>" . $father_name . "</u><br/>
-                                    has studied in this school from <u>" . $classes . "</u> Class(es) during the period from <u> " . $years[0] . "</u> to <u> " . $years[1] . "</u>. During this period " . $pronoun . " conduct has been found <u>" . strtoupper($conduct) . "</u>. <br/><br/>
-                                    " . ucfirst($pronoun) . " Date of Birth as per our school records is <u>" . $dob . "</u> in words <u> " . DateToWords($dob) . " </u> ,  Caste:<u>" . $religion . " " . $caste . " (" . $category . ")</u>
+                                    has studied in this school from <u>" . $classes . "</u> Class(es) during the period from <u> " . $years[0] . "</u> to <u> " . $years[1] . "</u> during this period " . $pronoun . " conduct has been found <u>" . strtoupper($conduct) . "</u>. <br/><br/>
+                                    " . ucfirst($pronoun) . " Date of Birth as per our record is <u>" . $dob . "</u> inwords <u> " . DateToWords($dob) . " </u> ,  Caste:<u>" . $religion . " " . $category . " (" . $caste . ")</u>
                                 </p>
                             </td>
                         </tr>
                         <tr>
-                            <td style='padding-top:50px;'>
-                                Date: ".date('d-m-Y')."<br/>
-                                Place: Kodur.
-                                <span style='padding-left:400px;'>Signature of the Headmaster</span>
+                            <td style='padding-top:70px;'>
+                                Date: <br/>
+                                Place:
                             </td>
-                            <!--<td style='padding-top:75px;'></td>-->
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Signature of the Headmaster</td>
                         </tr>
                     </tbody>
                 </table>
