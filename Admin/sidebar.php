@@ -197,7 +197,6 @@
                 <li><a href="/Victory/Admin/Reports/class_wise_fee.php">Class Wise Fee Report</a></li>
                 <li><a href="/Victory/Admin/Fee/paid_details.php">Student Paid Details</a></li>
                 <li><a href="/Victory/Admin/Reports/class_wise_fee_balances.php">Class Wise Consolidated Fee</a></li>
-                <li><a href="/Victory/Admin/Reports/stu_fee_remarks_report.php">Student Fee Remarks Report</a></li>
             </ul>
         </li>
         <li>
