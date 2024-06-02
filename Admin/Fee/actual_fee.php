@@ -90,6 +90,7 @@ error_reporting(0);
                             <option value="Computer Fee">Computer Fee</option>
                             <option value="Admission Fee">Admission Fee</option>
                             <option value="Vehicle Fee">Vehicle Fee</option>
+                            <option value="Book Fee">Book Fee</option>
                         </select>
                     </div>
                 </div>

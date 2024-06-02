@@ -379,6 +379,11 @@ if (isset($_POST['add'])) {
                                                         } else {
                                                             echo "";
                                                         } ?>>Vehicle Fee</option>
+                            <option value="Book Fee" <?php if (isset($type) && $type == "Book Fee") {
+                                                            echo 'selected';
+                                                        } else {
+                                                            echo "";
+                                                        } ?>>Book Fee</option>
                         </select>
                     </div>
                     <div class="input-box">
