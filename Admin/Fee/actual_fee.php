@@ -41,7 +41,7 @@ error_reporting(0);
     }
 
     .wrapper {
-        height: 450px;
+        height: 550px;
     }
 
     .button1 {
@@ -78,11 +78,11 @@ error_reporting(0);
         <div class="wrapper">
             <div class="title"><span>Actual Fee Entry</span></div>
             <form action="" method="post" autocomplete="off">
-                <div class="row">
-                    <div class="col-lg-3">
+                <div class="row justify-content-center">
+                    <div class="col-lg-4">
                         <label for="Fee_type"><b>Fee Type:</b></label>
                     </div>
-                    <div class="col-lg-9">
+                    <div class="col-lg-6">
                         <select name="Fee_Type" class="form-select" id="fee_type">
                             <option value="selectfeetype" selected disabled>-- Select Fee Type --</option>
                             <option value="School Fee">School Fee</option>
@@ -95,52 +95,25 @@ error_reporting(0);
                     </div>
                 </div>
                 <div class="row justify-content-center" id="cls_row" hidden>
-                    <div class="p-2 col-lg-3 rounded">
+                    <div class="col-lg-4">
                         <label for="Route"><b>Class:</b></label>
                     </div>
                     <div class="p-2 col-lg-6 rounded">
                         <select class="form-select" name="Class" id="class" aria-label="Default select example">
                             <option selected disabled>-- Select Class --</option>
-                            <option value="PreKG" <?php if (isset($class)) {
-                                                        if ($class == "PreKG") {
-                                                            echo 'selected="selected"';
-                                                        } else {
-                                                            echo 'selected=""';
-                                                        }
-                                                    } ?>>PreKG</option>
-                            <option value="LKG" <?php if (isset($class)) {
-                                                    if ($class == "LKG") {
-                                                        echo 'selected="selected"';
-                                                    } else {
-                                                        echo 'selected=""';
-                                                    }
-                                                } ?>>LKG</option>
-                            <option value="UKG" <?php if (isset($class)) {
-                                                    if ($class == "UKG") {
-                                                        echo 'selected="selected"';
-                                                    } else {
-                                                        echo 'selected=""';
-                                                    }
-                                                } ?>>UKG</option>
+                            <option value="PreKG">PreKG</option>
+                            <option value="LKG">LKG</option>
+                            <option value="UKG">UKG</option>
                             <?php
                             for ($i = 1; $i <= 10; $i++) {
-                                echo "<option value='" . $i . " CLASS'";
-                                if (isset($classs)) {
-                                    if ($class == $i . ' CLASS') {
-                                        echo "selected='selected'";
-                                    } else {
-                                        echo 'selected=""';
-                                    }
-                                }
-                                echo ">" . $i . " CLASS</option>";
+                                echo "<option value='" . $i . " CLASS'>" . $i . " CLASS</option>";
                             }
-
                             ?>
                         </select>
                     </div>
                 </div>
                 <div class="row justify-content-center" id="route_row" hidden>
-                    <div class="p-2 col-lg-3 rounded">
+                    <div class="col-lg-4">
                         <label for="Route"><b>Route:</b></label>
                     </div>
                     <div class="p-2 col-lg-6 rounded">
@@ -155,20 +128,20 @@ error_reporting(0);
                         </select>
                     </div>
                 </div>
-                <div class="row" style="margin-top: 30px;">
-                    <div class="col-lg-4 text-center">
+                <div class="row justify-content-center" style="margin-top: 30px;">
+                    <div class="col-lg-4">
                         <label for="password_head" id="password_head"><b>Fee:</b></label>
                     </div>
-                    <div class="col-lg-4">
-                        <input type="number" id="fee" name="Fee" value="<?php if (isset($fee)) {
-                                                                            echo (int)$fee;
-                                                                        } ?>">
+                    <div class="col-lg-6">
+                        <input type="number" id="fee" name="Fee">
                     </div>
                 </div>
                 <div class="row button">
-                    <input type="submit" class="button1" name="insert" value="Insert">
-                    <input type="reset" class="button1" onclick="document.getElementById('cls_row').hidden='hidden';document.getElementById('route_row').hidden='hidden';" value="Clear">
-                    <input type="submit" class="button1" name="find" value="Find">
+                    <input type="submit" class="button1" name="Insert" value="Insert">
+                    <input type="reset" class="button1" onclick="document.getElementById('cls_row').hidden='hidden';document.getElementById('route_row').hidden='hidden';$('.wrapper').css('height','550px');" value="Clear">
+                    <input type="submit" class="button1" name="Find" value="Find">
+                    <input type="submit" class="button1" name="Update" value="Update">
+                    <input type="submit" class="button1" name="Delete" value="Delete" onclick="if(!confirm('Confirm to Delete Actual Fee?')){return false;}else{return true;}">
                 </div>
             </form>
         </div>
@@ -176,7 +149,8 @@ error_reporting(0);
 
     <?php
 
-    if (isset($_POST['insert'])) {
+    if (isset($_POST['Insert'])) {
+        echo "<script>$('.wrapper').css('height','600px');</script>";
         if ($_POST['Fee_Type']) {
             $type = $_POST['Fee_Type'];
             echo "<script>document.getElementById('fee_type').value = '" . $type . "'</script>";
@@ -236,19 +210,26 @@ error_reporting(0);
         } else {
             echo "<script>alert('Please Select Fee Type!')</script>";
         }
-    } else if (isset($_POST['find'])) {
+    } else if (isset($_POST['Find'])) {
+        echo "<script>$('.wrapper').css('height','600px');</script>";
         if (isset($_POST['Fee_Type'])) {
             $type = $_POST['Fee_Type'];
-            echo "<script>document.getElementById('class').value = '" . $type . "'</script>";
+            echo "<script>document.getElementById('fee_type').value = '" . $type . "'</script>";
             if ($type == "Vehicle Fee") {
                 echo "<script>document.getElementById('cls_row').hidden = 'hidden';
             document.getElementById('route_row').hidden = '';</script>";
                 if ($_POST['Route']) {
                     $route = $_POST['Route'];
-                    echo "<script>document.getElementById('class').value = '" . $route . "'</script>";
-                    $_SESSION['Type'] = $type;
-                    $_SESSION['Route'] = $route;
-                    echo "<script>location.replace('show_fee_page.php')</script>";
+                    echo "<script>document.getElementById('route').value = '" . $route . "'</script>";
+                    $query3 = mysqli_query($link, "SELECT * FROM `actual_fee` WHERE Route = '$route' AND Type = '$type'");
+                    if (mysqli_num_rows($query3) == 0) {
+                        echo "<script>alert('Data Not Available!')</script>";
+                    } else {
+                        while ($row3 = mysqli_fetch_assoc($query3)) {
+                            $fee = $row3['Fee'];
+                        }
+                        echo "<script>$('#fee').val(" . $fee . ");</script>";
+                    }
                 } else {
                     echo "<script>alert('Please Select Route!')</script>";
                 }
@@ -258,13 +239,111 @@ error_reporting(0);
                 if ($_POST['Class']) {
                     $class = $_POST['Class'];
                     echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
-                    $_SESSION['Type'] = $type;
-                    $_SESSION['Class'] = $class;
-                    echo "<script>location.replace('show_fee_page.php')</script>";
+                    $query3 = mysqli_query($link, "SELECT * FROM `actual_fee` WHERE Class = '$class' AND Type = '$type'");
+                    if (mysqli_num_rows($query3) == 0) {
+                        echo "<script>alert('Data Not Available!')</script>";
+                    } else {
+                        while ($row3 = mysqli_fetch_assoc($query3)) {
+                            $fee = $row3['Fee'];
+                        }
+                        echo "<script>$('#fee').val(" . $fee . ");</script>";
+                    }
                 } else {
                     echo "<script>alert('Please Select Class!')</script>";
                 }
             }
+        } else {
+            echo "<script>alert('Please Select Fee Type!');</script>";
+        }
+    } else if (isset($_POST['Update'])) {
+        echo "<script>$('.wrapper').css('height','600px');</script>";
+        if ($_POST['Fee_Type']) {
+            $type = $_POST['Fee_Type'];
+            echo "<script>document.getElementById('fee_type').value = '" . $type . "';</script>";
+            if ($type == "Vehicle Fee") {
+                echo "<script>document.getElementById('cls_row').hidden = 'hidden';
+            document.getElementById('route_row').hidden = '';</script>";
+                if ($_POST['Route']) {
+                    $route = $_POST['Route'];
+                    echo "<script>document.getElementById('route').value = '" . $route . "';</script>";
+                    if ($_POST['Fee']) {
+                        $fee = $_POST['Fee'];
+                        echo "<script>document.getElementById('fee').value = '" . $fee . "';</script>";
+                        if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `actual_fee` WHERE Route = '$route' AND Type = '$type'")) != 0) {
+                            $query2 = mysqli_query($link, "UPDATE `actual_fee` SET Fee = '$fee' WHERE Route = '$route' AND Type = '$type'");
+                            if ($query2) {
+                                echo "<script>alert('Fee Updated Successfully!')</script>";
+                            } else {
+                                echo "<script>alert('Fee Insertion Failed due to SQL Error')</script>";
+                            }
+                        } else {
+                            echo "<script>alert('Actual Fee not Found for this Route! Please Insert Route!')</script>";
+                        }
+                    } else {
+                        echo "<script>alert('Please Enter Fee!')</script>";
+                    }
+                } else {
+                    echo "<script>alert('Please Select Route!')</script>";
+                }
+            } else {
+                echo "<script>document.getElementById('cls_row').hidden = '';
+            document.getElementById('route_row').hidden = 'hidden';</script>";
+                if ($_POST['Class']) {
+                    $class = $_POST['Class'];
+                    echo "<script>document.getElementById('class').value = '" . $class . "';</script>";
+                    if ($_POST['Fee']) {
+                        $fee = $_POST['Fee'];
+                        echo "<script>document.getElementById('fee').value = '" . $fee . "';</script>";
+                        if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `actual_fee` WHERE Route = '$route' AND Type = '$type'")) != 0) {
+                            $query2 = mysqli_query($link, "UPDATE `actual_fee` SET Fee = '$fee' WHERE Class = '$class' AND Type = '$type'");
+                            if ($query2) {
+                                echo "<script>alert('Fee Updated Successfully!')</script>";
+                            } else {
+                                echo "<script>alert('Fee Insertion Failed due to SQL Error')</script>";
+                            }
+                        } else {
+                            echo "<script>alert('Actual Fee not Found for this Class! Please Insert Class!')</script>";
+                        }
+                    } else {
+                        echo "<script>alert('Please Enter Fee!')</script>";
+                    }
+                } else {
+                    echo "<script>alert('Please Select Class!')</script>";
+                }
+            }
+        } else {
+            echo "<script>alert('Please Select Fee Type!')</script>";
+        }
+    } else if (isset($_POST['Delete'])) {
+        if ($_POST['Fee_Type']) {
+            $type = $_POST['Fee_Type'];
+            if ($type == "Vehicle Fee") {
+                if ($_POST['Route']) {
+                    $route = $_POST['Route'];
+                    $query4 = mysqli_query($link, "DELETE FROM `actual_fee` WHERE Route = '$route' AND Type = '$type'");
+                    if ($query4) {
+                        echo "<script>alert('Fee Deleted Successfully!')</script>";
+                    } else {
+                        echo "<script>alert('Fee Deletion Failed due to SQL Error')</script>";
+                    }
+                } else {
+                    echo "<script>alert('Please Select Route!')</script>";
+                }
+            } else {
+                if ($_POST['Class']) {
+                    $class = $_POST['Class'];
+                    $query4 = mysqli_query($link, "DELETE FROM `actual_fee` WHERE Class = '$class' AND Type = '$type'");
+                    if ($query4) {
+                        echo "<script>alert('Fee Deleted Successfully!');</script>";
+                    } else {
+                        echo "<script>alert('Fee Deletion Failed due to SQL Error')</script>";
+                    }
+                } else {
+                    echo "<script>alert('Please Select Class!')</script>";
+                }
+            }
+        } else {
+            echo "<script>alert('Please Select Fee Type!')</script>";
         }
     }
 
@@ -274,6 +353,7 @@ error_reporting(0);
     <!-- Show/Hide Route -->
     <script type="text/javascript">
         $('#fee_type').on('change', function() {
+            $('.wrapper').css("height", "600px");
             type = document.getElementById('fee_type').value;
             cls = document.getElementById('cls_row');
             route = document.getElementById('route_row');
