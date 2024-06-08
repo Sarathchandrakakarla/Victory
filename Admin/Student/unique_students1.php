@@ -92,10 +92,6 @@ error_reporting(0);
             <input class="form-check-input" type="radio" name="stu_type" id="combined" value="Combined">
             <label class="form-check-label" for="combined">Combined Siblings and Unique</label>
           </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="stu_type" id="all_students" value="All_Students">
-            <label class="form-check-label" for="all_students">All Students</label>
-          </div>
         </div>
       </div>
       <div class="container">
@@ -267,13 +263,6 @@ error_reporting(0);
                 } else if ($type == "Combined") {
                   $current_ids = array_unique(array_merge($unique_ids, $sibling_ids));
                   $print_ids = $current_ids;
-                } else if ($type == "All_Students") {
-                  $current_ids = array_unique(array_merge($unique_ids, $sibling_ids));
-                  $print_ids = [];
-                  $all_students_sql = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Stu_Class IN ('PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS')");
-                  while ($all_students_row = mysqli_fetch_assoc($all_students_sql)) {
-                    $print_ids[] = $all_students_row['Id_No'];
-                  }
                 }
 
                 $i = 1;
