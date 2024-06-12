@@ -326,8 +326,13 @@ error_reporting(0);
                                             $temp = array();
                                             if (mysqli_num_rows($sql3) == 0) {
                                                 array_push($temp, 0);
-                                                array_push($temp, $actual);
-                                                array_push($temp, $actual);
+                                                if ($type == "Admission Fee") {
+                                                    array_push($temp, 0);
+                                                    array_push($temp, 0);
+                                                } else {
+                                                    array_push($temp, $actual);
+                                                    array_push($temp, $actual);
+                                                }
                                                 $fee[$id] = $temp;
                                                 $temp = array();
                                                 if ($type == "School Fee") {

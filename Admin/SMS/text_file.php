@@ -199,7 +199,7 @@ error_reporting(0);
                     }
                 }
             }
-            $phones = array_unique($phones);
+            //$phones = array_unique($phones);
             $final_flag = true;
         }
         if ($final_flag) {
