@@ -552,9 +552,9 @@ if (isset($_POST['Ok'])) {
                     });
                 }
             } else if (type == "collections") {
-                fee_type = document.getElementById('fee_type').innerHTML;
                 id_no = $(e).parent().siblings().eq(1).text();
                 bill_no = $(e).parent().siblings().eq(5).text();
+                fee_type = $(e).siblings().eq(0).text();
                 console.log(id_no, bill_no)
                 if (confirm('Confirm to Delete Collection ' + id_no + '  ' + bill_no + ' on ' + date + '?')) {
                     $.ajax({
