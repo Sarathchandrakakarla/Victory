@@ -93,6 +93,10 @@ error_reporting(0);
                         <input class="form-check-input" type="radio" name="add_by" id="route_wise" value="Route_Wise">
                         <label class="form-check-label" for="route_wise">Route Wise</label>
                     </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="add_by" id="id_wise" value="Id_Wise">
+                        <label class="form-check-label" for="id_wise">Id Wise</label>
+                    </div>
                 </div>
             </div>
             <div class="row justify-content-center mt-4" id="class_row">
@@ -137,6 +141,20 @@ error_reporting(0);
                     </select>
                 </div>
             </div>
+            <div class="row justify-content-center mt-4" id="id_row" hidden>
+                <div class="col-sm-1">
+                    <label for="">FROM:</label>
+                </div>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control" name="From_Id" id="from_id" oninput="this.value = this.value.toUpperCase();">
+                </div>
+                <div class="col-sm-1">
+                    <label for="">TO:</label>
+                </div>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control" name="To_Id" id="to_id" oninput="this.value = this.value.toUpperCase();">
+                </div>
+            </div>
             <div class="container">
                 <div class="row justify-content-center mt-3">
                     <div class="col-lg-3">
@@ -174,11 +192,11 @@ error_reporting(0);
                 <div class="col-lg-6">
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="Photo" id="wo_photo" checked value="Without_Photo">
-                        <label class="form-check-label" for="inlineRadio2">Without Photo</label>
+                        <label class="form-check-label" for="wo_photo">Without Photo</label>
                     </div>
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="Photo" id="w_photo" value="With_Photo">
-                        <label class="form-check-label" for="inlineRadio1">With Photo</label>
+                        <label class="form-check-label" for="w_photo">With Photo</label>
                     </div>
                 </div>
             </div>
@@ -289,10 +307,9 @@ error_reporting(0);
                             if ($_POST['Route']) {
                                 $route = $_POST['Route'];
                                 echo "<script>document.getElementById('route').value = '" . $route . "'</script>";
-                                if($route=="All_Routes"){
+                                if ($route == "All_Routes") {
                                     $sql = "All_Routes";
-                                }
-                                else{
+                                } else {
                                     echo "<script>document.getElementById('label').innerHTML = 'Route:';
                                     document.getElementById('txt_label').innerHTML = '" . $route . "';</script>";
                                     $sql = "SELECT * FROM `student_master_data` WHERE Van_Route LIKE '%$route%' AND (Stu_Class LIKE '%CLASS%' OR Stu_Class ='PreKG' OR Stu_Class ='LKG' OR Stu_Class ='UKG')";
@@ -302,15 +319,42 @@ error_reporting(0);
                                 $flag = false;
                                 echo "<script>alert('Please Select Route!')</script>";
                             }
+                        } else if ($search == "Id_Wise") {
+                            echo "<script>document.getElementById('id_wise').checked = true;</script>";
+                            echo "<script>
+                            if(document.getElementById('id_wise').checked){
+                                document.getElementById('class_row').hidden = 'hidden';
+                                document.getElementById('route_row').hidden = 'hidden';
+                                document.getElementById('id_row').hidden = '';
+                            }
+                            </script>";
+                            if ($_POST['From_Id']) {
+                                $from_id = $_POST['From_Id'];
+                                echo "<script>document.getElementById('from_id').value = '" . $from_id . "';</script>";
+                                if ($_POST['To_Id']) {
+                                    $to_id = $_POST['To_Id'];
+                                    echo "<script>document.getElementById('to_id').value = '" . $to_id . "';</script>";
+                                } else {
+                                    $to_query = mysqli_query($link, "SELECT Id_No FROM `student_master_data` ORDER BY S_No DESC LIMIT 1");
+                                    while ($to_row = mysqli_fetch_assoc($to_query)) {
+                                        $to_id = $to_row['Id_No'];      //Get Last Id No from student master data
+                                    }
+                                }
+                                $sql = "SELECT * FROM `student_master_data` WHERE Id_No BETWEEN '" . $from_id . "' AND '" . $to_id . "' ORDER BY Id_No";
+                                $flag = true;
+                            } else {
+                                $flag = false;
+                                echo "<script>alert('Please Enter From Id No!')</script>";
+                            }
                         }
                         if ($flag) {
                             $cols = array();
                             if (isset($_POST['columns'])) {
-                                if($_POST['select_all']) {
+                                if ($_POST['select_all']) {
                                     echo "<script>document.getElementById('select_all').checked = true;</script>";
                                 }
                                 foreach ($_POST["columns"] as $col) {
-                                    echo "<script>document.getElementById('".$col."').checked = true;</script>";
+                                    echo "<script>document.getElementById('" . $col . "').checked = true;</script>";
                                     array_push($cols, $col);
                                     echo "<script>
                                     $('.table-head').append('<th>" . $col . "</th>')
@@ -321,63 +365,61 @@ error_reporting(0);
                                     $('.table-head').append('<th>Stu Image</th>')
                                     </script>";
                                 }
-                                if($sql!="All_Routes"){
-                                  $result = mysqli_query($link, $sql);
-                                  $i = 1;
-                                  if (mysqli_num_rows($result) > 0) {
-                                    while ($row = mysqli_fetch_assoc($result)) {
-                                        echo '<tr style="padding: 5px;">
+                                if ($sql != "All_Routes") {
+                                    $result = mysqli_query($link, $sql);
+                                    $i = 1;
+                                    if (mysqli_num_rows($result) > 0) {
+                                        while ($row = mysqli_fetch_assoc($result)) {
+                                            echo '<tr style="padding: 5px;">
                                         <td>' . $i . '</td>';
-                                        foreach ($cols as $col) {
-                                            if($col == "Class_Section"){
-                                                echo '<td>' . $row['Stu_Class'] . ' ' . $row['Stu_Section'] . '</td>';
-                                            } else if($col == "S_Mobile"){
-                                                if (str_contains($row['Mobile'], ',')) {
-                                                    echo '<td>' . explode(',', $row['Mobile'], 2)[0] . '</td>';
-                                                } else if (str_contains($row['Mobile'], ' ')) {
-                                                    echo '<td>' . explode(' ', $row['Mobile'], 2)[0] . '</td>';
-                                                } else{
-                                                    echo '<td>' . $row['Mobile'] . '</td>';
+                                            foreach ($cols as $col) {
+                                                if ($col == "Class_Section") {
+                                                    echo '<td>' . $row['Stu_Class'] . ' ' . $row['Stu_Section'] . '</td>';
+                                                } else if ($col == "S_Mobile") {
+                                                    if (str_contains($row['Mobile'], ',')) {
+                                                        echo '<td>' . explode(',', $row['Mobile'], 2)[0] . '</td>';
+                                                    } else if (str_contains($row['Mobile'], ' ')) {
+                                                        echo '<td>' . explode(' ', $row['Mobile'], 2)[0] . '</td>';
+                                                    } else {
+                                                        echo '<td>' . $row['Mobile'] . '</td>';
+                                                    }
+                                                } else {
+                                                    echo '<td>' . $row[$col] . '</td>';
                                                 }
                                             }
-                                            else{
-                                             echo '<td>' . $row[$col] . '</td>';   
+                                            if ($photo == "With_Photo") {
+                                                echo '<td><img src = "../../Images/stu_img/' . $row['Id_No'] . '.jpg" class="rounded" width="100px" height="100px"';
                                             }
+                                            echo '</tr>';
+                                            $i++;
                                         }
-                                        if ($photo == "With_Photo") {
-                                            echo '<td><img src = "../../Images/stu_img/' . $row['Id_No'] . '.jpg" class="rounded" width="100px" height="100px"';
-                                        }
-                                        echo '</tr>';
-                                        $i++;
                                     }
-                                  }
-                                }
-                                else{
+                                } else {
                                     $routes = array();
-                                    $v_routes = mysqli_query($link,"SELECT Van_Route FROM `van_route`");
-                                    while($v_row = mysqli_fetch_assoc($v_routes)){
-                                        array_push($routes,$v_row['Van_Route']);
+                                    $v_routes = mysqli_query($link, "SELECT Van_Route FROM `van_route`");
+                                    while ($v_row = mysqli_fetch_assoc($v_routes)) {
+                                        array_push($routes, $v_row['Van_Route']);
                                     }
-                                    foreach($routes as $r){
+                                    foreach ($routes as $r) {
                                         $sql = "SELECT * FROM `student_master_data` WHERE Van_Route LIKE '%$r%' AND (Stu_Class LIKE '%CLASS%' OR Stu_Class ='PreKG' OR Stu_Class ='LKG' OR Stu_Class ='UKG')";
-                                        $result = mysqli_query($link,$sql);
+                                        $result = mysqli_query($link, $sql);
                                         echo '<tr>
                                                     <td style="font-size:20px;color:red" id="label">Route: </td>
-                                                    <td id="txt_label" style="font-size:20px;">'.$r.'</td>
+                                                    <td id="txt_label" style="font-size:20px;">' . $r . '</td>
                                         </tr>';
                                         echo '<script>document.getElementById("table-head").hidden = "hidden";</script>';
                                         echo '
                                             <tr style="padding: 5px;" class="table-head">
                                             <th>S.No</th>';
-                                            foreach ($cols as $col) {
-                                                    echo '<th>' . $col . '</th>';
-                                            }
+                                        foreach ($cols as $col) {
+                                            echo '<th>' . $col . '</th>';
+                                        }
                                         echo '</tr>
                                         ';
                                         $i = 1;
                                         if (mysqli_num_rows($result) > 0) {
                                             while ($row = mysqli_fetch_assoc($result)) {
-                                                
+
                                                 echo '<tr style="padding: 5px;">
                                                 <td>' . $i . '</td>';
                                                 foreach ($cols as $col) {
@@ -497,6 +539,7 @@ error_reporting(0);
         let inp_row = document.getElementById('inp_row');
         let route_row = document.getElementById('route_row');
         let cls_row = document.getElementById('class_row');
+        let id_row = document.getElementById('id_row');
         document.body.addEventListener('change', function(e) {
             let target = e.target;
             let message;
@@ -512,6 +555,9 @@ error_reporting(0);
                     if (!route_row.hidden) {
                         route_row.hidden = 'hidden';
                     }
+                    if (!id_row.hidden) {
+                        id_row.hidden = 'hidden';
+                    }
                     if (!result.hidden) {
                         result.hidden = 'hidden';
                     }
@@ -526,6 +572,9 @@ error_reporting(0);
                     }
                     if (!route_row.hidden) {
                         route_row.hidden = 'hidden';
+                    }
+                    if (!id_row.hidden) {
+                        id_row.hidden = 'hidden';
                     }
                     if (result.hidden) {
                         result.hidden = '';
@@ -544,10 +593,31 @@ error_reporting(0);
                     if (route_row.hidden) {
                         route_row.hidden = '';
                     }
+                    if (!id_row.hidden) {
+                        id_row.hidden = 'hidden';
+                    }
                     if (result.hidden) {
                         result.hidden = '';
                     } else if (!result.hidden) {
                         result.hidden = '';
+                    }
+                    break;
+                case 'id_wise':
+                    message = "Route: ";
+                    if (!cls_row.hidden) {
+                        cls_row.hidden = 'hidden';
+                    }
+                    if (!inp_row.hidden) {
+                        inp_row.hidden = 'hidden';
+                    }
+                    if (!route_row.hidden) {
+                        route_row.hidden = 'hidden';
+                    }
+                    if (id_row.hidden) {
+                        id_row.hidden = '';
+                    }
+                    if (!result.hidden) {
+                        result.hidden = 'hidden';
                     }
                     break;
                 default:
