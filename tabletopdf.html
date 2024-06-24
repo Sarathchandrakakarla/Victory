@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.min.js"></script>
+  </head>
+  <style>
+    .GFG h1 {
+        width: 100%;
+      color: green;
+    }
+  </style>
+  <body>
+    <div class="GFG">
+      <table border="1" style="width: 100%;">
+        <thead>
+            <th>S No</th>
+            <th>Name</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="text-align: right;">1</td>
+                <td>Sarath</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Chandra</td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <button id="btn">PDF MAKER</button>
+
+    <script>
+      let button = document.getElementById("btn");
+      button.addEventListener("click", function () {
+        let doc = new jsPDF();
+        let pdf = document.querySelector(".GFG");
+        doc.fromHTML(pdf);
+        doc.save("GFG.pdf");
+      });
+    </script>
+  </body>
+</html>

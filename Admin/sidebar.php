@@ -233,6 +233,7 @@
                 </li>
                 <li><a href="/Victory/Admin/SMS/absent.php">Student Absent</a></li>
                 <li><a href="/Victory/Admin/SMS/fee.php">Student Fee</a></li>
+                <li><a href="/Victory/Admin/SMS/marks.php">Student Marks</a></li>
                 <li><a href="/Victory/Admin/SMS/special.php">Special SMS</a></li>
                 <li><a href="/Victory/Admin/SMS/credentials.php">Credentials SMS</a></li>
                 <li><a href="/Victory/Admin/SMS/text_file.php">Phone Numbers Text File</a></li>
