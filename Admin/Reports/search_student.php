@@ -146,11 +146,7 @@ error_reporting(0);
                         }
                         $txtinp = $_POST['txtinp'];
                         echo "<script>document.getElementById('txtinp').value = '" . $txtinp . "'</script>";
-                        if ($search == "Mobile") {
-                            $sql = "SELECT * FROM `student_master_data`" . " WHERE " . $search . ' =' . " '$txtinp' ORDER BY Id_No DESC";
-                        } else{
-                            $sql = "SELECT * FROM `student_master_data`" . " WHERE " . $search . ' LIKE' . " '%$txtinp%' ORDER BY Id_No DESC";
-                        }
+                        $sql = "SELECT * FROM `student_master_data`" . " WHERE " . $search . ' LIKE' . " '%$txtinp%' ORDER BY Id_No DESC";
                         $result = mysqli_query($link, $sql);
                         $i = 1;
                         if (mysqli_num_rows($result) > 0) {

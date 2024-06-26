@@ -66,77 +66,48 @@ if (isset($_POST["update"])) {
   $doj = $j[2] . "-" . $j[1] . "-" . $j[0];
   //Siblings Arrangement
   $sibling_status = $_POST['Siblings'];
+  $siblings_update_status = true;
+  $update_sql = "UPDATE `student_master_data`
+        SET Adm_No = '$adm', First_Name = '$firstname', Sur_Name = '$surname', Father_Name = '$fathername', Mother_Name = '$mothername',
+         DOB = '$dob', Gender = '$gender', Mobile = '$mobile', Aadhar = '$aadhar', Stu_Class = '$class', Stu_Section = '$section',
+          Religion = '$religion', Caste = '$caste', Category = '$category', House_No = '$houseno', Area = '$area',
+          Village = '$village', DOJ = '$doj', Previous_School = '$previous', Referred_By = '$refer',";
+  if ($van == "") {
+    $update_sql .= " Van_Route = NULL,";
+  } else {
+    $update_sql .= " Van_Route = '$van',";
+  }
   if ($sibling_status == "Yes") {
     $no_of_siblings = $_POST['No_Of_Siblings'];
-    if ($_POST['Sib_Id_No']) {
+    if ($no_of_siblings == 0) {
+      $siblings_update_status = false;
+      echo "<script>alert('Siblings Should Not Be 0 if Siblings is Yes!')</script>";
+    }
+    if (isset($_POST['Sib_Id_No']) && $_POST['Sib_Id_No']) {
       $siblings = implode(',', $_POST['Sib_Id_No']);
-      $siblings_update_status = true;
-      foreach ($_POST['Sib_Id_No'] as $sibling) {
-        if ($sibling[0] == "") {
+      foreach ($_POST['Sib_Id_No'] as $sibling) {     //Checking if Sibling Id No is not entered(null)
+        if ($sibling == "") {
           echo "<script>alert('Please Enter All Siblings!')</script>";
           $siblings_update_status = false;
           break;
         }
       }
       if ($siblings_update_status) {
-        if (mysqli_query($link, "UPDATE `student_master_data`
-        SET Adm_No = '$adm', First_Name = '$firstname', Sur_Name = '$surname', Father_Name = '$fathername', Mother_Name = '$mothername',
-         DOB = '$dob', Gender = '$gender', Mobile = '$mobile', Aadhar = '$aadhar', Stu_Class = '$class', Stu_Section = '$section',
-          Religion = '$religion', Caste = '$caste', Category = '$category', House_No = '$houseno', Area = '$area',
-          Village = '$village', DOJ = '$doj', Previous_School = '$previous', Van_Route = '$van', Referred_By = '$refer',Siblings = '$siblings'
-        WHERE Id_No = '$id'")) {
-          if ($van != "") {
-            if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = 'Vehicle Fee'")) == 0) {
-              echo "<script>alert('Student Not Found in Fee Master Data!Please Insert Manually for Vehicle fee!')</script>";
-            } else {
-              $actual = '';
-              $actual_status = true;
-              if ($van != "Drop") {
-                $sql = mysqli_query($link, "SELECT Fee FROM `actual_fee` WHERE Type = 'Vehicle Fee' AND Route = '$van'");
-                if (mysqli_num_rows($sql) == 0) {
-                  echo "<script>alert('Actual Fee Not Available for " . $van . "')</script>";
-                  $actual_status = false;
-                } else {
-                  while ($row = mysqli_fetch_assoc($sql)) {
-                    $actual = $row['Fee'];
-                  }
-                }
-              }
-              if (!$actual_status) {
-                echo "<script>alert('Fee Master Data Updation Failed!')</script>";
-              } else {
-                if (mysqli_query($link, "UPDATE `stu_fee_master_data` SET First_Name = '$firstname', Class = '$class', Section = '$section'
-          ,Street = '$area',Actual = '$actual', Route = '$van' WHERE Id_No = '$id' AND Type = 'Vehicle Fee'")) {
-                  echo "<script>alert('Fee Master Data Updated Successfully')</script>";
-                }
-              }
-            }
-          }
-
-          echo
-          "
-                <script>
-                alert('Succesfully Updated');
-                </script>
-                ";
-        } else {
-          echo
-          "
-                <script>
-                alert('Updation Failed (SQL error)');
-                </script>
-                ";
-        }
+        $update_sql .= "Siblings = '$siblings' WHERE Id_No = '$id'";
       }
     }
   } else {
-
-    if (mysqli_query($link, "UPDATE `student_master_data`
-        SET Adm_No = '$adm', First_Name = '$firstname', Sur_Name = '$surname', Father_Name = '$fathername', Mother_Name = '$mothername',
-         DOB = '$dob', Gender = '$gender', Mobile = '$mobile', Aadhar = '$aadhar', Stu_Class = '$class', Stu_Section = '$section',
-          Religion = '$religion', Caste = '$caste', Category = '$category', House_No = '$houseno', Area = '$area',
-          Village = '$village', DOJ = '$doj', Previous_School = '$previous', Van_Route = '$van', Referred_By = '$refer',Siblings = NULL
-        WHERE Id_No = '$id'")) {
+    $update_sql .= "Siblings = NULL WHERE Id_No = '$id'";
+  }
+  if ($siblings_update_status && isset($update_sql)) {
+    if (mysqli_query($link, $update_sql)) {
+      if (str_contains(strtolower($class), "drop")) {
+        if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type IN ('School Fee','Vehicle Fee')")) != 0) {
+          if (mysqli_query($link, "UPDATE `stu_fee_master_data` SET Class = '$class',Section = '' WHERE Id_No = '$id' AND Type IN ('School Fee','Vehicle Fee')")) {
+            echo "<script>alert('Student Updated as Drop in Fee Master Data Successfully!')</script>";
+          }
+        }
+      }
       if ($van != "") {
         if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = 'Vehicle Fee'")) == 0) {
           echo "<script>alert('Student Not Found in Fee Master Data!Please Insert Manually for Vehicle fee!')</script>";
@@ -262,27 +233,47 @@ if (isset($_POST["update"])) {
         <div class="user-details main-section">
           <div class="input-box">
             <span class="details">Id No. <span class="required">*</span></span>
-            <input type="text" placeholder="Enter Id No" value="<?php echo $_SESSION['Stu_Id_No'] ?>" id="id_no" name="Stu_Id_No" oninput="this.value = this.value.toUpperCase()" readonly required />
+            <input type="text" placeholder="Enter Id No" value="<?php echo $_SESSION['Stu_Id_No']; ?>" id="id_no" name="Stu_Id_No" oninput="this.value = this.value.toUpperCase()" readonly required />
           </div>
           <div class="input-box">
             <span class="details">Admission No.</span>
-            <input type="text" placeholder="Enter Admission No" value="<?php echo $_SESSION['Stu_Adm_No'] ?>" name="Stu_Adm_No" />
+            <input type="text" placeholder="Enter Admission No" value="<?php if (isset($_POST['Stu_Adm_No'])) {
+                                                                          echo $_POST['Stu_Adm_No'];
+                                                                        } else {
+                                                                          echo $_SESSION['Stu_Adm_No'];
+                                                                        } ?>" name="Stu_Adm_No" />
           </div>
           <div class="input-box">
             <span class="details">Full Name <span class="required">*</span></span>
-            <input type="text" placeholder="Enter Fullname" value="<?php echo $_SESSION['First_Name'] ?>" name="First_Name" required />
+            <input type="text" placeholder="Enter Fullname" value="<?php if (isset($_POST['First_Name'])) {
+                                                                      echo $_POST['First_Name'];
+                                                                    } else {
+                                                                      echo $_SESSION['First_Name'];
+                                                                    } ?>" name="First_Name" required />
           </div>
           <div class="input-box">
             <span class="details">Surname</span>
-            <input type="text" placeholder="Enter Surname" value="<?php echo $_SESSION['Sur_Name'] ?>" name="Sur_Name" />
+            <input type="text" placeholder="Enter Surname" value="<?php if (isset($_POST['Sur_Name'])) {
+                                                                    echo $_POST['Sur_Name'];
+                                                                  } else {
+                                                                    echo $_SESSION['Sur_Name'];
+                                                                  } ?>" name="Sur_Name" />
           </div>
           <div class="input-box">
             <span class="details">Father Name</span>
-            <input type="text" placeholder="Enter Father Name" value="<?php echo $_SESSION['Father_Name'] ?>" name="Father_Name" />
+            <input type="text" placeholder="Enter Father Name" value="<?php if (isset($_POST['Father_Name'])) {
+                                                                        echo $_POST['Father_Name'];
+                                                                      } else {
+                                                                        echo $_SESSION['Father_Name'];
+                                                                      } ?>" name="Father_Name" />
           </div>
           <div class="input-box">
             <span class="details">Mother Name</span>
-            <input type="text" placeholder="Enter Mother Name" value="<?php echo $_SESSION['Mother_Name'] ?>" name="Mother_Name" />
+            <input type="text" placeholder="Enter Mother Name" value="<?php if (isset($_POST['Mother_Name'])) {
+                                                                        echo $_POST['Mother_Name'];
+                                                                      } else {
+                                                                        echo $_SESSION['Mother_Name'];
+                                                                      } ?>" name="Mother_Name" />
           </div>
           <div class="input-box">
             <span class="details">Class</span>
@@ -309,7 +300,9 @@ if (isset($_POST["update"])) {
             </select>
           </div>
           <div class="input-box">
-            <input type="text" placeholder="Enter Passed Out Class" id="pass_class" name="Pass_Class" />
+            <input type="text" placeholder="Enter Passed Out Class" id="pass_class" value="<?php if (isset($_POST['Pass_Class'])) {
+                                                                                              echo $_POST['Pass_Class'];
+                                                                                            } ?>" name="Pass_Class" />
           </div>
           <div class="input-box">
             <span class="required" style="font-size: 15px;"> For Passed Out - <u>OthersPassedout-23</u> <br> For Drop - <u>DROP-7-23/24</u></span>
@@ -317,34 +310,74 @@ if (isset($_POST["update"])) {
           <div class="gender-details">
             <span class="gender-title">Gender</span>
             <div class="category">
-              <input type="radio" value="Boy" id="boy" name="Gender" <?php echo ($_SESSION['Gender'] == 'Boy') ? 'checked' : '' ?> />
+              <input type="radio" value="Boy" id="boy" name="Gender" <?php if (isset($_POST['Gender']) && $_POST['Gender'] == "Boy") {
+                                                                        echo 'checked';
+                                                                      } else if ($_SESSION['Gender'] == "Boy") {
+                                                                        echo 'checked';
+                                                                      } else {
+                                                                        echo "";
+                                                                      } ?> />
               <span><label for="boy">Boy</label></span>
-              <input type="radio" value="Girl" id="girl" name="Gender" <?php echo ($_SESSION['Gender'] == 'Girl') ? 'checked' : '' ?> />
+              <input type="radio" value="Girl" id="girl" name="Gender" <?php if (isset($_POST['Gender']) && $_POST['Gender'] == "Girl") {
+                                                                          echo 'checked';
+                                                                        } else if ($_SESSION['Gender'] == "Girl") {
+                                                                          echo 'checked';
+                                                                        } else {
+                                                                          echo "";
+                                                                        } ?> />
               <span><label for="girl">Girl</label></span>
             </div>
           </div>
           <div class="input-box">
             <span class="details">Date Of Birth</span>
-            <input type="date" id="dob" name="DOB" />
+            <input type="date" id="dob" name="DOB" value="<?php if (isset($_POST['DOB'])) {
+                                                            echo $_POST['DOB'];
+                                                          } ?>" />
           </div>
           <div class="input-box">
             <span class="details">Mobile Number</span>
-            <input type="text" placeholder="Enter Mobile No." value="<?php echo $_SESSION['Mobile'] ?>" name="Mobile" />
+            <input type="text" placeholder="Enter Mobile No." value="<?php if (isset($_POST['Mobile'])) {
+                                                                        echo $_POST['Mobile'];
+                                                                      } else {
+                                                                        echo $_SESSION['Mobile'];
+                                                                      } ?>" name="Mobile" />
           </div>
           <div class="input-box">
             <span class="details">Aadhar Number</span>
-            <input type="text" placeholder="Enter Aadhar No." maxlength="12" value="<?php echo $_SESSION['Aadhar'] ?>" name="Aadhar" />
+            <input type="text" placeholder="Enter Aadhar No." maxlength="12" value="<?php if (isset($_POST['Aadhar'])) {
+                                                                                      echo $_POST['Aadhar'];
+                                                                                    } else {
+                                                                                      echo $_SESSION['Aadhar'];
+                                                                                    } ?>" name="Aadhar" />
           </div>
           <div class="gender-details">
             <span class="gender-title">Siblings</span>
             <div class="category">
-              <input type="radio" id="yes" value="Yes" name="Siblings" <?php echo ($_SESSION['Sibling_Status'] == 'Yes') ? 'checked' : '' ?> />
+              <input type="radio" id="yes" value="Yes" name="Siblings" <?php if ($sibling_status == "Yes") {
+                                                                          echo 'checked';
+                                                                        } else if (!isset($_POST['Siblings']) && $_SESSION['Sibling_Status'] == "Yes") {
+                                                                          echo 'checked';
+                                                                        } else {
+                                                                          echo "";
+                                                                        } ?> />
               <span><label for="yes">Yes</label></span>
-              <input type="radio" id="no" value="No" name="Siblings" <?php echo ($_SESSION['Sibling_Status'] == 'No') ? 'checked' : '' ?> />
+              <input type="radio" id="no" value="No" name="Siblings" <?php if (isset($_POST['Siblings']) && $_POST['Siblings'] == "No") {
+                                                                        echo 'checked';
+                                                                      } else if (!isset($_POST['Siblings']) && $_SESSION['Sibling_Status'] == "No") {
+                                                                        echo 'checked';
+                                                                      } else {
+                                                                        echo "";
+                                                                      } ?> />
               <span><label for="no">No</label></span>
             </div>
           </div>
-          <div class="input-box no_siblings" <?php echo ($_SESSION['Sibling_Status'] == 'Yes') ? '' : 'hidden' ?>><span>No. Of Siblings</span>
+          <div class="input-box no_siblings" <?php if (isset($_POST['Siblings']) && $_POST['Siblings'] == "Yes") {
+                                                echo '';
+                                              } else if (!isset($_POST['Siblings']) && $_SESSION['Sibling_Status'] == "Yes") {
+                                                echo '';
+                                              } else {
+                                                echo "hidden";
+                                              } ?>><span>No. Of Siblings</span>
             <div class="quantity">
               <span class="quantity__minus"><span>-</span></span>
               <input name="No_Of_Siblings" type="text" class="quantity__input no_of_siblings" value="0" readonly>
@@ -352,10 +385,37 @@ if (isset($_POST["update"])) {
             </div>
           </div>
         </div>
-        <div class="title siblings-title" <?php echo ($_SESSION['Sibling_Status'] == 'Yes') ? '' : 'hidden' ?>>Siblings Details</div>
+        <div class="title siblings-title" <?php if (isset($_POST['Siblings']) && $_POST['Siblings'] == "Yes") {
+                                            echo '';
+                                          } else if (!isset($_POST['Siblings']) && $_SESSION['Sibling_Status'] == "Yes") {
+                                            echo '';
+                                          } else {
+                                            echo "hidden";
+                                          } ?>>Siblings Details</div>
         <div class="user-details siblings-section">
           <?php
-          if ($_SESSION['Sibling_Status'] == "Yes") {
+          if (isset($_POST['Siblings']) && $_POST['Siblings'] == "Yes") {
+            $siblings = explode(',', $siblings);
+            echo "<script>document.querySelector('.no_of_siblings').value = '" . $no_of_siblings . "'</script>";
+            $classes = array();
+            if ($no_of_siblings != 0) {
+              foreach ($siblings as $sibling) {
+                $query1 = mysqli_query($link, "SELECT Stu_Class,Stu_Section FROM `student_master_data` WHERE Id_No = '$sibling'");
+                while ($row1 = mysqli_fetch_assoc($query1)) {
+                  $classes[$sibling] = $row1['Stu_Class'] . ' ' . $row1['Stu_Section'];
+                }
+                echo '
+              <div class="all_siblings input-box">
+                <span>Sibling Id No.</span>
+                <input type="text" placeholder="Enter Sibling Id No" id="id_no[]" name="Sib_Id_No[]" value = "' . $sibling . '" oninput="this.value = this.value.toUpperCase()"/>
+              </div>
+              <div class="all_siblings input-box">
+                <span>Sibling Class</span>
+                <input type="text" placeholder="Enter Sibling Class" value = "' . $classes[$sibling] . '" id="sib_class[]" name="Sib_Class[]" readonly/>
+              </div>';
+              }
+            }
+          } else if (!isset($_POST['Siblings']) && $_SESSION['Sibling_Status'] == "Yes") {
             $siblings = explode(',', $_SESSION['Siblings']);
             echo "<script>document.querySelector('.no_of_siblings').value = '" . count($siblings) . "'</script>";
             $classes = array();
@@ -367,11 +427,11 @@ if (isset($_POST["update"])) {
               echo '
               <div class="all_siblings input-box">
                 <span>Sibling Id No.</span>
-                <input type="text" placeholder="Enter Sibling Id No" id="id_no[]" name="Sib_Id_No[]" value = "' . $sibling . '" oninput="this.value = this.value.toUpperCase()"/>
+                <input type="text" placeholder="Enter Sibling Id No" class="sib_id_no" id="id_no[]" name="Sib_Id_No[]" value = "' . $sibling . '" oninput="this.value = this.value.toUpperCase()"/>
               </div>
               <div class="all_siblings input-box">
                 <span>Sibling Class</span>
-                <input type="text" placeholder="Enter Sibling Class" value = "' . $classes[$sibling] . '" id="sib_class[]" name="Sib_Class[]" readonly/>
+                <input type="text" placeholder="Enter Sibling Class" class="sib_class" value = "' . $classes[$sibling] . '" id="sib_class[]" name="Sib_Class[]" readonly/>
               </div>';
             }
           }
@@ -382,17 +442,39 @@ if (isset($_POST["update"])) {
           <div class="gender-details">
             <span class="gender-title">Religion</span>
             <div class="category">
-              <input type="radio" name="Religion" id="indian-hindu" value="Indian-Hindu" <?php echo (strcasecmp($_SESSION['Religion'], 'Indian-Hindu')) ? '' : 'checked' ?> />
+              <?php
+              ?>
+              <input type="radio" name="Religion" id="indian-hindu" value="Indian-Hindu" <?php if (isset($_POST['Religion']) && $_POST['Religion'] == "Indian-Hindu") {
+                                                                                            echo 'checked';
+                                                                                          } else if (!isset($_POST['Religion']) && strcasecmp($_SESSION['Religion'], 'Indian-Hindu') == 0) {
+                                                                                            echo "checked";
+                                                                                          } else {
+                                                                                            echo '';
+                                                                                          } ?> />
               <span><label for="indian-hindu">Indian-Hindu</label></span>
-              <input type="radio" name="Religion" id="indian-islam" value="Indian-Islam" <?php echo (strcasecmp($_SESSION['Religion'], 'Indian-Islam')) ? '' : 'checked' ?> />
+              <input type="radio" name="Religion" id="indian-islam" value="Indian-Islam" <?php if (isset($_POST['Religion']) && $_POST['Religion'] == "Indian-Islam") {
+                                                                                            echo 'checked';
+                                                                                          } else if (!isset($_POST['Religion']) && strcasecmp($_SESSION['Religion'], 'Indian-Islam') == 0) {
+                                                                                            echo "checked";
+                                                                                          } else {
+                                                                                          } ?> />
               <span><label for="indian-islam">Indian-islam</label></span>
-              <input type="radio" name="Religion" id="indian-christian" value="Indian-Christian" <?php echo (strcasecmp($_SESSION['Religion'], 'Indian-Christian')) ? '' : 'checked' ?> />
+              <input type="radio" name="Religion" id="indian-christian" value="Indian-Christian" <?php if (isset($_POST['Religion']) && $_POST['Religion'] == "Indian-Christian") {
+                                                                                                    echo 'checked';
+                                                                                                  } else if (!isset($_POST['Religion']) && strcasecmp($_SESSION['Religion'], 'Indian-Christian') == 0) {
+                                                                                                    echo "checked";
+                                                                                                  } else {
+                                                                                                  } ?> />
               <span><label for="indian-christian">Indian-Christian</label></span>
             </div>
           </div>
           <div class="input-box">
             <span class="details">Caste</span>
-            <input type="text" placeholder="Enter Caste" value="<?php echo $_SESSION['Caste'] ?>" name="Caste" />
+            <input type="text" placeholder="Enter Caste" value="<?php if (isset($_POST['Caste'])) {
+                                                                  echo $_POST['Caste'];
+                                                                } else {
+                                                                  echo $_SESSION['Caste'];
+                                                                } ?>" name="Caste" />
           </div>
           <div class="input-box">
             <span class="details">Category</span>
@@ -407,54 +489,81 @@ if (isset($_POST["update"])) {
           </div>
           <div class="input-box">
             <span class="details">House No.</span>
-            <input type="text" placeholder="Enter House No." value="<?php echo $_SESSION['House_No'] ?>" name="House_No" />
+            <input type="text" placeholder="Enter House No." value="<?php if (isset($_POST['House_No'])) {
+                                                                      echo $_POST['House_No'];
+                                                                    } else {
+                                                                      echo $_SESSION['House_No'];
+                                                                    } ?>" name="House_No" />
           </div>
           <div class="input-box">
             <span class="details">Area</span>
-            <input type="text" placeholder="Enter Area" value="<?php echo $_SESSION['Area'] ?>" name="Area" />
+            <input type="text" placeholder="Enter Area" value="<?php if (isset($_POST['Area'])) {
+                                                                  echo $_POST['Area'];
+                                                                } else {
+                                                                  echo $_SESSION['Area'];
+                                                                } ?>" name="Area" />
           </div>
           <div class="input-box">
             <span class="details">Village/Town</span>
-            <input type="text" placeholder="Enter Village" value="<?php echo $_SESSION['Village'] ?>" name="Village" />
+            <input type="text" placeholder="Enter Village" value="<?php if (isset($_POST['Village'])) {
+                                                                    echo $_POST['Village'];
+                                                                  } else {
+                                                                    echo $_SESSION['Village'];
+                                                                  } ?>" name="Village" />
           </div>
         </div>
         <div class="title">Other Details</div>
         <div class="user-details">
           <div class="input-box">
             <span class="details">Date of Join</span>
-            <input type="date" id="doj" name="DOJ" />
+            <input type="date" id="doj" name="DOJ" value="<?php if (isset($_POST['DOJ'])) {
+                                                            echo $_POST['DOJ'];
+                                                          } ?>" />
           </div>
           <div class="input-box">
             <span class="details">Previous School</span>
-            <input type="text" placeholder="Enter Previous School" value="<?php echo $_SESSION['Previous_School'] ?>" name="Previous_School" />
+            <input type="text" placeholder="Enter Previous School" value="<?php if (isset($_POST['Previous_School'])) {
+                                                                            echo $_POST['Previous_School'];
+                                                                          } else {
+                                                                            echo $_SESSION['Previous_School'];
+                                                                          } ?>" name="Previous_School" />
           </div>
           <div class="input-box">
             <span class="details">Van Route</span>
             <select class="form-control" name="Van_Route" id="van_route">
-              <option value="selectroute" selected disabled>-- Select Route --</option>
+              <option value="" <?php if (isset($_POST['Van_Route']) && $_POST['Van_Route'] == "") {
+                                  echo "selected";
+                                } ?>>-- Select Route --</option>
               <?php
               $van_sql = mysqli_query($link, "SELECT Van_Route FROM `van_route`");
               while ($van_row = mysqli_fetch_assoc($van_sql)) {
                 echo '<option value="' . $van_row['Van_Route'] . '"';
-                if ($_SESSION['Van_Route'] == $van_row['Van_Route']) {
+                if (isset($_POST['Van_Route']) && $_POST['Van_Route'] == $van_row['Van_Route']) {
+                  echo 'selected';
+                } else if ($_SESSION['Van_Route'] == $van_row['Van_Route']) {
                   echo 'selected';
                 }
                 echo '>' . $van_row['Van_Route'] . '</option>';
               }
               ?>
-              <option value="Drop" <?php if ($_SESSION['Van_Route'] == "Drop") {
+              <option value="Drop" <?php if (isset($_POST['Van_Route']) && $_POST['Van_Route'] == "Drop") {
+                                      echo 'selected';
+                                    } else if ($_SESSION['Van_Route'] == "Drop") {
                                       echo 'selected';
                                     } ?>>Drop</option>
             </select>
           </div>
           <div class="input-box">
             <span class="details">Referred By</span>
-            <input type="text" placeholder="Enter Referred By" value="<?php echo $_SESSION['Referred_By'] ?>" name="Referred_By" />
+            <input type="text" placeholder="Enter Referred By" value="<?php if (isset($_POST['Referred_By'])) {
+                                                                        echo $_POST['Referred_By'];
+                                                                      } else {
+                                                                        echo $_SESSION['Referred_By'];
+                                                                      } ?>" name="Referred_By" />
           </div>
         </div>
         <div class="button">
-          <input type="submit" name="update" value="Update" />
-          <input type="reset" value="Reset" />
+          <input type="submit" name="update" value="Update" onclick="return checkUpdate();" />
         </div>
       </form>
     </div>
@@ -466,9 +575,21 @@ if (isset($_POST["update"])) {
   <!-- Set Values of Class, Section, Category, DOB, DOJ -->
   <script type="text/javascript">
     $(document).ready(function() {
-      stuclass = '<?php echo $_SESSION['Stu_Class'] ?>';
-      stusection = '<?php echo $_SESSION['Stu_Section'] ?>';
-      category = '<?php echo $_SESSION['Category'] ?>';
+      stuclass = '<?php if (isset($class)) {
+                    echo $class;
+                  } else {
+                    echo $_SESSION['Stu_Class'];
+                  } ?>';
+      stusection = '<?php if (isset($section)) {
+                      echo $section;
+                    } else {
+                      echo $_SESSION['Stu_Section'];
+                    } ?>';
+      category = '<?php if (isset($_POST['Category'])) {
+                    echo $_POST['Category'];
+                  } else {
+                    echo $_SESSION['Category'];
+                  } ?>';
       var dob = '<?php echo $_SESSION['DOB'] ?>';
       date1 = dob.substring(0, 2);
       month1 = dob.substring(3, 5);
@@ -487,8 +608,12 @@ if (isset($_POST["update"])) {
         $('#section').find('option[value="' + stusection + '"]').attr('selected', 'selected');
       }
       $('#category').find('option[value="' + category + '"]').attr('selected', 'selected');
-      $('#dob').val(year1 + '-' + month1 + '-' + date1);
-      $('#doj').val('20' + year2 + '-' + month2 + '-' + date2);
+      <?php if (!isset($_POST['DOB'])) { ?>
+        $('#dob').val(year1 + '-' + month1 + '-' + date1);
+      <?php } ?>
+      <?php if (!isset($_POST['DOJ'])) { ?>
+        $('#doj').val('20' + year2 + '-' + month2 + '-' + date2);
+      <?php } ?>
     });
   </script>
 
@@ -496,7 +621,7 @@ if (isset($_POST["update"])) {
   <script type="text/javascript">
     function add_Ele(val) {
       if (val != '-1') {
-        sibling = '<div class="all_siblings input-box"><span>Sibling Id No.</span><input type="text" placeholder="Enter Sibling Id No" id="id_no[' + parseInt($('.no_of_siblings').val()) + ']" name="Sib_Id_No[]" oninput="this.value = this.value.toUpperCase()"/></div><div class="all_siblings input-box"><span>Sibling Class</span><input type="text" placeholder="Enter Sibling Class" id="sib_class[' + parseInt($('.no_of_siblings').val()) + ']" name="Sib_Class[]" readonly/></div>'
+        sibling = '<div class="all_siblings input-box"><span>Sibling Id No.</span><input type="text" placeholder="Enter Sibling Id No" class="sib_id_no" id="id_no[' + parseInt($('.no_of_siblings').val()) + ']" name="Sib_Id_No[]" oninput="this.value = this.value.toUpperCase()"/></div><div class="all_siblings input-box"><span>Sibling Class</span><input type="text" placeholder="Enter Sibling Class" class="sib_class" id="sib_class[' + parseInt($('.no_of_siblings').val()) + ']" name="Sib_Class[]" readonly/></div>'
         $('.siblings-section').append(sibling)
       } else {
         if ($('.no_of_siblings').val() > 1)
@@ -579,26 +704,52 @@ if (isset($_POST["update"])) {
         sib_class = "sib_class[" + e.target.id.split('[')[1].charAt(0) + "]"
         id_no = document.getElementById(e.target.id).value
         original_id = document.getElementById('id_no').value
-        if (id_no == original_id) {
-          alert('Sibling Id and Student Id are Same')
+        var flag = true;
+        document.querySelectorAll('.sib_id_no').forEach((ele) => {
+          if (ele.value == id_no && ele.id != e.target.id) {
+            flag = false;
+            return;
+          }
+        });
+        if (!flag) {
+          alert("Duplicate Siblings are Not Allowed!")
         } else {
-          $.ajax({
-            type: 'post',
-            url: 'temp.php',
-            data: {
-              Id_No: id_no,
-            },
-            success: function(data) {
-              if (data == "0") {
-                alert('No Student Found With ' + id_no)
-              } else {
-                document.getElementById(sib_class).value = data
+          if (id_no == original_id) {
+            alert('Sibling Id and Student Id are Same')
+          } else {
+            $.ajax({
+              type: 'post',
+              url: 'temp.php',
+              data: {
+                Id_No: id_no,
+              },
+              success: function(data) {
+                if (data == "0") {
+                  alert('No Student Found With ' + id_no)
+                } else {
+                  document.getElementById(sib_class).value = data
+                }
               }
-            }
-          });
+            });
+          }
         }
       }
     });
+  </script>
+
+  <!-- Validating Siblings Classes -->
+  <script>
+    function checkUpdate() {
+      let flag = true;
+      document.querySelectorAll('.sib_class').forEach((e) => {
+        if (e.value == "") {
+          alert('Invalid Siblings');
+          flag = false;
+          return;
+        }
+      })
+      return flag;
+    }
   </script>
 </body>
 

@@ -30,14 +30,14 @@ if (isset($_POST['Ok'])) {
         if (str_contains(strtolower($class), "others") || str_contains(strtolower($class), "drop")) {
           $query3 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
           if (mysqli_num_rows($query3) == 0) {
-            $fee_save_query = mysqli_query($link,"SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
-            if(mysqli_num_rows($fee_save_query) != 0){
-              while($fee_row = mysqli_fetch_assoc($fee_save_query)){
+            $fee_save_query = mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
+            if (mysqli_num_rows($fee_save_query) != 0) {
+              while ($fee_row = mysqli_fetch_assoc($fee_save_query)) {
                 $last = $fee_row['Balance'];
                 $committed = 0;
                 $total = (int)$last + (int)$committed;
               }
-            } else{
+            } else {
               echo "<script>alert('Student Not Found in Fee Master Data!')</script>";
             }
           } else {
@@ -152,33 +152,37 @@ if (isset($_POST['add'])) {
   if ($type == "Vehicle Fee") {
     $route = $_POST['Van_Route'];
   }
-  $sql1 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
-  if (mysqli_num_rows($sql1) == 0) {
-    if ($type != "Vehicle Fee") {
-      $sql = "INSERT INTO `stu_fee_master_data` VALUES ('','$id','$name','$class','$section','$village','$type','$actual','$last','$committed','$total','')";
+  if ($route != "") {
+    $sql1 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
+    if (mysqli_num_rows($sql1) == 0) {
+      if ($type != "Vehicle Fee") {
+        $sql = "INSERT INTO `stu_fee_master_data` VALUES ('','$id','$name','$class','$section','$village','$type','$actual','$last','$committed','$total','')";
+      } else {
+        $sql = "INSERT INTO `stu_fee_master_data` VALUES ('','$id','$name','$class','$section','$village','$type','$actual','$last','$committed','$total','$route')";
+      }
+      if (mysqli_query($link, $sql)) {
+        echo "<script>alert('Fee Inserted Successfully!!')</script>";
+      } else {
+        echo "<script>alert('Fee Insertion Failed!!')</script>";
+      }
     } else {
-      $sql = "INSERT INTO `stu_fee_master_data` VALUES ('','$id','$name','$class','$section','$village','$type','$actual','$last','$committed','$total','$route')";
-    }
-    if (mysqli_query($link, $sql)) {
-      echo "<script>alert('Fee Inserted Successfully!!')</script>";
-    } else {
-      echo "<script>alert('Fee Insertion Failed!!')</script>";
+      if ($pass_class != "") {
+        $class = $pass_class;
+        $section = "";
+      }
+      if ($type != "Vehicle Fee") {
+        $sql = "UPDATE `stu_fee_master_data` SET Class = '$class', Section = '$section', Street = '$village', Last_Balance = '$last',Current_Balance = '$committed', Total = '$total' WHERE Id_No = '$id' AND Type = '$type'";
+      } else {
+        $sql = "UPDATE `stu_fee_master_data` SET Class = '$class', Section = '$section', Street = '$village',Route = '$route', Last_Balance = '$last',Current_Balance = '$committed', Total = '$total' WHERE Id_No = '$id' AND Type = '$type'";
+      }
+      if (mysqli_query($link, $sql)) {
+        echo "<script>alert('Fee Updated Successfully!!')</script>";
+      } else {
+        echo "<script>alert('Fee Updation Failed!!')</script>";
+      }
     }
   } else {
-    if ($pass_class != "") {
-      $class = $pass_class;
-      $section = "";
-    }
-    if ($type != "Vehicle Fee") {
-      $sql = "UPDATE `stu_fee_master_data` SET Class = '$class', Section = '$section', Street = '$village', Last_Balance = '$last',Current_Balance = '$committed', Total = '$total' WHERE Id_No = '$id' AND Type = '$type'";
-    } else {
-      $sql = "UPDATE `stu_fee_master_data` SET Class = '$class', Section = '$section', Street = '$village',Route = '$route', Last_Balance = '$last',Current_Balance = '$committed', Total = '$total' WHERE Id_No = '$id' AND Type = '$type'";
-    }
-    if (mysqli_query($link, $sql)) {
-      echo "<script>alert('Fee Updated Successfully!!')</script>";
-    } else {
-      echo "<script>alert('Fee Updation Failed!!')</script>";
-    }
+    echo "<script>alert('Please Update Van Route in Student Details!')</script>";
   }
 }
 
@@ -421,10 +425,10 @@ if (isset($_POST['add'])) {
                                             echo "";
                                           } ?>>Vehicle Fee</option>
               <option value="Book Fee" <?php if (isset($type) && $type == "Book Fee") {
-                                            echo "selected";
-                                          } else {
-                                            echo "";
-                                          } ?>>Book Fee</option>
+                                          echo "selected";
+                                        } else {
+                                          echo "";
+                                        } ?>>Book Fee</option>
             </select>
           </div>
           <div class="input-box">
@@ -530,11 +534,11 @@ if (isset($_POST['add'])) {
                                                     } else {
                                                       echo '';
                                                     } ?>>
-              <option value="selectroute" <?php if (isset($route) && $route == "selectroute" && $type == "Vehicle Fee") {
-                                            echo "selected";
-                                          } else {
-                                            echo "";
-                                          } ?>>-- Select Route --</option>
+              <option value="" <?php if (isset($route) && $route == "" && $type == "Vehicle Fee") {
+                                  echo "selected";
+                                } else {
+                                  echo "";
+                                } ?>>-- Select Route --</option>
               <?php
               $query1 = mysqli_query($link, "SELECT * FROM `van_route`");
               while ($row1 = mysqli_fetch_assoc($query1)) {
