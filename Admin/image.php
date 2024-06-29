@@ -176,7 +176,7 @@ if (!$_SESSION['Admin_Id_No']) {
                 foreach ($new_file_name as $new_name) {
                     $filename = $new_name . ".jpg";
                     $location = "../Images/slides/" . $filename;
-                    if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
+                    if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {    
                         $i++;
                         $flag = true;
                     } else {

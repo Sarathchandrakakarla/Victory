@@ -138,7 +138,7 @@ error_reporting(0);
                 <div class="col-lg-3">
                     <button class="btn btn-primary" type="submit" name="show">Show</button>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" name="send" id="send" onclick="return false;">Send</button>
+                    <button class="btn btn-success" name="send" id="send" onclick="Send();return false;">Send</button>
                 </div>
             </div>
         </div>
@@ -401,37 +401,65 @@ error_reporting(0);
             }
         });
     </script>
-
-    <!-- Make PDF -->
-
-
-    <!-- Send SMS -->
     <script>
-        async function send(url) {
-            response = await fetch(url)
-        }
-        $('#send').on('click', () => {
-            absentees = []
-            $(".student:checked").each(function() {
-                absentees.push($(this).parent().siblings().eq(4).children().attr('href'));
-                //mywin = window.open($(this).parent().siblings().eq(4).children().attr('href'), '_blank')
-            });
-            if (absentees.length > 0) {
-                absentees.forEach((stu) => {
-                    //console.log(stu)
-                    send(stu)
-                    //mywin = window.open(stu, '_blank')
+        function Send() {
+            if ($(".student:checked").length != 0) {
+                document.querySelectorAll('.student:checked').forEach((s) => {
+                    mobile = s.value
+                    id = s.name.substring(8, s.name.length - 1)
+                    url = "https://victoryschools.in/Victory/Files/" + id + ".pdf";
+                    var apibody = {
+                        "from": "919133663334",
+                        "to": "91" + mobile,
+                        "type": "template",
+                        "message": {
+                            "templateid": "123456",
+                            "url": url
+                        }
+                    }
+                    /* if (placeholders.length != 0) {
+                        apibody.message["placeholders"] = placeholders
+                    } */
+                    /* fetch('https://wapi.wbbox.in/v2/wamessage/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': '1aa0a6ca-2ef7-11ef-ad4f-92672d2d0c2d',
+                        },
+                        body: JSON.stringify(apibody)
+                    }) */
                 })
-                alert('All SMS Sent Successfully!')
             } else {
                 alert('No Student Selected!')
             }
             /*
-            $('.sms_link').each(function() {
-                mywin = window.open($(this).attr('href'), '_blank')
-            });
-            */
-        });
+            details.forEach((student) => {
+                mobile = student[0]
+                placeholders = student[1]
+                var apibody = {
+                    "from": "919133663334",
+                    "to": "91" + mobile,
+                    "type": "template",
+                    "message": {
+                        "templateid": t_id.toString(),
+                    }
+                }
+                if (placeholders.length != 0) {
+                    apibody.message["placeholders"] = placeholders
+                }
+                if (file_url != "") {
+                    apibody.message["url"] = file_url
+                }
+                fetch('https://wapi.wbbox.in/v2/wamessage/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': '1aa0a6ca-2ef7-11ef-ad4f-92672d2d0c2d',
+                    },
+                    body: JSON.stringify(apibody)
+                })
+            }) */
+        }
     </script>
 </body>
 

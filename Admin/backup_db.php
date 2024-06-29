@@ -199,7 +199,7 @@ if (isset($_POST['Restore'])) {
             <div class="row justify-content-center mt-5">
                 <div class="col-lg-4">
                     <button class="btn btn-primary" type="submit" name="Backup">Backup Database</button>
-                    <button class="btn btn-success" type="submit" name="Restore">Restore Database</button>
+                    <button class="btn btn-success" type="submit" name="Restore" onclick="if(sql.value == ''){alert('Please Select Database File to Restore!');return false}else{return true;}">Restore Database</button>
                 </div>
             </div>
         </form>
