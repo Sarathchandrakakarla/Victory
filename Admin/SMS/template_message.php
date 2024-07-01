@@ -124,7 +124,7 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Get_Id") {
             <div class="row justify-content-center mt-3" id="media_row" hidden>
                 <div class="col-lg-2">File</div>
                 <div class="col-lg-3">
-                    <input type="file" class="form-control" name="File" accept=".jpeg,.png,.pdf,.mp4" id="file">
+                    <input type="file" class="form-control" name="File" accept=".jpg,.png,.pdf,.mp4" id="file">
                 </div>
             </div>
             <div class="container" id="alert_container" hidden>
@@ -142,41 +142,35 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Get_Id") {
                 <div class="col-lg-3">
                     <button type="submit" class="btn btn-primary" onclick="if(excel.value == ''){alert('Please Select Excel File!');return false;}else{return true;}" name="Upload">Upload Excel</button>
                     <button type="submit" class="btn btn-success" name="Send">Send</button>
-                    <button type="reset" class="btn btn-warning" onclick="media_row.hidden = 'hidden';alert_container.hidden = 'hidden';">Clear</button>
+                    <button type="reset" class="btn btn-warning" onclick="media_row.hidden = 'hidden';alert_container.hidden = 'hidden';send_alert_container.hidden = 'hidden';">Clear</button>
                 </div>
             </div>
         </form>
-        <script>
-            function Send(t_id, details, file_url = "") {
-                details = Object.entries(details)
-                details.forEach((student) => {
-                    mobile = student[0]
-                    placeholders = student[1]
-                    var apibody = {
-                        "from": "919133663334",
-                        "to": "91" + mobile,
-                        "type": "template",
-                        "message": {
-                            "templateid": t_id.toString(),
-                        }
-                    }
-                    if (placeholders.length != 0) {
-                        apibody.message["placeholders"] = placeholders
-                    }
-                    if (file_url != "") {
-                        apibody.message["url"] = file_url
-                    }
-                    fetch('https://wapi.wbbox.in/v2/wamessage/send', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'apikey': '1aa0a6ca-2ef7-11ef-ad4f-92672d2d0c2d',
-                        },
-                        body: JSON.stringify(apibody)
-                    })
-                })
-            }
-        </script>
+        <div class="container" id="send_alert_container" hidden>
+            <div class="row justify-content-center mt-4">
+                <div class="col-lg-4">
+                    <div class="alert alert-success d-flex align-items-center" role="alert">
+                        <div>
+                            Messages Sent Successfully!! <br>
+                            Total Messages: <span id="total"></span> <br>
+                            Sent Messages: <span id="sent"></span> <br>
+                            Failed Messages: <span id="failed"></span> <br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center mt-4" id="send_error_alert" hidden>
+                <div class="col-lg-4">
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <div>
+                            Sorry! Message could not sent be to these Mobile Numbers:<br>
+                            <span id="error_mobiles"></span> <br>
+                            Please Check these Mobile Numbers!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <?php
         if (isset($_POST['Upload'])) {
             $excel = $_FILES['Excel'];
@@ -213,6 +207,10 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Get_Id") {
                         $No_Of_Placeholders = $_POST['No_Of_Placeholders'];
                         echo "<script>document.getElementById('no_of_placeholders').value = '" . $No_Of_Placeholders . "'</script>";
                         $flag = true;
+                        if (!file_exists("../../Files/Message Files/excel.xlsx")) {
+                            echo "<script>alert('Excel File Not Found! Please Upload Excel File First then Try Again!');</script>";
+                            $flag = false;
+                        }
                         if ($_POST['T_Type'] == "With_File") {
                             echo "<script>with_file.checked = true;media_row.hidden = '';</script>";
                             if ($_FILES['File']) {
@@ -237,15 +235,80 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Get_Id") {
                             $details = [];
                             foreach ($reader as $key => $row) {
                                 if ($key == 0) continue;
+                                $details[$row[0]] = [];
                                 for ($i = 0; $i < $No_Of_Placeholders; $i++) {
                                     $details[$row[0]][] = $row[$i + 1];
                                 }
                             }
-                            if ($_FILES['File']) {
-                                echo "<script>Send(" . $T_Id . "," . json_encode($details) . ",'https://victoryschools.in/Victory/Files/Message Files/file." . $extension . "');</script>";
-                            } else {
-                                echo "<script>Send(" . $T_Id . "," . json_encode($details) . ");</script>";
+                            $ch = curl_init("https://wapi.wbbox.in/v2/wamessage/send");
+
+                            curl_setopt($ch, CURLOPT_POST, true);
+                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                                'Content-Type: application/json',
+                                'apikey: 1aa0a6ca-2ef7-11ef-ad4f-92672d2d0c2d'
+                            ));
+
+                            $send_count = 0;
+                            $failed_mobiles = [];
+                            foreach ($details as $mobile => $data) {
+                                if (trim($mobile) != "") {
+                                    $body = array(
+                                        "from" => "919133663334",
+                                        "to" => "",
+                                        "type" => "template",
+                                        "message" => array(
+                                            "templateid" => $T_Id
+                                        )
+                                    );
+                                    if ($_POST['T_Type'] == "With_File" && $_FILES['File']) {
+                                        $body['message']['url'] = "https://victoryschools.in/Victory/Files/Message Files/file." . $extension;
+                                    }
+                                    $body["to"] = "91" . trim($mobile);
+                                    foreach ($data as $placeholder) {
+                                        $body["message"]["placeholders"][] = $placeholder;
+                                    }
+                                    $data_string = json_encode($body);
+                                    curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+                                    $response = curl_exec($ch);
+                                    if (explode(":", explode(',', $response)[1])[1] != '"SUCCESS"' || explode(":", explode(',', $response)[0])[1] != '"200"') {
+                                        $failed_mobiles[] = $mobile;
+                                    } else {
+                                        $send_count++;
+                                    }
+                                }
                             }
+                            curl_close($ch);
+                            $failed_count = count($details) - $send_count;
+                            echo "
+                            <script>
+                                send_alert_container.hidden = '';
+                                total.innerHTML = '" . count($details) . "';
+                                sent.innerHTML = '" . $send_count . "';
+                                failed.innerHTML = '" . $failed_count . "';
+                            </script>
+                            ";
+                            if ($failed_count != 0) {
+                                echo "
+                                <script>
+                                    send_error_alert.hidden = '';
+                                    error_mobiles.innerHTML = '" . implode(',', $failed_mobiles) . "';
+                                </script>
+                                ";
+                            } else {
+                                echo "
+                                <script>
+                                    send_error_alert.hidden = 'hidden';
+                                    error_mobiles.innerHTML = '';
+                                </script>
+                                ";
+                            }
+                        } else {
+                            echo "
+                                <script>
+                                    send_alert_container.hidden = 'hidden';
+                                </script>
+                                ";
                         }
                     } else {
                         echo "<script>alert('Please Enter No Of Placeholders!');</script>";

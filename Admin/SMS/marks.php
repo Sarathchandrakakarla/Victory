@@ -319,7 +319,7 @@ error_reporting(0);
                                         </html>";
                                         require 'vendor/autoload.php';
                                         try {
-                                            $html2pdf = new Html2Pdf('L');
+                                            $html2pdf = new Html2Pdf($orientation = 'L',$format = 'C5');
                                             $html2pdf->writeHTML($html);
 
                                             if (!is_dir('../../Files/' . $class . " " . $section)) {
