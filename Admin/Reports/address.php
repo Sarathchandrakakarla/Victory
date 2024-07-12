@@ -97,6 +97,10 @@ error_reporting(0);
                         <input class="form-check-input" type="radio" name="add_by" id="id_wise" value="Id_Wise">
                         <label class="form-check-label" for="id_wise">Id Wise</label>
                     </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="add_by" id="droppers" value="Droppers">
+                        <label class="form-check-label" for="droppers">Droppers</label>
+                    </div>
                 </div>
             </div>
             <div class="row justify-content-center mt-4" id="class_row">
@@ -346,6 +350,25 @@ error_reporting(0);
                                 $flag = false;
                                 echo "<script>alert('Please Enter From Id No!')</script>";
                             }
+                        } else if ($search == "Droppers") {
+                            echo "<script>document.getElementById('droppers').checked = true;</script>";
+                            echo "<script>
+                            if(document.getElementById('droppers').checked){
+                                document.getElementById('class_row').hidden = 'hidden';
+                                document.getElementById('inp_row').hidden = '';
+                                document.getElementById('add_label').innerHTML = 'Drop Year:';
+                                txtinp.placeholder = 'Ex:(24/25)';
+                            }
+                            </script>";
+                            if ($_POST['txtinp']) {
+                                $year = $_POST['txtinp'];
+                                echo "<script>document.getElementById('txtinp').value = '" . $year . "';</script>";
+                                $sql = "SELECT * FROM `student_master_data` WHERE Stu_Class LIKE 'DROP%' AND Stu_Class LIKE '%$year'";
+                                $flag = true;
+                            } else {
+                                $flag = false;
+                                echo "<script>alert('Please Enter Drop Year!')</script>";
+                            }
                         }
                         if ($flag) {
                             $cols = array();
@@ -581,6 +604,7 @@ error_reporting(0);
                     } else if (!result.hidden) {
                         result.hidden = '';
                     }
+                    txtinp.placeholder = ""
                     break;
                 case 'route_wise':
                     message = "Route: ";
@@ -601,9 +625,10 @@ error_reporting(0);
                     } else if (!result.hidden) {
                         result.hidden = '';
                     }
+                    txtinp.placeholder = ""
                     break;
                 case 'id_wise':
-                    message = "Route: ";
+                    message = "";
                     if (!cls_row.hidden) {
                         cls_row.hidden = 'hidden';
                     }
@@ -619,12 +644,34 @@ error_reporting(0);
                     if (!result.hidden) {
                         result.hidden = 'hidden';
                     }
+                    txtinp.placeholder = ""
+                    break;
+                case 'droppers':
+                    message = "Drop Year: ";
+                    if (!cls_row.hidden) {
+                        cls_row.hidden = 'hidden';
+                    }
+                    if (inp_row.hidden) {
+                        inp_row.hidden = '';
+                    }
+                    if (!route_row.hidden) {
+                        route_row.hidden = 'hidden';
+                    }
+                    if (!id_row.hidden) {
+                        id_row.hidden = 'hidden';
+                    }
+                    if (result.hidden) {
+                        result.hidden = '';
+                    }
+                    txtinp.placeholder = "Ex:(24/25)"
                     break;
                 default:
                     if (result.innerHTML == "Area: ") {
                         message = "Area: ";
                     } else if (result.innerHTML == "Route: ") {
                         message = "Route: ";
+                    } else if (result.innerHTML == "Drop Year: ") {
+                        message = "Drop Year: ";
                     } else {
                         message = "";
                     }
