@@ -183,7 +183,7 @@ error_reporting(0);
                                 $subject_count = mysqli_num_rows($query3);
 
                                 $query4 = mysqli_query($link, "SELECT * FROM `stu_marks` WHERE Class = '$class' AND Section = '$section' AND Exam = '$exam'"); //Query to check whether marks of particular class,section and exam are available
-                                if (mysqli_num_rows($query4) != 0) {
+                                if (mysqli_num_rows($query4) == 0) {
                                     echo "<script>alert('Data Not Available')</script>";
                                 } else {
                                     while ($row1 = mysqli_fetch_assoc($query1)) {
@@ -211,7 +211,7 @@ error_reporting(0);
                                         } else {
                                             while ($row5 = mysqli_fetch_assoc($query5)) {
                                                 for ($sub = 1; $sub <= $subject_count; $sub++) {
-                                                    $details[$id]['Marks'][] = $row5['sub' . $sub];
+                                                    $details[$id]['Marks'][array_keys($subjects)[$sub-1]] = $row5['sub' . $sub];
                                                 }
                                                 $details[$id]['Total'] = (int)$row5['Total'];
                                             }
@@ -286,8 +286,6 @@ error_reporting(0);
                                             echo $e->getmessage();
                                         }
                                     }
-
-
                                     //Displaying the Fetched Data
 
                                     $i = 1;
