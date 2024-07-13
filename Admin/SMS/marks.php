@@ -71,23 +71,6 @@ error_reporting(0);
             display: block;
         }
     }
-
-    /* 
-    /* Student Marks Table
-    .marks-table {
-        width: 100%;
-        border: 2px solid black;
-    }
-
-    .marks-table thead {
-        background-color: grey;
-    }
-
-    .marks-table th,
-    .marks-table td {
-        text-align: center;
-        border: 2px solid black;
-    } */
 </style>
 
 <body class="bg-light">
@@ -163,7 +146,6 @@ error_reporting(0);
             <tbody id="tbody">
                 <?php
                 if (isset($_POST['show'])) {
-                    $class_type = $_POST['class_type'];
                     if ($_POST['Class']) {
                         $class = $_POST['Class'];
                         echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
@@ -257,69 +239,39 @@ error_reporting(0);
                                     //File Creation
 
                                     foreach ($details as $id => $data) {
-                                        $html = "<!DOCTYPE html>
+                                        $image = imagecreatefromjpeg("../../Files/Message Files/Academic Report Template.jpg");
+                                        $black = imagecolorallocate($image, 0, 0, 0);
+                                        imagettftext($image, 30, 0, 530, 495, $black, "../../Files/Message Files/fonts/timesbd.ttf", $data['Name']);
+                                        imagettftext($image, 30, 0, 1600, 495, $black, "../../Files/Message Files/fonts/timesbd.ttf", $class . " " . $section);
+                                        imagettftext($image, 30, 0, 530, 600, $black, "../../Files/Message Files/fonts/timesbd.ttf", $id);
+                                        imagettftext($image, 30, 0, 1950, 595, $black, "../../Files/Message Files/fonts/timesbd.ttf", $exam);
+                                        $height = 750;
+                                        foreach ($data['Marks'] as $subject => $marks) {
+                                            imagettftext($image, 30, 0, 250, $height, $black, "../../Files/Message Files/fonts/times.ttf", $subject);
+                                            imagettftext($image, 30, 0, 1100, $height, $black, "../../Files/Message Files/fonts/times.ttf", $subjects[$subject]);
+                                            imagettftext($image, 30, 0, 1900, $height, $black, "../../Files/Message Files/fonts/times.ttf", $marks);
+                                            $height += 60;
+                                        }
+                                        imagettftext($image, 30, 0, 200, 1430, $black, "../../Files/Message Files/fonts/timesbd.ttf", "Total           :");
+                                        imagettftext($image, 30, 0, 200, 1490, $black, "../../Files/Message Files/fonts/timesbd.ttf", "Percentage :");
+                                        imagettftext($image, 30, 0, 200, 1550, $black, "../../Files/Message Files/fonts/timesbd.ttf", "Grade         :");
+
+                                        imagettftext($image, 30, 0, 450, 1430, $black, "../../Files/Message Files/fonts/timesbd.ttf", $data['Total'] . "/" . $max_total);
+                                        imagettftext($image, 30, 0, 450, 1490, $black, "../../Files/Message Files/fonts/timesbd.ttf", $data['Percentage'] . "%");
+                                        imagettftext($image, 30, 0, 450, 1550, $black, "../../Files/Message Files/fonts/timesbd.ttf", $data['Grade']);
+                                        imagejpeg($image, '../../Files/Message Files/Report.jpg');
+                                        imagedestroy($image);
+                                        $html = "
+                                        <!DOCTYPE html>
                                         <html>
                                             <head></head>
-                                            <style>
-                                                /* Student Marks Table */
-                                                .marks-table {
-                                                    width: 100%;
-                                                }
-
-                                                .marks-table .header {
-                                                    font-weight:bold;
-                                                }
-
-                                                .marks-table td {
-                                                    text-align: center;
-                                                    width:20%;
-                                                }
-                                            </style>
-                                            <body>";
-                                        $html .= '
-                                        <h1 style="text-align:center;">Victory E.M. Schools, Kodur</h1>
-                                        <h3 style="text-align:center;">Progress Report</h3>
-                                        <p style="margin-left:50px;">
-                                        <strong>Student Name: ' . $data['Name'] . '</strong> <br/> <br/>
-                                        <strong>Class: ' . $class . ' ' . $section . '</strong> <br/> <br/>
-                                        <strong>Examination Name: ' . $exam . '</strong>
-                                        </p>
-                                        <table class="marks-table" style="width:100%;margin-top:50px;margin-left:100px;">
-                                            <tbody>
-                                                <tr class="header">
-                                                    <td style="border-width:2px 2px 2px 2px;border-color:black;border-style:solid;">S No.</td>
-                                                    <td style="border-width:2px 2px 2px 0;border-color:black;border-style:solid;">Subject</td>
-                                                    <td style="border-width:2px 2px 2px 0;border-color:black;border-style:solid;">Max Marks</td>
-                                                    <td style="border-width:2px 2px 2px 0;border-color:black;border-style:solid;">Obtained Marks</td>
-                                                </tr>';
-                                        $c = 1;
-                                        foreach ($data['Marks'] as $subject => $marks) {
-                                            $html .= '
-                                            <tr>
-                                                <td style="border-width:0 2px 2px 2px;border-color:black;border-style:solid;">' . $c . '</td>
-                                                <td style="border-width:0 2px 2px 0;border-color:black;border-style:solid;">' . $subject . '</td>
-                                                <td style="border-width:0 2px 2px 0;border-color:black;border-style:solid;">' . $subjects[$subject] . '</td>
-                                                <td style="border-width:0 2px 2px 0;border-color:black;border-style:solid;">' . $marks . '</td>
-                                            </tr>
-                                            ';
-                                            $c++;
-                                        }
-                                        $html .= '</tbody>
-                                        </table>
-                                        ';
-                                        $html .= '
-                                        <p style="margin-top:50px;margin-left:50px;">
-                                            <strong>Total Marks Obtained: ' . $data['Total'] . '/' . $max_total . '</strong> <br/> <br/>
-                                            <strong>Percentage: ' . $data['Percentage'] . '%</strong> <br/> <br/>
-                                            <strong>Grade: ' . $data['Grade'] . '</strong>
-                                        </p>
-                                        ';
-                                        $html .= "
+                                            <body>
+                                                <img src='../../Files/Message Files/Report.jpg' style='width:98%;'/>
                                             </body>
                                         </html>";
                                         require 'vendor/autoload.php';
                                         try {
-                                            $html2pdf = new Html2Pdf($orientation = 'L',$format = 'C5');
+                                            $html2pdf = new Html2Pdf($orientation = 'L', $format = 'C5');
                                             $html2pdf->writeHTML($html);
 
                                             if (!is_dir('../../Files/' . $class . " " . $section)) {
