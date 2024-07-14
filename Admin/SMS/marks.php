@@ -360,10 +360,11 @@ error_reporting(0);
                     url = "https://victoryschools.in/Victory/Files/" + id + ".pdf";
                     var apibody = {
                         "from": "919133663334",
-                        "to": "91" + mobile,
+                        //"to": "91" + mobile,
+                        "to": "919515744884",
                         "type": "template",
                         "message": {
-                            "templateid": "123456",
+                            "templateid": "328403",
                             "url": url
                         }
                     }

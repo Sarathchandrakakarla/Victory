@@ -64,7 +64,7 @@
                 <li><a href="/Victory/Admin/Reports/search_student.php">Search Student</a></li>
                 <li><a href="/Victory/Admin/Reports/address.php">Address</a></li>
                 <li><a href="/Victory/Admin/Reports/address_no_wise.php">Address Number Wise</a></li>
-                <li><a href="/Victory/Admin/Reports/route_wise_report.php">Route wise Report</a></li>
+                <li><a href="/Victory/Admin/Reports/route_wise_report.php">Van Routes List</a></li>
                 <li><a href="/Victory/Admin/Reports/strength.php">Strength Particulars</a></li>
                 <li><a href="/Victory/Admin/Reports/consolidated_route.php">Consolidated Route</a></li>
                 <li><a href="/Victory/Admin/Student/unique_students.php">Unique Parents List</a></li>
@@ -197,7 +197,7 @@
                 <li><a href="/Victory/Admin/Reports/class_wise_fee.php">Class Wise Fee Report</a></li>
                 <li><a href="/Victory/Admin/Fee/paid_details.php">Student Paid Details</a></li>
                 <li><a href="/Victory/Admin/Reports/class_wise_fee_balances.php">Class Wise Consolidated Fee</a></li>
-                <li><a href="/Victory/Admin/Fee/book_fee_entry.php">Book Fee Bulk Entry</a></li>
+                <li><a href="/Victory/Admin/Reports/excess_fee_report.php">Excess Fee Balance Report</a></li>
             </ul>
         </li>
         <li>

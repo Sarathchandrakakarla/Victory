@@ -219,7 +219,7 @@ error_reporting(0);
                     <th id="class_head">Class</th>
                     <th id="section_head">Section</th>
                     <th id="last_head" hidden>Last Year Balance</th>
-                    <th id="current_head" hidden>Current Balance</th>
+                    <th id="current_head" hidden>Current Fee</th>
                     <th id="total_head" hidden>Total</th>
                     <th id="paid_head" hidden>Paid</th>
                     <th id="school_bal_head">School Fee Balance</th>
