@@ -99,6 +99,21 @@
         <li>
             <div class="iocn-link">
                 <a href="#">
+                    <i class="bx bx-edit"></i>
+                    <span class="link_name">Homework</span>
+                </a>
+                <i class="bx bxs-chevron-down arrow"></i>
+            </div>
+            <ul class="sub-menu">
+                <li>
+                    <a class="link_name" href="#"><label for="">Homework</label></a>
+                </li>
+                <li><a href="/Victory/Admin/Homework/manage_homework.php">Manage Class Wise Homeworks</a></li>
+            </ul>
+        </li>
+        <li>
+            <div class="iocn-link">
+                <a href="#">
                     <i class="bx bx-user-check"></i>
                     <span class="link_name">Attendance</span>
                 </a>

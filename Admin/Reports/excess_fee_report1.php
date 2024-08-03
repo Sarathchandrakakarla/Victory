@@ -45,7 +45,7 @@ error_reporting(0);
     @media screen and (max-width:576px) {
         .container {
             width: 80%;
-            margin-left: 25%;
+            margin-left: 20%;
             overflow-x: scroll;
         }
     }
@@ -138,7 +138,6 @@ error_reporting(0);
                     <th>Committed Fee</th>
                     <th>Last Year Balance</th>
                     <th>Total</th>
-                    <th id="paid" hidden>Paid</th>
                     <th>Mobile Number</th>
                 </tr>
             </thead>
@@ -150,6 +149,7 @@ error_reporting(0);
                         echo "<script>" . strtolower($report_type) . ".checked = true;</script>";
                         $type = $_POST['Type'];
                         echo "<script>type.value='" . $type . "';</script>";
+                        $actuals = [];
                         $ids = [];
                         $fees = [];
                         if ($type != "Vehicle Fee") {
@@ -158,7 +158,11 @@ error_reporting(0);
                                 $classes[] = $i . " CLASS";
                             }
                             foreach ($classes as $class) {
-                                $query2 = mysqli_query($link, "SELECT Id_No FROM `student_master_data` WHERE Stu_Class = '$class'");
+                                $query1 = mysqli_query($link, "SELECT * FROM actual_fee WHERE Class = '$class' AND Type = '$type'");
+                                while ($row1 = mysqli_fetch_array($query1)) {
+                                    $actuals[$class] = $row1['Fee'];
+                                }
+                                $query2 = mysqli_query($link, "SELECT Id_No FROM student_master_data WHERE Stu_Class = '$class'");
                                 while ($row2 = mysqli_fetch_array($query2)) {
                                     $ids[] = $row2['Id_No'];
                                 }
@@ -170,6 +174,10 @@ error_reporting(0);
                                 $routes[] = $row1['Van_Route'];
                             }
                             foreach ($routes as $route) {
+                                $actual_query = mysqli_query($link, "SELECT * FROM actual_fee WHERE Route = '$route' AND Type = 'Vehicle Fee'");
+                                while ($actual_row = mysqli_fetch_array($actual_query)) {
+                                    $actuals[$route] = $actual_row['Fee'];
+                                }
                                 $query2 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Van_Route = '$route' AND ((Stu_Class LIKE '%CLASS%') OR (Stu_Class LIKE '%KG')) ORDER BY Id_No");
                                 while ($row2 = mysqli_fetch_assoc($query2)) {
                                     $ids[] = $row2['Id_No'];
@@ -177,7 +185,7 @@ error_reporting(0);
                             }
                         }
                         foreach ($ids as $id) {
-                            $query3 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Id_No = '$id'");
+                            $query3 = mysqli_query($link, "SELECT * FROM student_master_data WHERE Id_No = '$id'");
                             while ($row3 = mysqli_fetch_assoc($query3)) {
                                 $query4 = mysqli_query($link, "SELECT * FROM stu_fee_master_data WHERE Id_No = '" . $row3['Id_No'] . "' AND Type = '" . $type . "'");
                                 if (mysqli_num_rows($query4) == 0 && $type != "Book Fee") {
@@ -189,14 +197,18 @@ error_reporting(0);
                                         $paid += (int)$row5['Fee'];
                                     }
                                     while ($row4 = mysqli_fetch_array($query4)) {
-                                        if ($report_type == "Excess" && (int)$row4['Last_Balance'] != 0) {
-                                            $fees[$row3['Id_No']] = ["Name" => $row3['First_Name'], "Class" => $row3['Stu_Class'] . " " . $row3['Stu_Section'], "Committed" => $row4['Current_Balance'], "Previous" => $row4['Last_Balance'], "Total" => (int)$row4['Current_Balance'] + (int)$row4['Last_Balance'], "Paid" => $paid, "Mobile" => $row3['Mobile']];
-                                            if ($type == "Vehicle Fee") {
-                                                $fees[$row3['Id_No']]["Route"] = $row3['Van_Route'];
-                                            }
-                                        } else if ($report_type == "Not_Paid" && $paid == 0) {
+                                        $tot_bal = (int)$row4['Current_Balance'] + (int)$row4['Last_Balance'] - $paid;
+                                        if ($type != "Vehicle Fee") {
+                                            $actual = (int)$actuals[$row3['Stu_Class']];
+                                        } else {
+                                            $actual = (int)$actuals[$row3['Van_Route']];
+                                        }
+                                        if ($tot_bal > $actual && (int)$row4['Last_Balance'] != 0) {
                                             $fees[$row3['Id_No']] = ["Name" => $row3['First_Name'], "Class" => $row3['Stu_Class'] . " " . $row3['Stu_Section'], "Committed" => $row4['Current_Balance'], "Previous" => $row4['Last_Balance'], "Total" => (int)$row4['Current_Balance'] + (int)$row4['Last_Balance'], "Mobile" => $row3['Mobile']];
-                                            if ($type == "Vehicle Fee") {
+                                            if ($type != "Vehicle Fee") {
+                                                $fees[$row3['Id_No']]["Excess"] = $tot_bal - (int)$actuals[$row3['Stu_Class']];
+                                            } else {
+                                                $fees[$row3['Id_No']]["Excess"] = $tot_bal - (int)$actuals[$row3['Van_Route']];
                                                 $fees[$row3['Id_No']]["Route"] = $row3['Van_Route'];
                                             }
                                         }
@@ -207,15 +219,6 @@ error_reporting(0);
                         if ($type == "Vehicle Fee") {
                             echo '
                             <script>$("#headings").append("<th>Route</th>")</script>
-                            ';
-                        }
-                        if ($report_type == "Excess") {
-                            echo '
-                            <script>document.getElementById("paid").hidden = "";</script>
-                            ';
-                        } else{
-                            echo '
-                            <script>document.getElementById("paid").hidden = "hidden";</script>
                             ';
                         }
                         $i = 1;
@@ -229,20 +232,13 @@ error_reporting(0);
                                 <td>' . $details['Committed'] . '</td>
                                 <td>' . $details['Previous'] . '</td>
                                 <td>' . $details['Total'] . '</td>
-                                ';
-                            if ($report_type == "Excess") {
-                                echo '
-                                <td>' . $details['Paid'] . '</td>
-                                ';
-                            }
+                                <td>' . $details['Mobile'] . '</td>';
                             if ($type == "Vehicle Fee") {
                                 echo '
                                 <td>' . $details['Route'] . '</td>
                                 ';
                             }
-                            echo '
-                                <td>' . $details['Mobile'] . '</td>
-                            </tr>
+                            echo '</tr>
                             ';
                             $i++;
                         }

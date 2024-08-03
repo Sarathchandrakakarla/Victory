@@ -316,7 +316,8 @@ error_reporting(0);
                                 } else {
                                     echo "<script>document.getElementById('label').innerHTML = 'Route:';
                                     document.getElementById('txt_label').innerHTML = '" . $route . "';</script>";
-                                    $sql = "SELECT * FROM `student_master_data` WHERE Van_Route LIKE '%$route%' AND (Stu_Class LIKE '%CLASS%' OR Stu_Class ='PreKG' OR Stu_Class ='LKG' OR Stu_Class ='UKG')";
+                                    //$sql = "SELECT * FROM `student_master_data` WHERE Van_Route LIKE '%$route%' AND (Stu_Class LIKE '%CLASS%' OR Stu_Class ='PreKG' OR Stu_Class ='LKG' OR Stu_Class ='UKG')";
+                                    $sql = "SELECT * FROM `student_master_data` WHERE Van_Route = '$route' AND (Stu_Class LIKE '%CLASS%' OR Stu_Class ='PreKG' OR Stu_Class ='LKG' OR Stu_Class ='UKG')";
                                 }
                                 $flag = true;
                             } else {
@@ -411,7 +412,7 @@ error_reporting(0);
                                                 }
                                             }
                                             if ($photo == "With_Photo") {
-                                                echo '<td><img src = "../../Images/stu_img/' . $row['Id_No'] . '.jpg" class="rounded" width="100px" height="100px"';
+                                                echo '<td oncontextmenu="return false;"><img src = "../../Images/stu_img/' . $row['Id_No'] . '.jpg" class="rounded" width="100px" height="100px"';
                                             }
                                             echo '</tr>';
                                             $i++;
@@ -526,6 +527,8 @@ error_reporting(0);
             } else if (type == "Route_Wise") {
                 route = '<?php echo $route; ?>';
                 filename = route + '_Address';
+            } else if (type == "Id_Wise") {
+                filename = '<?php echo $from_id." To ".$to_id; ?>';
             }
             var downloadLink;
             var dataType = 'application/vnd.ms-excel';

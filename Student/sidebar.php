@@ -53,6 +53,12 @@
             </a>
         </li>
         <li>
+            <a href="/Victory/Student/homework.php">
+                <i class="bx bx-edit"></i>
+                <span class="link_name">Homeworks</span>
+            </a>
+        </li>
+        <li>
             <div class="iocn-link">
                 <a href="#">
                     <i class="bx bx-cog"></i>
