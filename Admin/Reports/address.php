@@ -412,7 +412,11 @@ error_reporting(0);
                                                 }
                                             }
                                             if ($photo == "With_Photo") {
-                                                echo '<td oncontextmenu="return false;"><img src = "../../Images/stu_img/' . $row['Id_No'] . '.jpg" class="rounded" width="100px" height="100px"';
+                                                if (file_exists("../../Images/stu_img/" . $row['Id_No'] . ".jpg")) {
+                                                    echo '<td oncontextmenu="return false;"><img src = "../../Images/stu_img/' . $row['Id_No'] . '.jpg" class="rounded" width="100px" height="100px"';
+                                                } else {
+                                                    echo '<td oncontextmenu="return false;"><img src = "../../Images/stu_img/not_photo.jpg" class="rounded" width="100px" height="100px"';
+                                                }
                                             }
                                             echo '</tr>';
                                             $i++;
@@ -447,10 +451,26 @@ error_reporting(0);
                                                 echo '<tr style="padding: 5px;">
                                                 <td>' . $i . '</td>';
                                                 foreach ($cols as $col) {
-                                                    echo '<td>' . $row[$col] . '</td>';
+                                                    if ($col == "Class_Section") {
+                                                        echo '<td>' . $row['Stu_Class'] . ' ' . $row['Stu_Section'] . '</td>';
+                                                    } else if ($col == "S_Mobile") {
+                                                        if (str_contains($row['Mobile'], ',')) {
+                                                            echo '<td>' . explode(',', $row['Mobile'], 2)[0] . '</td>';
+                                                        } else if (str_contains($row['Mobile'], ' ')) {
+                                                            echo '<td>' . explode(' ', $row['Mobile'], 2)[0] . '</td>';
+                                                        } else {
+                                                            echo '<td>' . $row['Mobile'] . '</td>';
+                                                        }
+                                                    } else {
+                                                        echo '<td>' . $row[$col] . '</td>';
+                                                    }
                                                 }
                                                 if ($photo == "With_Photo") {
-                                                    echo '<td><img src = "../../Images/stu_img/' . $row['Id_No'] . '.jpg" class="rounded" width="100px" height="100px"';
+                                                    if (file_exists("../../Images/stu_img/" . $row['Id_No'] . ".jpg")) {
+                                                        echo '<td oncontextmenu="return false;"><img src = "../../Images/stu_img/' . $row['Id_No'] . '.jpg" class="rounded" width="100px" height="100px"';
+                                                    } else {
+                                                        echo '<td oncontextmenu="return false;"><img src = "../../Images/stu_img/not_photo.jpg" class="rounded" width="100px" height="100px"';
+                                                    }
                                                 }
                                                 echo '</tr>';
                                                 $i++;
@@ -528,7 +548,7 @@ error_reporting(0);
                 route = '<?php echo $route; ?>';
                 filename = route + '_Address';
             } else if (type == "Id_Wise") {
-                filename = '<?php echo $from_id." To ".$to_id; ?>';
+                filename = '<?php echo $from_id . " To " . $to_id; ?>';
             }
             var downloadLink;
             var dataType = 'application/vnd.ms-excel';

@@ -32,11 +32,11 @@ error_reporting(0);
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </head>
 <style>
-  
   table tbody tr td img {
     border-radius: 10px;
   }
-  table{
+
+  table {
     margin-left: 4%;
   }
 
@@ -45,8 +45,9 @@ error_reporting(0);
       margin-left: 17%;
     }
   }
-  .bx-camera{
-      font-size:25px;
+
+  .bx-camera {
+    font-size: 25px;
   }
 
   #sign-out {
@@ -70,7 +71,17 @@ error_reporting(0);
         <tr>
           <th class="bg-secondary text-light">Id No.</th>
           <td width="100%"><?php echo $_SESSION['Stu_Id_No']; ?></td>
-          <td rowspan="3" colspan="2" align="center"><img src="/Victory/Images/stu_img/<?php echo $_SESSION['Stu_Id_No'] . ".jpg" ?>" alt="Student Image" width="100px"></td>
+          <?php
+          if (file_exists("../../Images/stu_img/" . $_SESSION['Stu_Id_No'] . ".jpg")) {
+          ?>
+            <td rowspan="3" colspan="2" align="center"><img src="/Victory/Images/stu_img/<?php echo $_SESSION['Stu_Id_No'] . ".jpg" ?>" alt="Student Image" width="100px"></td>
+          <?php
+          } else {
+          ?>
+            <td rowspan="3" colspan="2" align="center"><img src="/Victory/Images/stu_img/not_photo.jpg" alt="Student Image" width="100px"></td>
+          <?php
+          }
+          ?>
         </tr>
         <tr>
           <th class="bg-secondary text-light">Admission No.</th>
@@ -84,13 +95,31 @@ error_reporting(0);
           <th class="bg-secondary text-light">Surname</th>
           <td><?php echo $_SESSION['Sur_Name']; ?></td>
           <td rowspan="3">
+            <?php
+            if (file_exists("../../Images/parent_img_male/" . $_SESSION['Stu_Id_No'] . ".jpg")) {
+            ?>
               <img src="/Victory/Images/parent_img_male/<?php echo $_SESSION['Stu_Id_No'] . ".jpg" ?>" alt="Father Image" width="100px">
-              <!--
-              <label for="f_photo" class="bx bx-camera"></label>
-              <input type="file" accept="image/*" id="f_photo" capture="user" style="display:none;" />
-              -->
+            <?php
+            } else {
+            ?>
+              <img src="/Victory/Images/parent_img_male/not_photo.jpg" alt="Father Image" width="100px">
+            <?php
+            }
+            ?>
           </td>
-          <td rowspan="3"><img src="/Victory/Images/parent_img_female/<?php echo $_SESSION['Stu_Id_No'] . ".jpg" ?>" alt="Mother Image" width="100px"></td>
+          <td rowspan="3">
+            <?php
+            if (file_exists("../../Images/parent_img_female/" . $_SESSION['Stu_Id_No'] . ".jpg")) {
+            ?>
+              <img src="/Victory/Images/parent_img_female/<?php echo $_SESSION['Stu_Id_No'] . ".jpg" ?>" alt="Mother Image" width="100px">
+            <?php
+            } else {
+            ?>
+              <img src="/Victory/Images/parent_img_female/not_photo.jpg" alt="Mother Image" width="100px">
+            <?php
+            }
+            ?>
+          </td>
         </tr>
         <tr>
           <th class="bg-secondary text-light">Father Name</th>
