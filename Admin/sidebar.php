@@ -68,6 +68,7 @@
                 <li><a href="/Victory/Admin/Reports/strength.php">Strength Particulars</a></li>
                 <li><a href="/Victory/Admin/Reports/consolidated_route.php">Consolidated Route</a></li>
                 <li><a href="/Victory/Admin/Student/unique_students.php">Unique Parents List</a></li>
+                <li><a href="/Victory/Admin/Reports/images_missing.php">Missing Images Report</a></li>
             </ul>
         </li>
         <li>

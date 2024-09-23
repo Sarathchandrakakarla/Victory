@@ -145,7 +145,7 @@ if (isset($_POST['reset'])) {
                 <label for=""><b>Text:</b></label>
             </div>
             <div class="col-lg-4">
-                <input type="text" class="form-control" id="text" name="Text">
+                <input type="text" class="form-control" id="content" name="Text">
             </div>
         </div>
         <div class="row justify-content-center mt-3" id="file_row" hidden>
@@ -194,7 +194,7 @@ if (isset($_POST['reset'])) {
                 }
                 break;
             case 'link':
-                if (!inp_row.hidden) {
+                if (inp_row.hidden) {
                     inp_row.hidden = '';
                 }
                 if (!file_row.hidden) {
@@ -222,7 +222,23 @@ if (isset($_POST['reset'])) {
             text: ''
         },
         success: function(data) {
-            document.getElementById('text').value = data;
+            if(data.includes('<a href')){
+                let ele = document.createElement('div');
+                ele.innerHTML = data
+                let url = $(ele).children()[0].href;
+                let link_text = $(ele).children()[0].innerHTML;
+                if(!data.includes('download')){
+                    document.getElementById('link').checked = true;
+                    document.getElementById('content').value = url + ',' + link_text;
+                } else{
+                    document.getElementById('file').checked = true;
+                    inp_row.hidden = 'hidden';
+                    file_row.hidden = '';
+                    document.getElementById('file_text').value = link_text;
+                }
+            } else{
+                document.getElementById('content').value = data;
+            }
         }
     });
 </script>
