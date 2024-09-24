@@ -156,9 +156,9 @@ error_reporting(0);
 
                         //Queries
                         if ($att_by == "AM") {
-                            $query1 = mysqli_query($link, "SELECT Id_No FROM `attendance_daily` WHERE Date = '$date' AND AM = 'A'");
+                            $query1 = mysqli_query($link, "SELECT Id_No FROM `attendance_daily` WHERE Date = '$date' AND AM IN ('A','L')");
                         } else if ($att_by == "PM") {
-                            $query1 = mysqli_query($link, "SELECT Id_No FROM `attendance_daily` WHERE Date = '$date' AND PM = 'A'");
+                            $query1 = mysqli_query($link, "SELECT Id_No FROM `attendance_daily` WHERE Date = '$date' AND PM IN ('A','L')");
                         }
                         if ($query1) {
                             if (mysqli_num_rows($query1) != 0) {
