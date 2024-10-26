@@ -169,7 +169,7 @@ error_reporting(0);
                                         <td style="padding-left:5px;">' . $row['Stu_Name'] . '</td>
                                         <td style="padding-left:5px;">' . $class . ' ' . $section . '</td>
                                         <td style="padding-left:5px;padding-right:5px;">' . $row['Password'] . '</td>
-                                        <td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message='.$text.'&MobileNumbers='.$mobile.'&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobile . '</a></td>
+                                        <td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message='.$text.'&MobileNumbers=91'.$mobile.'&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobile . '</a></td>
                                         <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="'.$mobile.'"></td>
                                         </tr>';
                                         $i++;

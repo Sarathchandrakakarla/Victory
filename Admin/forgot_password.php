@@ -39,7 +39,7 @@ if (isset($_POST['Send'])) {
                 $_SESSION['OTP'] = $otp;
                 $text = "The OTP to reset your login pass word into Victory schools portal is :" . $otp . "-Victory schools,Kodur.";
                 $text = urlencode($text);
-                echo "<a href='https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=" . $text . "&MobileNumbers=".$mobile."&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com' style='display:none;' class='sms_link'>otp</a>";
+                echo "<a href='https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=" . $text . "&MobileNumbers=91".$mobile."&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com' style='display:none;' class='sms_link'>otp</a>";
                 echo "
                 <script>
                 mywin = window.open(document.querySelector('.sms_link').href, '_blank')

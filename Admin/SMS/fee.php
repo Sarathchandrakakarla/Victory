@@ -296,7 +296,7 @@ error_reporting(0);
                                             <td>' . $names[$id] . '</td>
                                             <td>' . $balances[$id] . '</td>
                                             <td><a
-                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
+                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
                                         </a></td>
                                         <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
                                             </tr>

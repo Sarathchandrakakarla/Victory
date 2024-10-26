@@ -202,7 +202,7 @@ error_reporting(0);
                                         <td>' . $id . '</td>
                                         <td>' . $details[$id][0] . '</td>
                                         <td>' . $details[$id][2] . '</td>
-                                        <td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers='.$details[$id][1].'&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $details[$id][1] . '</a></td>
+                                        <td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91'.$details[$id][1].'&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $details[$id][1] . '</a></td>
                                         <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="'.$details[$id][1].'"></td>
                                         </tr>';
                                         $i++;

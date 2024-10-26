@@ -312,7 +312,7 @@ error_reporting(0);
                                     <td>' . $i . '</td>
                                     <td>' . $id . '</td>
                                     <td>' . $mobiles[$id][0] . '</td>
-                                    <td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $details[$id][1] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id][1] . '</a></td>
+                                    <td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $details[$id][1] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id][1] . '</a></td>
                                     <td><input type="checkbox" class="person" id="person" name="person[' . $id . ']" value="' . $details[$id][1] . '"></td>
                                     </tr>
                                     ';
