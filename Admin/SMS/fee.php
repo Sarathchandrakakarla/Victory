@@ -247,9 +247,9 @@ error_reporting(0);
                                             array_push($ids, $row1['Id_No']);
                                             $names[$row1['Id_No']] = $row1['First_Name'];
                                             if (str_contains($row1['Mobile'], ',')) {
-                                                $mobiles[$row1['Id_No']] = explode(',', $row1['Mobile'], 2)[0];
+                                                $mobiles[$row1['Id_No']] = "91".explode(',', $row1['Mobile'], 2)[0];
                                             } else {
-                                                $mobiles[$row1['Id_No']] = $row1['Mobile'];
+                                                $mobiles[$row1['Id_No']] = "91".$row1['Mobile'];
                                             }
                                             if ($row1['Route'] != '' && $row1['Route'] != NULL && $row1['Route'] != '0' && $row1['Route'] != 'Drop') {
                                                 if (mysqli_num_rows(mysqli_query($link, "SELECT First_Name FROM `stu_fee_master_data` WHERE Id_No='" . $row1['Id_No'] . "' AND Type='Vehicle Fee'")) == 0) {
@@ -379,7 +379,7 @@ error_reporting(0);
                                             <td>' . $names[$id] . '</td>
                                             <td>' . $balances[$id] . '</td>
                                             <td><a
-                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
+                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
                                         </a></td>
                                         <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
                                             </tr>
