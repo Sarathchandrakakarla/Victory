@@ -38,6 +38,8 @@
     body {
       background-image: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%);
       height: 1800px;
+      display: flex;
+      flex-direction: column;
     }
     #body_heading {
       margin-top: 20px;
@@ -96,9 +98,29 @@
       }
     }
 
+    @media screen and (min-width: 1000px) {
+      .map{
+        margin-left: 15% !important;
+      }
+    }
+
+    @media screen and (min-width: 576px) and (max-width: 990px) {
+      .container {
+        margin-left: 25%;
+      }
+      .map{
+          margin-left:-30px !important;
+      }
+      .row {
+        gap: 270px;
+      }
+      #map_frame {
+        width: 90vw;
+      }
+    }
+
     /* Footer */
     footer {
-      position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
@@ -246,7 +268,7 @@
       </div>
     </div>
     <div class="container con-2">
-      <div class="row m-4">
+      <div class="row m-2">
         <div class="card" style="width: 19rem; height: 19rem">
           <img src="Images/hm.jpg" class="card-img-top" alt="..." />
           <div class="card-body">
