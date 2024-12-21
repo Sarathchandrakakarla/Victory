@@ -93,7 +93,7 @@ if (!$_SESSION['Admin_Id_No']) {
                 </div>
                 <div class="row">
                     <i class="fas fa-user"></i>
-                    <input type="text" placeholder="User Name" name="UserName" id="username" oninput="this.value = this.value.toUpperCase()" required>
+                    <input type="text" placeholder="User Name" name="Username" id="username" oninput="this.value = this.value.toUpperCase()" required>
                 </div>
                 <div class="row">
                     <i class="fas fa-user"></i>
@@ -129,7 +129,7 @@ if (!$_SESSION['Admin_Id_No']) {
         return $data;
     }
     if (isset($_POST['Add'])) {
-        $uid = validate($_POST['UserName']);
+        $uid = validate($_POST['Username']);
         $name = validate($_POST['Full_Name']);
         $password = validate($_POST['Password']);
         $c_password = validate($_POST['C_Password']);
@@ -220,7 +220,7 @@ if (!$_SESSION['Admin_Id_No']) {
     }
 
     if (isset($_POST['Update'])) {
-        $uid = validate($_POST['UserName']);
+        $uid = validate($_POST['Username']);
         $name = validate($_POST['Full_Name']);
         $password = validate($_POST['Password']);
         $c_password = validate($_POST['C_Password']);
@@ -312,7 +312,7 @@ if (!$_SESSION['Admin_Id_No']) {
 
     if (isset($_POST['Delete'])) {
         $type = strtolower($_POST['User']);
-        $uid = validate($_POST['UserName']);
+        $uid = validate($_POST['Username']);
 
         //Check if User Already Exists
         $check_sql = mysqli_query($link, "SELECT * FROM `$type` WHERE Id_No = '$uid' ");
