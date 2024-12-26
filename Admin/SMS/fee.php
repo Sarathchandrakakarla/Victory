@@ -33,7 +33,7 @@ error_reporting(0);
     }
 
     .table-container {
-        max-width: 700px;
+        max-width: 1000px;
         max-height: 500px;
         overflow-x: scroll;
     }
@@ -78,6 +78,18 @@ error_reporting(0);
     <form action="" method="POST">
         <div class="container">
             <div class="row justify-content-center mt-5">
+                <div class="col-lg-3">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="sms_type" id="class_wise" checked value="Class_Wise">
+                        <label class="form-check-label" for="class_wise">Class/Route Wise</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="sms_type" id="all_students" value="All_Students">
+                        <label class="form-check-label" for="all_students">All Students</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center mt-2">
                 <label for="add_by" class="col-sm-2 col-form-label">Type of Fee: </label>
                 <div class="p-2 col-lg-3 rounded">
                     <select class="form-select" name="Type" id="type" aria-label="Default select example">
@@ -198,6 +210,7 @@ error_reporting(0);
                 <th>S.No</th>
                 <th>Id No.</th>
                 <th>Name</th>
+                <th id="label" hidden>Class</th>
                 <th>Balance</th>
                 <th>SMS Link</th>
                 <th>Action <span style="margin:5px;"></span><input type="checkbox" id="select_all" onclick="toggle(this)">Select All</th>
@@ -225,9 +238,11 @@ error_reporting(0);
 
                         $amount = $_POST['Amount'];
                         $date = $_POST['Date'];
-                        echo "<script>document.getElementById('amount').value = '" . $amount . "';
+                        $sms_type = $_POST['sms_type'];
+                        echo "<script>
+                                document.getElementById('" . strtolower($sms_type) . "').checked = true;
+                                document.getElementById('amount').value = '" . $amount . "';
                                 document.getElementById('date').value = '" . $date . "'</script>";
-
                         if ($_POST['Type']) {
                             $type = $_POST['Type'];
                             echo "<script>document.getElementById('type').value = '" . $type . "'</script>";
@@ -236,20 +251,107 @@ error_reporting(0);
                                 document.getElementById('class_row').hidden = 'hidden';
                                 document.getElementById('route_row').hidden = '';
                                 </script>";
-                                if ($_POST['Route']) {
-                                    $route = $_POST['Route'];
-                                    echo "<script>document.getElementById('route').value = '" . $route . "'</script>";
-                                    if ($amount > $max_fee[$route]) {
-                                        echo "<script>alert('Sorry! Maximum fee limit exceeded for this route.')</script>";
-                                    } else {
+                                if ($sms_type == "All_Students") {
+                                    echo "<script>
+                                        document.getElementById('class_row').hidden = 'hidden';
+                                        document.getElementById('route_row').hidden = 'hidden';
+                                        document.getElementById('label').hidden = '';
+                                        document.getElementById('label').innerHTML = 'Route';
+                                    </script>";
+                                    $routes = [];
+                                    $sql = mysqli_query($link, "SELECT * FROM `van_route`");
+                                    while ($van_row = mysqli_fetch_assoc($sql)) {
+                                        $routes[] = $van_row['Van_Route'];
+                                    }
+                                    $i = 1;
+                                    foreach ($routes as $route) {
+                                        $ids = array();
+                                        $names = array();
+                                        $mobiles = array();
+                                        $total = array();
+                                        $paid = array();
+                                        $balances = array();
                                         $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Van_Route = '$route'");
                                         while ($row1 = mysqli_fetch_assoc($query1)) {
                                             array_push($ids, $row1['Id_No']);
                                             $names[$row1['Id_No']] = $row1['First_Name'];
                                             if (str_contains($row1['Mobile'], ',')) {
-                                                $mobiles[$row1['Id_No']] = "91".explode(',', $row1['Mobile'], 2)[0];
+                                                $mobiles[$row1['Id_No']] = explode(',', $row1['Mobile'], 2)[0];
                                             } else {
-                                                $mobiles[$row1['Id_No']] = "91".$row1['Mobile'];
+                                                $mobiles[$row1['Id_No']] = $row1['Mobile'];
+                                            }
+                                            if ($row1['Route'] != '' && $row1['Route'] != NULL && $row1['Route'] != '0' && $row1['Route'] != 'Drop') {
+                                                if (mysqli_num_rows(mysqli_query($link, "SELECT First_Name FROM `stu_fee_master_data` WHERE Id_No='" . $row1['Id_No'] . "' AND Type='Vehicle Fee'")) == 0) {
+                                                    echo "<script>alert('" . $id . " Not Available in Stu Fee Master Data! ')</script>";
+                                                }
+                                            }
+                                        }
+                                        foreach ($ids as $id) {
+                                            //Fetching Committed Fees of Each Student
+                                            $query2 = mysqli_query($link, "SELECT Total FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = 'Vehicle Fee'");
+                                            if (mysqli_num_rows($query2) != 0) {
+                                                while ($row2 = mysqli_fetch_assoc($query2)) {
+                                                    $total[$id] = $row2['Total'];
+                                                }
+                                            }
+
+                                            //Fetching Paid Fees of Each Student
+                                            $query3 = mysqli_query($link, "SELECT SUM(Fee) AS Paid FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type' GROUP BY Id_No");
+                                            if (mysqli_num_rows($query3) == 0) {
+                                                $paid[$id] = '0';
+                                            } else {
+                                                while ($row3 = mysqli_fetch_assoc($query3)) {
+                                                    $paid[$id] = $row3['Paid'];
+                                                }
+                                            }
+
+                                            //Calculating Balances of Each Student
+                                            if ((int)$paid[$id] == 0) {
+                                                $balances[$id] = (int)($total[$id]);
+                                            } else {
+                                                $balances[$id] = (int)($total[$id]) - (int)($paid[$id]);
+                                            }
+                                        }
+                                        //Generating SMS Text for Each Student
+                                        foreach ($ids as $id) {
+                                            if ($balances[$id] != 0 && $balances[$id] >= $amount) {
+                                                $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $class . " " . $section . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
+                                                $mobiles[$id] = rtrim($mobiles[$id]);
+                                                echo '
+                                                <tr>
+                                                <td>' . $i . '</td>
+                                                <td>' . $id . '</td>
+                                                <td>' . $names[$id] . '</td>
+                                                <td>' . $route . '</td>
+                                                <td>' . $balances[$id] . '</td>
+                                                <td><a
+                                                href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
+                                            </a></td>
+                                            <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
+                                                </tr>
+                                                ';
+                                                $i++;
+                                                /*
+                                                echo '<a
+                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
+                                        </a>';
+                                        */
+                                            }
+                                        }
+                                    }
+                                    echo "<script>document.getElementById('alert-container').style.display = 'block';</script>";
+                                } else {
+                                    if ($_POST['Route']) {
+                                        $route = $_POST['Route'];
+                                        echo "<script>document.getElementById('route').value = '" . $route . "'</script>";
+                                        $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Van_Route = '$route'");
+                                        while ($row1 = mysqli_fetch_assoc($query1)) {
+                                            array_push($ids, $row1['Id_No']);
+                                            $names[$row1['Id_No']] = $row1['First_Name'];
+                                            if (str_contains($row1['Mobile'], ',')) {
+                                                $mobiles[$row1['Id_No']] = explode(',', $row1['Mobile'], 2)[0];
+                                            } else {
+                                                $mobiles[$row1['Id_No']] = $row1['Mobile'];
                                             }
                                             if ($row1['Route'] != '' && $row1['Route'] != NULL && $row1['Route'] != '0' && $row1['Route'] != 'Drop') {
                                                 if (mysqli_num_rows(mysqli_query($link, "SELECT First_Name FROM `stu_fee_master_data` WHERE Id_No='" . $row1['Id_No'] . "' AND Type='Vehicle Fee'")) == 0) {
@@ -290,114 +392,208 @@ error_reporting(0);
                                                 $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $class . " " . $section . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
                                                 $mobiles[$id] = rtrim($mobiles[$id]);
                                                 echo '
-                                            <tr>
-                                            <td>' . $i . '</td>
-                                            <td>' . $id . '</td>
-                                            <td>' . $names[$id] . '</td>
-                                            <td>' . $balances[$id] . '</td>
-                                            <td><a
-                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                        </a></td>
-                                        <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
-                                            </tr>
-                                            ';
+                                                <tr>
+                                                <td>' . $i . '</td>
+                                                <td>' . $id . '</td>
+                                                <td>' . $names[$id] . '</td>
+                                                <td>' . $balances[$id] . '</td>
+                                                <td><a
+                                                href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
+                                            </a></td>
+                                            <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
+                                                </tr>
+                                                ';
                                                 $i++;
                                                 /*
-                                            echo '<a
-                                        href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                    </a>';
-                                    */
+                                                echo '<a
+                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
+                                        </a>';
+                                        */
                                             }
                                         }
                                         echo "<script>document.getElementById('alert-container').style.display = 'block';</script>";
+                                    } else {
+                                        echo "<script>alert('Please Select Route!')</script>";
                                     }
-                                } else {
-                                    echo "<script>alert('Please Select Route!')</script>";
                                 }
                             } else {
                                 echo "<script>
                                 document.getElementById('class_row').hidden = '';
                                 document.getElementById('route_row').hidden = 'hidden';
                                 </script>";
-                                if ($_POST['Class']) {
-                                    $class = $_POST['Class'];
-                                    echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
-                                    if ($_POST['Section']) {
-                                        $section = $_POST['Section'];
-                                        echo "<script>document.getElementById('sec').value = '" . $section . "'</script>";
-                                        //Fetching Id Nos of Students of that Class and Section
-                                        $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section'");
-                                        while ($row1 = mysqli_fetch_assoc($query1)) {
-                                            array_push($ids, $row1['Id_No']);
-                                            $names[$row1['Id_No']] = $row1['First_Name'];
-                                            if (str_contains($row1['Mobile'], ',')) {
-                                                $mobiles[$row1['Id_No']] = explode(',', $row1['Mobile'], 2)[0];
-                                            } else {
-                                                $mobiles[$row1['Id_No']] = $row1['Mobile'];
-                                            }
-                                        }
-                                        foreach ($ids as $id) {
-                                            //Fetching Committed Fees of Each Student
-                                            $query2 = mysqli_query($link, "SELECT Total FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
-                                            if (mysqli_num_rows($query2) == 0) {
-                                                if ($type != "Admission Fee") {
-                                                    echo "<script>alert('" . $id . " Not Available in Stu Fee Master Data! ')</script>";
-                                                }
-                                            } else {
-                                                while ($row2 = mysqli_fetch_assoc($query2)) {
-                                                    $total[$id] = $row2['Total'];
-                                                }
-                                            }
-
-                                            //Fetching Paid Fees of Each Student
-                                            $query3 = mysqli_query($link, "SELECT SUM(Fee) AS Paid FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type' GROUP BY Id_No");
-                                            if (mysqli_num_rows($query3) == 0) {
-                                                $paid[$id] = '0';
-                                            } else {
-                                                while ($row3 = mysqli_fetch_assoc($query3)) {
-                                                    $paid[$id] = $row3['Paid'];
-                                                }
-                                            }
-
-                                            //Calculating Balances of Each Student
-                                            if ((int)$paid[$id] == 0) {
-                                                $balances[$id] = (int)($total[$id]);
-                                            } else {
-                                                $balances[$id] = (int)($total[$id]) - (int)($paid[$id]);
-                                            }
-                                        }
-                                        //Generating SMS Text for Each Student
-                                        $i = 1;
-                                        foreach ($ids as $id) {
-                                            if ($balances[$id] != 0 && $balances[$id] >= $amount) {
-                                                $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $class . " " . $section . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
-                                                $mobiles[$id] = rtrim($mobiles[$id]);
-                                                echo '
-                                            <tr>
-                                            <td>' . $i . '</td>
-                                            <td>' . $id . '</td>
-                                            <td>' . $names[$id] . '</td>
-                                            <td>' . $balances[$id] . '</td>
-                                            <td><a
-                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                        </a></td>
-                                        <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
-                                            </tr>
-                                            ';
-                                                $i++;
-                                                /*
-                                            echo '<a
-                                        href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                    </a>';
-                                    */
-                                            }
-                                        }
-                                        echo "<script>document.getElementById('alert-container').style.display = 'block';</script>";
-                                    } else {
-                                        echo "<script>alert('Please Select Section!')</script>";
+                                if ($sms_type == "All_Students") {
+                                    echo "<script>
+                                document.getElementById('class_row').hidden = 'hidden';
+                                document.getElementById('route_row').hidden = 'hidden';
+                                document.getElementById('label').hidden = '';
+                                    document.getElementById('label').innerHTML = 'Class';
+                                </script>";
+                                    $classes = ['PreKG', 'LKG', 'UKG'];
+                                    for ($j = 1; $j <= 10; $j++) {
+                                        $classes[] = $j . " CLASS";
                                     }
+                                    $sections = ['A', 'B', 'C', 'D'];
+                                    $i = 1;
+                                    foreach ($classes as $class) {
+                                        foreach ($sections as $section) {
+                                            //Arrays
+                                            $ids = array();
+                                            $names = array();
+                                            $mobiles = array();
+                                            $total = array();
+                                            $paid = array();
+                                            $balances = array();
+                                            //Fetching Id Nos of Students of that Class and Section
+                                            $ids_query = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section'");
+                                            while ($row1 = mysqli_fetch_assoc($ids_query)) {
+                                                array_push($ids, $row1['Id_No']);
+                                                $names[$row1['Id_No']] = $row1['First_Name'];
+                                                if (str_contains($row1['Mobile'], ',')) {
+                                                    $mobiles[$row1['Id_No']] = explode(',', $row1['Mobile'], 2)[0];
+                                                } else {
+                                                    $mobiles[$row1['Id_No']] = $row1['Mobile'];
+                                                }
+                                            }
+                                            foreach ($ids as $id) {
+                                                //Fetching Committed Fees of Each Student
+                                                $query2 = mysqli_query($link, "SELECT Total FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
+                                                if (mysqli_num_rows($query2) == 0) {
+                                                    if ($type != "Admission Fee") {
+                                                        echo "<script>alert('" . $id . " Not Available in Stu Fee Master Data! ')</script>";
+                                                    }
+                                                } else {
+                                                    while ($row2 = mysqli_fetch_assoc($query2)) {
+                                                        $total[$id] = $row2['Total'];
+                                                    }
+                                                }
+
+                                                //Fetching Paid Fees of Each Student
+                                                $query3 = mysqli_query($link, "SELECT SUM(Fee) AS Paid FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type' GROUP BY Id_No");
+                                                if (mysqli_num_rows($query3) == 0) {
+                                                    $paid[$id] = '0';
+                                                } else {
+                                                    while ($row3 = mysqli_fetch_assoc($query3)) {
+                                                        $paid[$id] = $row3['Paid'];
+                                                    }
+                                                }
+
+                                                //Calculating Balances of Each Student
+                                                if ((int)$paid[$id] == 0) {
+                                                    $balances[$id] = (int)($total[$id]);
+                                                } else {
+                                                    $balances[$id] = (int)($total[$id]) - (int)($paid[$id]);
+                                                }
+                                            }
+                                            //Generating SMS Text for Each Student
+                                            foreach ($ids as $id) {
+                                                if ($balances[$id] != 0 && $balances[$id] >= $amount) {
+                                                    $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $class . " " . $section . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
+                                                    $mobiles[$id] = rtrim($mobiles[$id]);
+                                                    echo '
+                                                <tr>
+                                                <td>' . $i . '</td>
+                                                <td>' . $id . '</td>
+                                                <td>' . $names[$id] . '</td>
+                                                <td>' . $class . ' ' . $section . '</td>
+                                                <td>' . $balances[$id] . '</td>
+                                                <td><a
+                                                href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
+                                            </a></td>
+                                            <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
+                                                </tr>
+                                                ';
+                                                    $i++;
+                                                    /*
+                                                echo '<a
+                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
+                                        </a>';
+                                        */
+                                                }
+                                            }
+                                        }
+                                    }
+                                    echo "<script>document.getElementById('alert-container').style.display = 'block';</script>";
                                 } else {
-                                    echo "<script>alert('Please Select Class!')</script>";
+                                    if ($_POST['Class']) {
+                                        $class = $_POST['Class'];
+                                        echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
+                                        if ($_POST['Section']) {
+                                            $section = $_POST['Section'];
+                                            echo "<script>document.getElementById('sec').value = '" . $section . "'</script>";
+                                            //Fetching Id Nos of Students of that Class and Section
+                                            $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section'");
+                                            while ($row1 = mysqli_fetch_assoc($query1)) {
+                                                array_push($ids, $row1['Id_No']);
+                                                $names[$row1['Id_No']] = $row1['First_Name'];
+                                                if (str_contains($row1['Mobile'], ',')) {
+                                                    $mobiles[$row1['Id_No']] = explode(',', $row1['Mobile'], 2)[0];
+                                                } else {
+                                                    $mobiles[$row1['Id_No']] = $row1['Mobile'];
+                                                }
+                                            }
+                                            foreach ($ids as $id) {
+                                                //Fetching Committed Fees of Each Student
+                                                $query2 = mysqli_query($link, "SELECT Total FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
+                                                if (mysqli_num_rows($query2) == 0) {
+                                                    if ($type != "Admission Fee") {
+                                                        echo "<script>alert('" . $id . " Not Available in Stu Fee Master Data! ')</script>";
+                                                    }
+                                                } else {
+                                                    while ($row2 = mysqli_fetch_assoc($query2)) {
+                                                        $total[$id] = $row2['Total'];
+                                                    }
+                                                }
+
+                                                //Fetching Paid Fees of Each Student
+                                                $query3 = mysqli_query($link, "SELECT SUM(Fee) AS Paid FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type' GROUP BY Id_No");
+                                                if (mysqli_num_rows($query3) == 0) {
+                                                    $paid[$id] = '0';
+                                                } else {
+                                                    while ($row3 = mysqli_fetch_assoc($query3)) {
+                                                        $paid[$id] = $row3['Paid'];
+                                                    }
+                                                }
+
+                                                //Calculating Balances of Each Student
+                                                if ((int)$paid[$id] == 0) {
+                                                    $balances[$id] = (int)($total[$id]);
+                                                } else {
+                                                    $balances[$id] = (int)($total[$id]) - (int)($paid[$id]);
+                                                }
+                                            }
+                                            //Generating SMS Text for Each Student
+                                            $i = 1;
+                                            foreach ($ids as $id) {
+                                                if ($balances[$id] != 0 && $balances[$id] >= $amount) {
+                                                    $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $class . " " . $section . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
+                                                    $mobiles[$id] = rtrim($mobiles[$id]);
+                                                    echo '
+                                                <tr>
+                                                <td>' . $i . '</td>
+                                                <td>' . $id . '</td>
+                                                <td>' . $names[$id] . '</td>
+                                                <td>' . $balances[$id] . '</td>
+                                                <td><a
+                                                href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
+                                            </a></td>
+                                            <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
+                                                </tr>
+                                                ';
+                                                    $i++;
+                                                    /*
+                                                echo '<a
+                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
+                                        </a>';
+                                        */
+                                                }
+                                            }
+                                            echo "<script>document.getElementById('alert-container').style.display = 'block';</script>";
+                                        } else {
+                                            echo "<script>alert('Please Select Section!')</script>";
+                                        }
+                                    } else {
+                                        echo "<script>alert('Please Select Class!')</script>";
+                                    }
                                 }
                             }
                         } else {
@@ -422,39 +618,37 @@ error_reporting(0);
                 if (!cls_row.hidden) {
                     cls_row.hidden = 'hidden';
                 }
-                if (route_row.hidden) {
+                if (!all_students.checked && route_row.hidden) {
                     route_row.hidden = '';
                 }
             } else {
-                if (cls_row.hidden) {
+                if (!all_students.checked && cls_row.hidden) {
                     cls_row.hidden = '';
                 }
                 if (!route_row.hidden) {
                     route_row.hidden = 'hidden';
                 }
             }
-            /*
-            if()
-                case 'class_wise':
-                    message = '';
-                    if (cls_row.hidden) {
-                        cls_row.hidden = '';
-                    }
-                    if (!route_row.hidden) {
-                        route_row.hidden = 'true';
-                    }
-                    break;
-                case 'route_wise':
-                    message = "Route Wise";
-                    if (!cls_row.hidden) {
-                        cls_row.hidden = 'true';
-                    }
-                    if (route_row.hidden) {
-                        route_row.hidden = '';
-                    }
-                    break;
-                    */
         });
+
+        document.addEventListener('change', (e) => {
+            row = e.target.id;
+            if (row == "all_students") {
+                if (!cls_row.hidden) {
+                    cls_row.hidden = 'hidden';
+                }
+                if (!route_row.hidden) {
+                    route_row.hidden = 'hidden';
+                }
+            } else if (row == "class_wise") {
+                if (cls_row.hidden && type != "Vehicle Fee") {
+                    cls_row.hidden = '';
+                }
+                if (route_row.hidden && type == "Vehicle Fee") {
+                    route_row.hidden = '';
+                }
+            }
+        })
     </script>
 
     <!-- Checkbox Select All -->

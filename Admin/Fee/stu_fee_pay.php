@@ -37,6 +37,12 @@ if (isset($_POST['Ok'])) {
     }
 }
 
+function format_date($date)
+{
+    $date = explode('-', $date);
+    return $date[2] . '-' . $date[1] . '-' . $date[0];
+}
+
 if (isset($_POST['add'])) {
     if ($_POST['Type']) {
         $type = $_POST['Type'];
@@ -49,6 +55,7 @@ if (isset($_POST['add'])) {
                 $name = $row['First_Name'];
                 $class = $row['Stu_Class'];
                 $section = $row['Stu_Section'];
+                $mobile = $row['Mobile'];
                 $route = $row['Van_Route'];
             }
         } else {
@@ -126,16 +133,32 @@ if (isset($_POST['add'])) {
                     */
                 }
                 //$fee_balance_sql = mysqli_query($link,"SELECT * FROM `fee_balances` ");
-                if(str_contains(strtolower($class),"others") || str_contains(strtolower($class),"drop")){
-                    $fee_balance_sql = mysqli_query($link,"SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
-                    while($fee_row = mysqli_fetch_assoc($fee_balance_sql)){
+                if (str_contains(strtolower($class), "others") || str_contains(strtolower($class), "drop")) {
+                    $fee_balance_sql = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
+                    while ($fee_row = mysqli_fetch_assoc($fee_balance_sql)) {
                         $balance = (int)$fee_row['Last_Balance'];
                     }
                     $balance -= (int)$amount;
-                    mysqli_query($link,"UPDATE `stu_fee_master_data` SET Last_Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
-                    mysqli_query($link,"UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
+                    mysqli_query($link, "UPDATE `stu_fee_master_data` SET Last_Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
+                    mysqli_query($link, "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
                 }
                 if (mysqli_query($link, $sql)) {
+                    $text = "Dear parent ,We received with thanks, the amount of Rs " . $amount . " towards the " . $type . " of your child " . $name . " on " . format_date($_SESSION['DOP']) . " Principal, Victory High school,KDR";
+                    if (str_contains($mobile, ',')) {
+                        $mobile = explode(',', $mobile, 2)[0];
+                    } else if (str_contains($mobile, ' ')) {
+                        $mobile = explode(' ', $mobile, 2)[0];
+                    } else {
+                        $mobile = $mobile;
+                    }
+                    echo '<a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobile . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" id="sms_link" hidden>' . $mobile . '</a>';
+                    echo '<script>
+                        //Send Message API
+                        async function send(url){
+                            response = await fetch(url)
+                        }
+                        send(document.getElementById("sms_link").href);
+                    </script>';
                     echo "<script>alert('Fee Inserted Successfully!!')</script>";
                 } else {
                     echo "<script>alert('Fee Insertion Failed!!')</script>";
