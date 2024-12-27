@@ -231,6 +231,7 @@ error_reporting(0);
                         //Arrays
                         $ids = array();
                         $names = array();
+                        $classes = array();
                         $mobiles = array();
                         $total = array();
                         $paid = array();
@@ -267,6 +268,7 @@ error_reporting(0);
                                     foreach ($routes as $route) {
                                         $ids = array();
                                         $names = array();
+                                        $classes = array();
                                         $mobiles = array();
                                         $total = array();
                                         $paid = array();
@@ -275,8 +277,11 @@ error_reporting(0);
                                         while ($row1 = mysqli_fetch_assoc($query1)) {
                                             array_push($ids, $row1['Id_No']);
                                             $names[$row1['Id_No']] = $row1['First_Name'];
+                                            $classes[$row1['Id_No']] = $row1['Stu_Class'] . " " . $row1['Stu_Section'];
                                             if (str_contains($row1['Mobile'], ',')) {
                                                 $mobiles[$row1['Id_No']] = explode(',', $row1['Mobile'], 2)[0];
+                                            } else if (str_contains($row1['Mobile'], ' ')) {
+                                                $mobiles[$row1['Id_No']] = explode(' ', $row1['Mobile'], 2)[0];
                                             } else {
                                                 $mobiles[$row1['Id_No']] = $row1['Mobile'];
                                             }
@@ -315,7 +320,7 @@ error_reporting(0);
                                         //Generating SMS Text for Each Student
                                         foreach ($ids as $id) {
                                             if ($balances[$id] != 0 && $balances[$id] >= $amount) {
-                                                $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $class . " " . $section . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
+                                                $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $classes[$id] . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
                                                 $mobiles[$id] = rtrim($mobiles[$id]);
                                                 echo '
                                                 <tr>
@@ -348,8 +353,11 @@ error_reporting(0);
                                         while ($row1 = mysqli_fetch_assoc($query1)) {
                                             array_push($ids, $row1['Id_No']);
                                             $names[$row1['Id_No']] = $row1['First_Name'];
+                                            $classes[$row1['Id_No']] = $row1['Stu_Class'] . " " . $row1['Stu_Section'];
                                             if (str_contains($row1['Mobile'], ',')) {
                                                 $mobiles[$row1['Id_No']] = explode(',', $row1['Mobile'], 2)[0];
+                                            } else if (str_contains($row1['Mobile'], ' ')) {
+                                                $mobiles[$row1['Id_No']] = explode(' ', $row1['Mobile'], 2)[0];
                                             } else {
                                                 $mobiles[$row1['Id_No']] = $row1['Mobile'];
                                             }
@@ -389,7 +397,7 @@ error_reporting(0);
                                         $i = 1;
                                         foreach ($ids as $id) {
                                             if ($balances[$id] != 0 && $balances[$id] >= $amount) {
-                                                $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $class . " " . $section . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
+                                                $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $classes[$id] . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
                                                 $mobiles[$id] = rtrim($mobiles[$id]);
                                                 echo '
                                                 <tr>
@@ -450,6 +458,8 @@ error_reporting(0);
                                                 $names[$row1['Id_No']] = $row1['First_Name'];
                                                 if (str_contains($row1['Mobile'], ',')) {
                                                     $mobiles[$row1['Id_No']] = explode(',', $row1['Mobile'], 2)[0];
+                                                } else if (str_contains($row1['Mobile'], ' ')) {
+                                                    $mobiles[$row1['Id_No']] = explode(' ', $row1['Mobile'], 2)[0];
                                                 } else {
                                                     $mobiles[$row1['Id_No']] = $row1['Mobile'];
                                                 }
@@ -527,6 +537,8 @@ error_reporting(0);
                                                 $names[$row1['Id_No']] = $row1['First_Name'];
                                                 if (str_contains($row1['Mobile'], ',')) {
                                                     $mobiles[$row1['Id_No']] = explode(',', $row1['Mobile'], 2)[0];
+                                                } else if (str_contains($row1['Mobile'], ' ')) {
+                                                    $mobiles[$row1['Id_No']] = explode(' ', $row1['Mobile'], 2)[0];
                                                 } else {
                                                     $mobiles[$row1['Id_No']] = $row1['Mobile'];
                                                 }
@@ -697,7 +709,12 @@ error_reporting(0);
         $('#send').on('click', () => {
             absentees = []
             $(".student:checked").each(function() {
-                absentees.push($(this).parent().siblings().eq(4).children().attr('href'));
+                var sms_type = document.querySelector('[name="sms_type"]').value;
+                if (sms_type == "Class_Wise") {
+                    absentees.push($(this).parent().siblings().eq(5).children().attr('href'));
+                } else {
+                    absentees.push($(this).parent().siblings().eq(4).children().attr('href'));
+                }
                 //mywin = window.open($(this).parent().siblings().eq(4).children().attr('href'), '_blank')
             });
             if (absentees.length > 0) {
