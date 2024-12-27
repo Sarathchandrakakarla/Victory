@@ -632,7 +632,8 @@ error_reporting(0);
         });
 
         document.addEventListener('change', (e) => {
-            row = e.target.id;
+            var row = e.target.id;
+            var type = document.getElementById('type').value;
             if (row == "all_students") {
                 if (!cls_row.hidden) {
                     cls_row.hidden = 'hidden';
@@ -641,6 +642,7 @@ error_reporting(0);
                     route_row.hidden = 'hidden';
                 }
             } else if (row == "class_wise") {
+
                 if (cls_row.hidden && type != "Vehicle Fee") {
                     cls_row.hidden = '';
                 }
