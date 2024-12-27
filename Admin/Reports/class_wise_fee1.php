@@ -73,6 +73,7 @@ error_reporting(0);
 </style>
 <script type="text/javascript">
     function hide() {
+        document.getElementById('inp_row').hidden = 'true';
         document.getElementById('route_row').hidden = 'true';
         document.getElementById('add_label').hidden = 'true';
     }
@@ -105,10 +106,6 @@ error_reporting(0);
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="fee_by" id="route_wise" value="Route_Wise">
                         <label class="form-check-label" for="route_wise">Route Wise</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="fee_by" id="all_students" value="All_Students">
-                        <label class="form-check-label" for="all_students">All Students</label>
                     </div>
                 </div>
             </div>
@@ -245,10 +242,8 @@ error_reporting(0);
                         $fee_by = $_POST['fee_by'];
                         if ($fee_by == "Class_Wise") {
                             echo "<script>document.getElementById('class_wise').checked = true;</script>";
-                        } else if ($fee_by == "Route_Wise") {
-                            echo "<script>document.getElementById('route_wise').checked = true;</script>";
                         } else {
-                            echo "<script>document.getElementById('all_students').checked = true;</script>";
+                            echo "<script>document.getElementById('route_wise').checked = true;</script>";
                         }
                         $c_fee = $_POST['fee'];
                         if ($c_fee == "W_Commit") {
@@ -334,9 +329,7 @@ error_reporting(0);
                                                 if ($type == "Admission Fee") {
                                                     array_push($temp, 0);
                                                     array_push($temp, 0);
-                                                    array_push($temp, 0);
                                                 } else {
-                                                    array_push($temp, 0);
                                                     array_push($temp, $actual);
                                                     array_push($temp, $actual);
                                                 }
@@ -441,7 +434,10 @@ error_reporting(0);
                                                         array_push($ids, $original_id);
                                                         $names[$original_id] = $row2['First_Name'];
                                                         $mobile[$original_id] = $row2['Mobile'];
-                                                        $classes[$original_id] = [$row2['Stu_Class'], $row2['Stu_Section']];
+                                                        $temp2 = array();
+                                                        array_push($temp2, $row2['Stu_Class']);
+                                                        array_push($temp2, $row2['Stu_Section']);
+                                                        $classes[$original_id] = $temp2;
                                                     }
                                                 }
                                             }
@@ -450,9 +446,12 @@ error_reporting(0);
                                     foreach ($ids as $id) {
                                         $sql2 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Id_No = '$id'");
                                         while ($row2 = mysqli_fetch_assoc($sql2)) {
-                                            $classes[$id] = [$row2['Stu_Class'], $row2['Stu_Section']];
+                                            $temp2 = array();
+                                            array_push($temp2, $row2['Stu_Class']);
+                                            array_push($temp2, $row2['Stu_Section']);
+                                            $classes[$id] = $temp2;
                                         }
-                                        $sql12 = mysqli_query($link, "SELECT * FROM `actual_fee` WHERE Class = '$classes[$id][0]' AND Type = '$type'");
+                                        $sql12 = mysqli_query($link, "SELECT * FROM `actual_fee` WHERE Class = '$classes[$id]' AND Type = '$type'");
                                         while ($row12 = mysqli_fetch_assoc($sql12)) {
                                             $actual[$id] = (int)$row12['Fee'];
                                         }
@@ -515,250 +514,6 @@ error_reporting(0);
                                     $flag = false;
                                     echo "<script>alert('Please Select Route!')</script>";
                                 }
-                            } else if ($fee_by == "All_Students") {
-                                echo "<script>document.getElementById('class_row').hidden = 'hidden';
-                                document.getElementById('route_row').hidden = 'hidden';
-                                document.getElementById('class_head').hidden = '';
-                                document.getElementById('section_head').hidden = '';</script>";
-                                if ($type == "Vehicle Fee") {
-                                    $routes = [];
-                                    $route_sql = mysqli_query($link, "SELECT * FROM `van_route`");
-                                    while ($route_row = mysqli_fetch_assoc($route_sql)) {
-                                        $routes[] = $route_row['Van_Route'];
-                                    }
-                                    //Arrays
-                                    $classes = array();
-                                    $id_routes = array();
-                                    $actual = array();
-                                    $original_ids = array();
-                                    $original_classes = array();
-                                    foreach ($routes as $route) {
-                                        $sql1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Van_Route = '$route' AND (((Stu_Class LIKE '%CLASS%') OR (Stu_Class LIKE '%KG')) AND (Stu_Class NOT LIKE '%DROP%')) ORDER BY Id_No");
-                                        while ($row1 = mysqli_fetch_assoc($sql1)) {
-                                            if ($fee_for == "For_Report") {
-                                                array_push($ids, $row1['Id_No']);
-                                                $names[$row1['Id_No']] = $row1['First_Name'];
-                                                $mobile[$row1['Id_No']] = $row1['Mobile'];
-                                                $id_routes[$row1['Id_No']] = $row1['Van_Route'];
-                                            } else if ($fee_for == "For_Phone") {
-                                                array_push($original_ids, $row1['Id_No']);
-                                            }
-                                        }
-                                        $classes = ['PreKG', 'LKG', 'UKG'];
-                                        for ($j = 1; $j <= 10; $j++) {
-                                            $classes[] = $j . " CLASS";
-                                        }
-                                        $sections = ['A', 'B', 'C', 'D'];
-                                        $db_ids = [];
-                                        foreach ($classes as $class) {
-                                            foreach ($sections as $section) {
-                                                $check_sql = mysqli_query($link, "SELECT Students FROM `current_strength` WHERE Class = '" . $class . "' AND Section = '" . $section . "'");
-                                                if (mysqli_num_rows($check_sql) != 0) {
-                                                    if (!in_array($class, array_keys($db_ids))) {
-                                                        $db_ids[$class] = [];
-                                                    }
-                                                    if (!in_array($section, array_keys($db_ids[$class]))) {
-                                                        $db_ids[$class][$section] = [];
-                                                    }
-                                                    while ($check_row = mysqli_fetch_assoc($check_sql)) {
-                                                        $db_ids[$class][$section] = explode(',', $check_row['Students']);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if ($fee_for == "For_Phone") {
-                                        foreach ($original_ids as $original_id) {
-                                            $sql2 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Id_No = '$original_id'");
-                                            while ($row2 = mysqli_fetch_assoc($sql2)) {
-                                                if (in_array($original_id, $db_ids[$row2['Stu_Class']][$row2['Stu_Section']])) {
-                                                    array_push($ids, $original_id);
-                                                    $names[$original_id] = $row2['First_Name'];
-                                                    $mobile[$original_id] = $row2['Mobile'];
-                                                    $classes[$original_id] = [$row2['Stu_Class'], $row2['Stu_Section']];
-                                                    $id_routes[$original_id] = $row2['Van_Route'];
-                                                }
-                                            }
-                                        }
-                                    }
-                                    foreach ($ids as $id) {
-                                        $sql2 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Id_No = '$id'");
-                                        while ($row2 = mysqli_fetch_assoc($sql2)) {
-                                            $classes[$id] = [$row2['Stu_Class'], $row2['Stu_Section']];
-                                        }
-                                        $sql12 = mysqli_query($link, "SELECT * FROM `actual_fee` WHERE Class = '$classes[$id][0]' AND Type = '$type'");
-                                        while ($row12 = mysqli_fetch_assoc($sql12)) {
-                                            $actual[$id] = (int)$row12['Fee'];
-                                        }
-
-                                        $sql3 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
-
-                                        if (mysqli_num_rows($sql3) == 0) {
-                                            $temp = array();
-                                            array_push($temp, 0);
-                                            array_push($temp, $actual[$id]);
-                                            array_push($temp, $actual[$id]);
-                                            $fee[$id] = $temp;
-                                        } else {
-                                            while ($row3 = mysqli_fetch_assoc($sql3)) {
-                                                $temp = array();
-                                                array_push($temp, (int)$row3['Last_Balance']);
-                                                array_push($temp, (int)$row3['Current_Balance']);
-                                                array_push($temp, (int)$row3['Last_Balance'] + (int)$row3['Current_Balance']);
-                                                $fee[$id] = $temp;
-                                            }
-                                        }
-
-                                        $sql4 = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type'");
-                                        if (mysqli_num_rows($sql4) == 0) {
-                                            $paid[$id] = 0;
-                                            $balance[$id] = (int)$fee[$id][2];
-                                        } else {
-                                            $sum = 0;
-                                            while ($row4 = mysqli_fetch_assoc($sql4)) {
-                                                $sum += (int)$row4['Fee'];
-                                            }
-                                            $paid[$id] = (int)$sum;
-                                            $balance[$id] = (int)$fee[$id][2] - (int)$sum;
-                                        }
-
-                                        $sql5 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = 'Vehicle Fee'");
-                                        if (mysqli_num_rows($sql5) == 0) {
-                                            $van_fee[$id] = 0;
-                                        } else {
-                                            while ($row5 = mysqli_fetch_assoc($sql5)) {
-                                                $van_fee[$id] = (int)$row5['Last_Balance'] + (int)$row5['Current_Balance'];
-                                            }
-                                        }
-
-                                        $sql6 = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = 'Vehicle Fee'");
-                                        if (mysqli_num_rows($sql6) == 0) {
-                                            $van_paid[$id] = 0;
-                                            $van_balance[$id] = (int)$van_fee[$id];
-                                        } else {
-                                            $van_sum = 0;
-                                            while ($row6 = mysqli_fetch_assoc($sql6)) {
-                                                $van_sum += (int)$row6['Fee'];
-                                            }
-                                            $paid[$id] = $sum;
-                                            $van_balance[$id] = (int)$van_fee[$id] - (int)$van_sum;
-                                        }
-                                    }
-                                    $flag = true;
-                                } else {
-                                    $classes = ['PreKG', 'LKG', 'UKG'];
-                                    for ($j = 1; $j <= 10; $j++) {
-                                        $classes[] = $j . " CLASS";
-                                    }
-                                    $sections = ['A', 'B', 'C', 'D'];
-                                    $id_classes = [];
-                                    echo "<script>
-                                        document.getElementById('type_txt_label').innerHTML = '" . $type . "';
-                                        document.getElementById('label').innerHTML = 'Class:';</script>";
-                                    foreach ($classes as $class) {
-                                        foreach ($sections as $section) {
-                                            //Queries
-                                            if ($fee_for == "For_Report") {
-                                                $sql1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section' ORDER BY Id_No");
-                                            } else if ($fee_for == "For_Phone") {
-                                                $sql1 = mysqli_query($link, "SELECT * FROM `current_strength` WHERE Class = '$class' AND Section = '$section'");
-                                            }
-                                            $sql2 = mysqli_query($link, "SELECT * FROM `actual_fee` WHERE Class = '$class' AND Type = '$type'");
-
-                                            while ($row1 = mysqli_fetch_assoc($sql1)) {
-                                                if ($fee_for == "For_Report") {
-                                                    array_push($ids, $row1['Id_No']);
-                                                    $names[$row1['Id_No']] = $row1['First_Name'];
-                                                    $id_classes[$row1['Id_No']] = [$row1['Stu_Class'], $row1['Stu_Section']];
-                                                    $mobile[$row1['Id_No']] = $row1['Mobile'];
-                                                    $routes[$row1['Id_No']] = $row1['Van_Route'];
-                                                } else if ($fee_for == "For_Phone") {
-                                                    $original_ids = explode(',', $row1['Students']);
-                                                    foreach ($original_ids as $id) {
-                                                        $id_sql = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Id_No = '$id'");
-                                                        while ($id_row = mysqli_fetch_assoc($id_sql)) {
-                                                            array_push($ids, $id);
-                                                            $names[$id] = $id_row['First_Name'];
-                                                            $id_classes[$id] = [$id_row['Stu_Class'], $id_row['Stu_Section']];
-                                                            $mobile[$id] = $id_row['Mobile'];
-                                                            $routes[$id] = $id_row['Van_Route'];
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            while ($row2 = mysqli_fetch_assoc($sql2)) {
-                                                $actual = $row2['Fee'];
-                                            }
-                                        }
-                                    }
-
-                                    foreach ($ids as $id) {
-                                        $sql3 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
-                                        $temp = array();
-                                        if (mysqli_num_rows($sql3) == 0) {
-                                            array_push($temp, 0);
-                                            if ($type == "Admission Fee") {
-                                                array_push($temp, 0);
-                                                array_push($temp, 0);
-                                                array_push($temp, 0);
-                                            } else {
-                                                array_push($temp, 0);
-                                                array_push($temp, $actual);
-                                                array_push($temp, $actual);
-                                            }
-                                            $fee[$id] = $temp;
-                                            $temp = array();
-                                            if ($type == "School Fee") {
-                                                echo "<script>alert('" . $id . " Not Found in Stu Fee Master Data!')</script>";
-                                            }
-                                        } else {
-                                            while ($row3 = mysqli_fetch_assoc($sql3)) {
-                                                array_push($temp, (int)$row3['Last_Balance']);
-                                                array_push($temp, (int)$row3['Current_Balance']);
-                                                array_push($temp, (int)$row3['Last_Balance'] + (int)$row3['Current_Balance']);
-                                                $fee[$id] = $temp;
-                                                $temp = array();
-                                            }
-                                        }
-                                        $sql4 = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type'");
-                                        if (mysqli_num_rows($sql4) == 0) {
-                                            $paid[$id] = 0;
-                                            $balance[$id] = (int)$fee[$id][2];
-                                        } else {
-                                            $sum = 0;
-                                            while ($row4 = mysqli_fetch_assoc($sql4)) {
-                                                $sum += (int)$row4['Fee'];
-                                            }
-                                            $paid[$id] = $sum;
-                                            $balance[$id] = (int)$fee[$id][2] - (int)$paid[$id];
-                                        }
-                                    }
-
-                                    foreach (array_keys($routes) as $id) {
-                                        $sql5 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = 'Vehicle Fee'");
-                                        if (mysqli_num_rows($sql5) == 0) {
-                                            $van_fee[$id] = 0;
-                                        }
-                                        while ($row5 = mysqli_fetch_assoc($sql5)) {
-                                            $van_fee[$id] = (int)$row5['Last_Balance'] + (int)$row5['Current_Balance'];
-                                        }
-
-                                        $sql6 = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = 'Vehicle Fee'");
-                                        if (mysqli_num_rows($sql6) == 0) {
-                                            $van_paid[$id] = 0;
-                                            $van_balance[$id] = (int)$van_fee[$id];
-                                        } else {
-                                            $sum = 0;
-                                            while ($row6 = mysqli_fetch_assoc($sql6)) {
-                                                $sum += (int) $row6['Fee'];
-                                            }
-                                            $van_paid[$id] = (int) $sum;
-                                            $van_balance[$id] = (int)$van_fee[$id] - (int)$sum;
-                                        }
-                                    }
-                                    $flag = true;
-                                }
                             }
                             if ($flag) {
                                 if ($c_fee == "Wo_Commit") {
@@ -768,11 +523,6 @@ error_reporting(0);
                                 document.getElementById('paid_head').hidden = 'hidden';
                                 document.getElementById('route_head').hidden = 'hidden';
                                 document.getElementById('van_head').hidden = 'hidden';</script>";
-                                    if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
-                                        echo "<script>
-                                        document.getElementById('route_head').hidden = '';
-                                    </script>";
-                                    }
                                     $i = 1;
                                     $total_bal = 0;
                                     $van_total = 0;
@@ -781,19 +531,9 @@ error_reporting(0);
                   <td style="text-align:center">' . $i . '</td>
                   <td>' . $id . '</td>
                   <td style="padding:5px;">' . $names[$id] . '</td>';
-                                        if ($fee_by == "Route_Wise" || ($fee_by == "All_Students" && $type == "Vehicle Fee")) {
+                                        if ($fee_by == "Route_Wise") {
                                             echo '<td>' . $classes[$id][0] . '</td>
                                         <td style="text-align:center;">' . $classes[$id][1] . '</td>';
-                                        }
-                                        if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
-                                            echo '
-                                                <td style="text-align:center;">' . $id_routes[$id] . '</td>
-                                            ';
-                                        } else if ($fee_by == "All_Students" && $type != "Vehicle Fee") {
-                                            echo '
-                                                <td style="text-align:center;">' . $id_classes[$id][0] . '</td>
-                                                <td style="text-align:center;">' . $id_classes[$id][1] . '</td>
-                                            ';
                                         }
                                         if ($type != "Vehicle Fee") {
                                             echo '<td style="text-align:center">' . $balance[$id] . '</td>';
@@ -805,10 +545,7 @@ error_reporting(0);
                                         echo '</tr>';
                                         $i++;
                                     }
-                                    if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
-                                        echo '<tr>
-                                    <td colspan="6" style="font-weight:bold;text-align:center;">Total</td>';
-                                    } else if ($fee_by != "Route_Wise" && $fee_by != "All_Students") {
+                                    if ($fee_by != "Route_Wise") {
                                         echo '<tr>
                                     <td colspan="3" style="font-weight:bold;text-align:center;">Total</td>';
                                     } else {
@@ -996,14 +733,6 @@ error_reporting(0);
                     }
                     if (route_row.hidden) {
                         route_row.hidden = '';
-                    }
-                    break;
-                case 'all_students':
-                    if (!cls_row.hidden) {
-                        cls_row.hidden = 'hidden';
-                    }
-                    if (!route_row.hidden) {
-                        route_row.hidden = 'hidden';
                     }
                     break;
             }
