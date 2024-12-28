@@ -520,6 +520,9 @@ error_reporting(0);
                                 document.getElementById('route_row').hidden = 'hidden';
                                 document.getElementById('class_head').hidden = '';
                                 document.getElementById('section_head').hidden = '';</script>";
+                                echo "<script>
+                                        document.getElementById('type_txt_label').innerHTML = '" . $type . "';
+                                    </script>";
                                 if ($type == "Vehicle Fee") {
                                     $routes = [];
                                     $route_sql = mysqli_query($link, "SELECT * FROM `van_route`");
@@ -942,6 +945,9 @@ error_reporting(0);
             } else if (fee_by == "Route_Wise") {
                 route = '<?php echo $route; ?>';
                 filename = 'Fee_' + route;
+            } else if (fee_by == "All_Students") {
+                fee_type = '<?php echo $type; ?>'
+                filename = 'Fee_' + fee_by + " " + fee_type;
             }
             tableID = 'table-container';
             var downloadLink;
