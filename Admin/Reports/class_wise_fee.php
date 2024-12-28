@@ -71,12 +71,6 @@ error_reporting(0);
         }
     }
 </style>
-<script type="text/javascript">
-    function hide() {
-        document.getElementById('route_row').hidden = 'true';
-        document.getElementById('add_label').hidden = 'true';
-    }
-</script>
 
 <body class="bg-light" onload="hide()">
     <?php
@@ -152,7 +146,7 @@ error_reporting(0);
             </div>
             <div class="row justify-content-center mt-4" id="route_row" hidden>
                 <label for="add_by" class="col-sm-2 col-form-label" id="add_label">Route:</label>
-                <div class="col-sm-4" id="route_row">
+                <div class="col-sm-4">
                     <select class="form-select" name="Route" id="route" aria-label="Default select example">
                         <option selected disabled>-- Select Route --</option>
                         <?php
@@ -226,7 +220,7 @@ error_reporting(0);
                     <th id="total_head" hidden>Total</th>
                     <th id="paid_head" hidden>Paid</th>
                     <th id="school_bal_head">School Fee Balance</th>
-                    <th id="route_head" hidden>Route</th>
+                    <th id="route_head" style="text-align: center;" hidden>Route</th>
                     <th id="van_head" hidden>Van Total</th>
                     <th id="van_bal_head">Van Fee Balance</th>
                     <th>Phone Number</th>
@@ -656,8 +650,7 @@ error_reporting(0);
                                     $sections = ['A', 'B', 'C', 'D'];
                                     $id_classes = [];
                                     echo "<script>
-                                        document.getElementById('type_txt_label').innerHTML = '" . $type . "';
-                                        document.getElementById('label').innerHTML = 'Class:';</script>";
+                                        document.getElementById('type_txt_label').innerHTML = '" . $type . "';</script>";
                                     foreach ($classes as $class) {
                                         foreach ($sections as $section) {
                                             //Queries
@@ -848,12 +841,20 @@ error_reporting(0);
                   <td style="text-align:center">' . $i . '</td>
                   <td>' . $id . '</td>
                   <td>' . $names[$id] . '</td>';
-                                        if ($fee_by == "Route_Wise") {
+                                        if ($fee_by == "Route_Wise" || ($fee_by == "All_Students" && $type == "Vehicle Fee")) {
                                             echo "<script>document.getElementById('class_head').hidden = '';
                                 document.getElementById('section_head').hidden = '';
                                 document.getElementById('route_head').hidden = 'hidden';</script>";
+                                            if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
+                                                echo "<script>document.getElementById('route_head').hidden = '';</script>";
+                                            }
                                             echo '<td>' . $classes[$id][0] . '</td>
                     <td style="text-align:center;">' . $classes[$id][1] . '</td>';
+                                        } else if ($fee_by == "All_Students" && $type != "Vehicle Fee") {
+                                            echo '
+                                                <td style="text-align:center;">' . $id_classes[$id][0] . '</td>
+                                                <td style="text-align:center;">' . $id_classes[$id][1] . '</td>
+                                            ';
                                         } else {
                                             echo "<script>document.getElementById('class_head').hidden = 'hidden';
                                 document.getElementById('section_head').hidden = 'hidden';
@@ -867,7 +868,11 @@ error_reporting(0);
                   <td style="text-align:center">' . $fee[$id][2] . '</td>
                   <td style="text-align:center">' . $paid[$id] . '</td>
                   <td style="text-align:center">' . $balance[$id] . '</td>';
-                                        if ($fee_by != "Route_Wise") {
+                                        if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
+                                            echo '
+                                                <td style="text-align:center;">' . $id_routes[$id] . '</td>
+                                            ';
+                                        } else if ($fee_by != "Route_Wise") {
                                             echo '<td style="text-align:center">' . $routes[$id] . '</td>';
                                         }
                                         if ($type != "Vehicle Fee") {
@@ -880,7 +885,10 @@ error_reporting(0);
                                         echo '</tr>';
                                         $i++;
                                     }
-                                    if ($fee_by != "Route_Wise") {
+                                    /* if ($fee_by == "All_Students") {
+                                        echo '<tr>
+                                    <td colspan="7" style="font-weight:bold;text-align:center;">Total</td>';
+                                    } else  */if ($fee_by == "Class_Wise") {
                                         echo '<tr>
                                     <td colspan="5" style="font-weight:bold;text-align:center;">Total</td>';
                                     } else {
