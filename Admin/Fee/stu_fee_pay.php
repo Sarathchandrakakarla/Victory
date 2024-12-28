@@ -28,6 +28,22 @@ if (isset($_POST['Ok'])) {
                         $route = $row['Van_Route'];
                     }
                 }
+                $total_fee = 0;
+                $ignore = 0;
+                $tot_query = mysqli_query($link,"SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
+                if(mysqli_num_rows($tot_query) == 0){
+                    $ignore = 1;
+                }
+                while($tot_row = mysqli_fetch_assoc($tot_query)){
+                    $total_fee = $tot_row['Last_Balance'] + $tot_row['Current_Balance'];
+                }
+                $paid_query = mysqli_query($link,"SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type'");
+                $paid_tot = 0;
+                while($paid_row = mysqli_fetch_assoc($paid_query)){
+                    $paid_tot += (int)$paid_row['Fee'];
+                }
+                $_SESSION['Final_Balance'] = $total_fee - $paid_tot;
+                $_SESSION['Ignore'] = $ignore;
             }
         } else {
             echo "<script>alert('Please Enter ID No!')</script>";
@@ -111,7 +127,10 @@ if (isset($_POST['add'])) {
             $date = implode("-", $arr);
             if ($_POST['Bill_No']) {
                 $bill = $_POST['Bill_No'];
-                if ($type == "Vehicle Fee") {
+                if($_SESSION['Ignore'] == 0 && (int)$amount > (int)$_SESSION['Final_Balance']){
+                    echo "<script>alert('Amount Exceeded by Student Balance!')</script>";
+                } else{
+                    if ($type == "Vehicle Fee") {
                     $sql = "INSERT INTO `stu_paid_fee` VALUES('','$id','$name','$type','$class','$section','$amount','$date','$bill','$route')";
                     /* Excluded on 05-02-23
                     $sql1 = mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
@@ -121,7 +140,7 @@ if (isset($_POST['add'])) {
                     $balance -= $amount;
                     $sql2 = "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'";
                     */
-                } else {
+                    } else {
                     $sql = "INSERT INTO `stu_paid_fee` VALUES('','$id','$name','$type','$class','$section','$amount','$date','$bill','0')";
                     /* Excluded on 05-02-23
                     $sql1 = mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
@@ -131,9 +150,9 @@ if (isset($_POST['add'])) {
                     $balance -= $amount;
                     $sql2 = "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'";
                     */
-                }
-                //$fee_balance_sql = mysqli_query($link,"SELECT * FROM `fee_balances` ");
-                if (str_contains(strtolower($class), "others") || str_contains(strtolower($class), "drop")) {
+                    }
+                    //$fee_balance_sql = mysqli_query($link,"SELECT * FROM `fee_balances` ");
+                    if (str_contains(strtolower($class), "others") || str_contains(strtolower($class), "drop")) {
                     $fee_balance_sql = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
                     while ($fee_row = mysqli_fetch_assoc($fee_balance_sql)) {
                         $balance = (int)$fee_row['Last_Balance'];
@@ -141,8 +160,8 @@ if (isset($_POST['add'])) {
                     $balance -= (int)$amount;
                     mysqli_query($link, "UPDATE `stu_fee_master_data` SET Last_Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
                     mysqli_query($link, "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
-                }
-                if (mysqli_query($link, $sql)) {
+                    }
+                    if (mysqli_query($link, $sql)) {
                     $text = "Dear parent ,We received with thanks, the amount of Rs " . $amount . " towards the " . $type . " of your child " . $name . " on " . format_date($_SESSION['DOP']) . " Principal, Victory High school,KDR";
                     if (str_contains($mobile, ',')) {
                         $mobile = explode(',', $mobile, 2)[0];
@@ -160,8 +179,9 @@ if (isset($_POST['add'])) {
                         send(document.getElementById("sms_link").href);
                     </script>';
                     echo "<script>alert('Fee Inserted Successfully!!')</script>";
-                } else {
+                    } else {
                     echo "<script>alert('Fee Insertion Failed!!')</script>";
+                    }
                 }
             } else {
                 echo "<script>alert('Please Enter Bill No.!')</script>";
