@@ -33,7 +33,7 @@ error_reporting(0);
     }
 
     .table-container {
-        max-width: 700px;
+        max-width: 900px;
         max-height: 500px;
         overflow-x: scroll;
     }
@@ -78,7 +78,7 @@ error_reporting(0);
     <form action="" method="POST">
         <div class="container">
             <div class="row justify-content-center mt-5">
-                <div class="col-lg-3">
+                <div class="col-lg-4">
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="sms_to" id="student" checked value="Student">
                         <label class="form-check-label" for="student">Student</label>
@@ -86,6 +86,10 @@ error_reporting(0);
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="sms_to" id="employee" value="Employee">
                         <label class="form-check-label" for="employee">Employee</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="sms_to" id="all_students" value="All_Students">
+                        <label class="form-check-label" for="all_students">All Students</label>
                     </div>
                 </div>
             </div>
@@ -174,6 +178,7 @@ error_reporting(0);
                 <th>S.No</th>
                 <th>Id No.</th>
                 <th>Name</th>
+                <th id="class_head" hidden>Class</th>
                 <th>SMS Link</th>
                 <th>Action <span style="margin:5px;"></span><input type="checkbox" id="select_all" onclick="toggle(this)">Select All</th>
             </thead>
@@ -223,7 +228,9 @@ error_reporting(0);
                     }
                     if (isset($_POST['show'])) {
                         $sms_to = $_POST['sms_to'];
-                        echo "<script>document.getElementById('" . strtolower($sms_to) . "').checked = true;</script>";
+                        echo "<script>
+                            document.getElementById('" . strtolower($sms_to) . "').checked = true;
+                        </script>";
                         if ($sms_to == "Student") {
                             echo "<script>
                                 let cls_row = document.getElementById('cls_row');
@@ -285,6 +292,16 @@ error_reporting(0);
                                             $mobiles[$mobile_row['Emp_Id']] = array($mobile_row['Emp_First_Name'], $mobile_row['Mobile']);
                                         }
                                     }
+                                } else if ($sms_to == "All_Students") {
+                                    echo "<script>document.getElementById('class_head').hidden = '';</script>";
+                                    $mobiles_query = mysqli_query($link, "SELECT Id_No,First_Name,Mobile,Stu_Class,Stu_Section FROM `student_master_data` WHERE (Stu_Class LIKE '% CLASS' OR Stu_Class LIKE '%KG') AND Stu_Class NOT LIKE '%Drop%' ORDER BY Stu_Class");
+                                    while ($mobile_row = mysqli_fetch_assoc($mobiles_query)) {
+                                        if (str_contains($mobile_row['Mobile'], ',')) {
+                                            $mobiles[$mobile_row['Id_No']] = array($mobile_row['First_Name'], explode(',', $mobile_row['Mobile'], 2)[0], $mobile_row['Stu_Class'] . " " . $mobile_row['Stu_Section']);
+                                        } else {
+                                            $mobiles[$mobile_row['Id_No']] = array($mobile_row['First_Name'], $mobile_row['Mobile'], $mobile_row['Stu_Class'] . " " . $mobile_row['Stu_Section']);
+                                        }
+                                    }
                                 }
                                 $i = 1;
                                 foreach (array_keys($mobiles) as $id) {
@@ -311,9 +328,12 @@ error_reporting(0);
                                     <tr>
                                     <td>' . $i . '</td>
                                     <td>' . $id . '</td>
-                                    <td>' . $mobiles[$id][0] . '</td>
-                                    <td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $details[$id][1] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id][1] . '</a></td>
-                                    <td><input type="checkbox" class="person" id="person" name="person[' . $id . ']" value="' . $details[$id][1] . '"></td>
+                                    <td>' . $mobiles[$id][0] . '</td>';
+                                    if ($sms_to == "All_Students") {
+                                        echo '<td style="white-space:nowrap;">' . $mobiles[$id][2] . '</td>';
+                                    }
+                                    echo '<td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=919515744884&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id][1] . '</a></td>
+                                    <td><input type="checkbox" class="person" id="person" name="person[' . $id . ']" value="' . $mobiles[$id][1] . '"></td>
                                     </tr>
                                     ';
                                     /*
@@ -353,6 +373,11 @@ error_reporting(0);
                         class_row.hidden = 'hidden';
                     }
                     break;
+                case 'all_students':
+                    if (!class_row.hidden) {
+                        class_row.hidden = 'hidden';
+                    }
+                    break;
             }
         });
     </script>
@@ -378,13 +403,17 @@ error_reporting(0);
 
     <!-- Send SMS -->
     <script>
-        async function send(url){
+        async function send(url) {
             response = await fetch(url)
         }
         $('#send').on('click', () => {
             absentees = []
             $(".person:checked").each(function() {
-                absentees.push($(this).parent().siblings().eq(3).children().attr('href'));
+                if (all_students.checked) {
+                    absentees.push($(this).parent().siblings().eq(4).children().attr('href'));
+                } else {
+                    absentees.push($(this).parent().siblings().eq(3).children().attr('href'));
+                }
                 //mywin = window.open($(this).parent().siblings().eq(4).children().attr('href'), '_blank')
             });
             if (absentees.length > 0) {
@@ -394,7 +423,7 @@ error_reporting(0);
                     //mywin = window.open(stu, '_blank')
                 })
                 alert('All SMS Sent Successfully!')
-            } else{
+            } else {
                 alert('No Student Selected!')
             }
             /*
