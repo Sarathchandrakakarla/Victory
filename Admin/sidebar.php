@@ -233,6 +233,7 @@
                 <li><a href="/Victory/Admin/Finance/debiter_list.php">Debiter's List</a></li>
                 <li><a href="/Victory/Admin/Finance/debiter_transactions.php">Debiter's Transactions</a></li>
                 <li><a href="/Victory/Admin/Finance/consolidated_fee.php">Consolidated Fee</a></li>
+                <li><a href="/Victory/Admin/Finance/consolidated_finance.php">Consolidated Finance</a></li>
             </ul>
         </li>
         <li>
