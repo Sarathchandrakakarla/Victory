@@ -26,7 +26,7 @@ if (isset($_POST['Type']) && isset($_POST['Id'])) {
             if (mysqli_num_rows($sql1) != 0) {
                 while ($row1 = mysqli_fetch_assoc($sql1)) {
                     echo $row1['Pass'] . ',';
-                    if($type == "Faculty"){
+                    if ($type == "Faculty") {
                         echo $row1['Role'] . ',';
                     }
                 }
@@ -61,5 +61,16 @@ if (isset($_POST['text'])) {
             echo $text;
         }
         fclose($myfile);
+    }
+}
+
+if ($_POST['Video_Id']) {
+    $video_id = $_POST['Video_Id'];
+    $s = "DELETE FROM `youtube` WHERE Video_Id = '$video_id'";
+    $res = mysqli_query($link, $s);
+    if ($res) {
+        echo "Success";
+    } else {
+        echo "Failure";
     }
 }

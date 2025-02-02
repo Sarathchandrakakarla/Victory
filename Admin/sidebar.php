@@ -301,6 +301,7 @@
                     <li><a href="/Victory/Admin/add_user.php">Add Admin User</a></li>
                     <li><a href="/Victory/Admin/image.php">Add Images</a></li>
                     <li><a href="/Victory/Admin/home_text.php">Manage Home Page Text</a></li>
+                    <li><a href="/Victory/Admin/manage_youtube_videos.php">Manage Youtube Videos</a></li>
                 <?php } ?>
                 <li><a href="/Victory/Admin/add_stu_user.php">Add Student/Faculty User</a></li>
                 <li><a href="/Victory/Admin/stu_pass_change.php">Change Student/Faculty Password</a></li>
