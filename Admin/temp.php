@@ -64,11 +64,32 @@ if (isset($_POST['text'])) {
     }
 }
 
-if ($_POST['Video_Id']) {
+if (isset($_POST['Video_Id'])) {
     $video_id = $_POST['Video_Id'];
-    $s = "DELETE FROM `youtube` WHERE Video_Id = '$video_id'";
-    $res = mysqli_query($link, $s);
-    if ($res) {
+    $flag = false;
+    if ($_POST['Action'] == "Delete_Video") {
+        $s = "DELETE FROM `youtube` WHERE Video_Id = '$video_id'";
+        $res = mysqli_query($link, $s);
+        if ($res) {
+            $flag = true;
+        } else {
+            $flag = false;
+        }
+    } else if ($_POST['Action'] == "Edit_Title") {
+        if (isset($_POST['Video_Title'])) {
+            $video_title = $_POST['Video_Title'];
+            $s = "UPDATE `youtube` SET Video_Title = '$video_title' WHERE Video_Id = '$video_id'";
+            $res = mysqli_query($link, $s);
+            if ($res) {
+                $flag = true;
+            } else {
+                $flag = false;
+            }
+        } else {
+            $flag = false;
+        }
+    }
+    if ($flag) {
         echo "Success";
     } else {
         echo "Failure";

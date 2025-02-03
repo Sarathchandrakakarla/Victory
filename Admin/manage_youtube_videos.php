@@ -129,6 +129,23 @@ if (isset($_POST['add'])) {
         font-size: 20px;
         color: red;
     }
+
+    .edit,
+    .preview {
+        cursor: pointer;
+        font-size: 20px;
+    }
+
+    .close-btn {
+        cursor: pointer;
+        font-size: 20px;
+        width: 30px;
+        height: 30px;
+        border-radius: 10%;
+        background-color: #f00;
+        border-color: transparent;
+        color: #fff;
+    }
 </style>
 
 <body>
@@ -194,7 +211,11 @@ if (isset($_POST['add'])) {
                 <td style="padding:5px;">' . $i . '</td>
                 <td style="padding:5px;">' . $row['Video_Id'] . '</td>
                 <td style="padding:5px;">' . $row['Video_Title'] . '</td>
-                <td style="padding:5px;"><i class="bx bx-trash delete"></i></td>
+                <td style="padding:5px;">
+                <i class="bx bx-edit edit" data-toggle="modal" data-target="#modal" title="Edit Video Title"></i>
+                <i class="bx bx-file-find preview" title="Preview Video"></i>
+                    <i class="bx bx-trash delete" title="Delete Video"></i>
+                </td>
                 </tr>';
                             $i++;
                         }
@@ -203,6 +224,47 @@ if (isset($_POST['add'])) {
                 </tr>
             </tbody>
         </table>
+    </div>
+    <div class="modal fade" tabindex="-1" role="dialog" id="modal" aria-modal="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Video Title</h5>
+                    <button type="button" class="close-btn" aria-label="Close" onclick="$('#modal').modal('hide')">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="video_id">
+                    <input type="text" class="form-control" id="video_title" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="edit_title(document.getElementById('video_id').value,document.getElementById('video_title').value)">Save changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="$('#modal').modal('hide')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" tabindex="-1" role="dialog" id="modal1" aria-modal="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Preview Video</h5>
+                    <button type="button" class="close-btn" aria-label="Close" onclick="$('#modal1').modal('hide')">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <iframe
+                        src=""
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        width="470"
+                        height="300"
+                        id="modal-video-player"></iframe>
+                </div>
+            </div>
+        </div>
     </div>
     <iframe name="print_frame" width="0" height="0" frameborder="0" src="about:blank"></iframe>
 
@@ -238,7 +300,7 @@ if (isset($_POST['add'])) {
         }
     </script>
 
-    <!-- Delete Row -->
+    <!-- Delete, Edit, Preview Row -->
     <script type="text/javascript">
         $(".delete").click(function() {
             video_id = $(this).parent().siblings().eq(1).text();
@@ -249,6 +311,7 @@ if (isset($_POST['add'])) {
                     type: 'post',
                     url: 'temp.php',
                     data: {
+                        Action: "Delete_Video",
                         Video_Id: video_id
                     },
                     success: function(data) {
@@ -256,6 +319,38 @@ if (isset($_POST['add'])) {
                     }
                 });
             }
+        });
+
+        $(".edit").click(function() {
+            video_id = $(this).parent().siblings().eq(1).text();
+            video_title = $(this).parent().siblings().eq(2).text();
+            document.getElementById("video_id").value = video_id;
+            document.getElementById("video_title").value = video_title;
+            $('#modal').modal("show");
+        });
+
+        function edit_title(id, title) {
+            console.log(id, title)
+            $.ajax({
+                type: 'post',
+                url: 'temp.php',
+                data: {
+                    Action: "Edit_Title",
+                    Video_Id: id,
+                    Video_Title: title
+                },
+                success: function(data) {
+                    console.log(data);
+                    alert('Video Title Updated Successfully!! Refresh to get data updated!')
+                    $('#modal').modal("hide")
+                }
+            });
+        }
+        $(".preview").click(function() {
+            video_id = $(this).parent().siblings().eq(1).text();
+            video_title = $(this).parent().siblings().eq(2).text();
+            document.getElementById("modal-video-player").src = "https://www.youtube.com/embed/" + video_id
+            $("#modal1").modal("show");
         });
     </script>
 
