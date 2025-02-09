@@ -125,7 +125,7 @@ else if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
             }
             echo json_encode(["success" => true, "message" => "All Files Renamed Successfully"]);
         } else {
-            echo json_encode(["success" => false, "message" => "Path does not exist"]);
+            echo json_encode(["success" => true, "message" => "Path does not exist"]);
         }
     } catch (Exception $err) {
         echo json_encode(["success" => false, "message" => $err->getMessage()]);
