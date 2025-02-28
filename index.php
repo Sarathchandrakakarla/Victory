@@ -283,11 +283,14 @@ if (filesize("test.txt") != 0) {
 
   @media (min-width:500px) {
     footer {
-      top: 105%;
+      top: 110%;
     }
   }
+
   @media (max-width:768px) {
-    footer,.footer-bottom{
+
+    footer,
+    .footer-bottom {
       width: 100vw;
     }
   }
@@ -301,6 +304,19 @@ if (filesize("test.txt") != 0) {
       display: flex;
       margin-top: 10px;
       margin-bottom: 20px;
+    }
+  }
+
+  #play-text {
+    text-align: right;
+  }
+
+  @media screen and (max-width:576px) {
+    #play-text{
+      text-align: center;
+    }
+    #play-icon{
+      padding-left: 25%;
     }
   }
 
@@ -393,6 +409,18 @@ if (filesize("test.txt") != 0) {
             <span class="sr-only">Next</span>
           </a>
         </div>
+      </div>
+    </div>
+  </div>
+  <div class="play-div">
+    <div class="row justify-content-center">
+      <div class="col-lg-4 mt-4" id="play-text">
+        <p><b>Download Android App of our Victory School</b></p>
+      </div>
+      <div class="col-lg-4">
+        <a href="https://play.google.com/store/apps/details?id=com.victoryschools" target="_blank" id="play-icon">
+          <img src="/Victory/Images/GooglePlay.png" alt="..." width="50%">
+        </a>
       </div>
     </div>
   </div>
