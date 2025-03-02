@@ -62,7 +62,17 @@ if (!$_SESSION['Admin_Id_No']) {
         <tr>
           <th class="bg-secondary text-light">Id No.</th>
           <td width="70%"><?php echo $_SESSION['Emp_Id_No']; ?></td>
-          <td rowspan="4"><img src="/Victory/Images/emp_img/<?php echo $_SESSION['Emp_Id_No'] . ".jpg" ?>" alt="Employee Image" width="100px"></td>
+          <?php
+          if (file_exists("../../Images/emp_img/" . $_SESSION['Emp_Id_No'] . ".jpg")) {
+          ?>
+            <td rowspan="4"><img src="/Victory/Images/emp_img/<?php echo $_SESSION['Emp_Id_No'] . ".jpg" ?>" alt="Employee Image" width="100px"></td>
+          <?php
+          } else {
+          ?>
+            <td rowspan="3" colspan="2" align="center"><img src="/Victory/Images/emp_img/not_photo.jpg" alt="Employee Image" width="100px"></td>
+          <?php
+          }
+          ?>
         </tr>
         <tr>
           <th class="bg-secondary text-light">First Name</th>
