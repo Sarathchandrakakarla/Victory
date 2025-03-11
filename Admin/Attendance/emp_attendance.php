@@ -172,12 +172,20 @@ error_reporting(0);
                   <td>' . $names[$id] . '</td>
                   <td>
                   <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="att[' . $i . ']" checked id="p[' . $id . ']" value="P">
+                    <input class="form-check-input" type="radio" name="att[' . $i . ']" checked id="n[' . $id . ']" value="N">
+                    <label class="form-check-label" for="n[' . $id . ']">Not Punched</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="att[' . $i . ']" id="p[' . $id . ']" value="P">
                     <label class="form-check-label" for="p[' . $id . ']">Present</label>
                   </div>
                   <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="att[' . $i . ']" id="a[' . $id . ']" value="A">
                     <label class="form-check-label" for="a[' . $id . ']">Absent</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="att[' . $i . ']" id="l[' . $id . ']" value="L">
+                    <label class="form-check-label" for="l[' . $id . ']">Leave</label>
                   </div>
                   </td>
                   ';
@@ -191,10 +199,12 @@ error_reporting(0);
                     $check_query = mysqli_query($link, "SELECT * FROM `employee_attendance` WHERE Id_No = '$id' AND Date = '$date'");
                     if (mysqli_num_rows($check_query) != 0) {
                       while ($check_row = mysqli_fetch_assoc($check_query)) {
-                        $att_type = strtolower($check_row[$type]);
-                        echo "
+                        if ($check_row[$type]) {
+                          $att_type = strtolower($check_row[$type]);
+                          echo "
                             <script>document.getElementById('" . $att_type . "[" . $id . "]').checked = true;</script>
-                          ";
+                        ";
+                        }
                       }
                     }
                   }
@@ -236,7 +246,7 @@ error_reporting(0);
 
       $i = 0;
       foreach ($att as $status) {
-        if ($status == "A") {
+        if ($status != "N") {
           $final_att[$ids[$i]] = $status;
         }
         $i++;
@@ -268,7 +278,7 @@ error_reporting(0);
           //Checking If Data Already Exists
           $check_query = mysqli_query($link, "SELECT * FROM `employee_attendance` WHERE Id_No = '$all_id' AND Date = '$date'");
           if (mysqli_num_rows($check_query) != 0) {
-            $upload_query = mysqli_query($link, "UPDATE `employee_attendance` SET $type = '' WHERE Id_No = '$all_id' AND Date = '$date'");
+            $upload_query = mysqli_query($link, "UPDATE `employee_attendance` SET $type = NULL, " . $type . "_Punch_Time = NULL WHERE Id_No = '$all_id' AND Date = '$date'");
             if ($upload_query) {
               $att_status = true;
             } else {
