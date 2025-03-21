@@ -33,7 +33,7 @@ error_reporting(0);
     }
 
     .table-container {
-        max-width: 900px;
+        max-width: 1000px;
         max-height: 500px;
         overflow-x: scroll;
     }
@@ -104,10 +104,11 @@ error_reporting(0);
         </div>
         <div class="container">
             <div class="row justify-content-center mt-4">
-                <div class="col-lg-3">
+                <div class="col-lg-5">
                     <button class="btn btn-primary" type="submit" name="show">Show</button>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                     <button class="btn btn-success" name="send" id="send" onclick="return false;">Send</button>
+                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
                 </div>
             </div>
         </div>
@@ -134,54 +135,64 @@ error_reporting(0);
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
-                        if($_POST['Class']){
+                        $flag = false;
+                        if (!$_POST['Class'] && !$_POST['Section']) {
+                            $mobile_sql = mysqli_query($link, "SELECT Id_No,Stu_Class,Stu_Section,Mobile FROM `student_master_data` WHERE Stu_Class IN ('PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS') AND Stu_Section IN ('A','B','C','D') ORDER BY FIELD(Stu_Class,'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'),Stu_Section");
+                            $flag = true;
+                        } else if ($_POST['Class']) {
                             $class = $_POST['Class'];
                             echo "<script>document.getElementById('class').value='$class';</script>";
-                            if($_POST['Section']){
+                            if ($_POST['Section']) {
                                 $section = $_POST['Section'];
                                 echo "<script>document.getElementById('sec').value='$section';</script>";
-                                $mobile_sql = mysqli_query($link,"SELECT Id_No,Mobile FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section'");
-                                $mobiles = array();
-                                if(mysqli_num_rows($mobile_sql) > 0){
-                                    while($mobile_row = mysqli_fetch_assoc($mobile_sql)){
-                                        $mobiles[$mobile_row['Id_No']] = $mobile_row['Mobile'];
-                                    }
-                                }
-                                $sql = mysqli_query($link,"SELECT Id_No,Stu_Name,Stu_Password AS Password FROM student WHERE Id_No IN (SELECT Id_No FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section')");
-                                if (mysqli_num_rows($sql) == 0) {
-                                    echo "<script>alert('Class or Section Not Available!')</script>";
-                                } else {
-                                    $i = 1;
-                                    while ($row = mysqli_fetch_assoc($sql)) {
-                                        if (str_contains($mobiles[$row['Id_No']], ',')) {
-                                            $mobile = explode(',', $mobiles[$row['Id_No']], 2)[0];
-                                        } else if (str_contains($mobiles[$row['Id_No']], ' ')) {
-                                            $mobile = explode(' ', $mobiles[$row['Id_No']], 2)[0];
-                                        }
-                                        else{
-                                            $mobile = $mobiles[$row['Id_No']];
-                                        }
-                                        $text = "Dear student,The credentials to login VICTORYSCHOOLS portal are as follows.Name :". $row['Stu_Name'] ." ,Username:". $row['Id_No'] .",Password:". $row['Password'] .".Change pass word once you login.Principal,Victory schools,KDR";
-                                        $text = urlencode($text);
-                                        echo '<tr>
-                                        <td style="padding:5px;">' . $i . '</td>
-                                        <td style="padding:5px;">' . $row['Id_No'] . '</td>
-                                        <td style="padding-left:5px;">' . $row['Stu_Name'] . '</td>
-                                        <td style="padding-left:5px;">' . $class . ' ' . $section . '</td>
-                                        <td style="padding-left:5px;padding-right:5px;">' . $row['Password'] . '</td>
-                                        <td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message='.$text.'&MobileNumbers=91'.$mobile.'&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobile . '</a></td>
-                                        <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="'.$mobile.'"></td>
-                                        </tr>';
-                                        $i++;
-                                    }
-                                }
-                            }
-                            else{
+                                $mobile_sql = mysqli_query($link, "SELECT Id_No,Stu_Class,Stu_Section,Mobile FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section'");
+                                $flag = true;
+                            } else {
                                 echo "<script>alert('Please Select Section!')</script>";
                             }
-                        }
-                        else{
+                        } else {
                             echo "<script>alert('Please Select Class!')</script>";
+                        }
+                        if ($flag) {
+                            $mobiles = array();
+                            $classes = array();
+                            if (mysqli_num_rows($mobile_sql) > 0) {
+                                while ($mobile_row = mysqli_fetch_assoc($mobile_sql)) {
+                                    $mobiles[$mobile_row['Id_No']] = $mobile_row['Mobile'];
+                                    $classes[$mobile_row['Id_No']] = $mobile_row['Stu_Class'] . ' ' . $mobile_row['Stu_Section'];
+                                }
+                            }
+                            $sql = mysqli_query($link, "SELECT c.Id_No AS Id_No,c.Stu_Name AS Stu_Name,c.Stu_Password AS Password FROM student c JOIN student_master_data s ON s.Id_No = c.Id_No WHERE s.Id_No IN ('" . implode("','", array_keys($mobiles)) . "') ORDER BY FIELD(s.Stu_Class,'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'),FIELD(s.Stu_Section,'A','B','C','D')");
+                            if (mysqli_num_rows($sql) == 0 && $class && $section) {
+                                echo "<script>alert('Class or Section Not Available!')</script>";
+                            } else {
+                                $i = 1;
+                                while ($row = mysqli_fetch_assoc($sql)) {
+                                    if (str_contains($mobiles[$row['Id_No']], ',')) {
+                                        $mobile = explode(',', $mobiles[$row['Id_No']], 2)[0];
+                                    } else if (str_contains($mobiles[$row['Id_No']], ' ')) {
+                                        $mobile = explode(' ', $mobiles[$row['Id_No']], 2)[0];
+                                    } else {
+                                        $mobile = $mobiles[$row['Id_No']];
+                                    }
+                                    $text = "Dear student,The credentials to login VICTORYSCHOOLS portal are as follows.Name :" . $row['Stu_Name'] . " ,Username:" . $row['Id_No'] . ",Password:" . $row['Password'] . ".Change pass word once you login.Principal,Victory schools,KDR";
+                                    $text = urlencode($text);
+                                    echo '<tr>
+                                        <td style="padding:5px;">' . $i . '</td>
+                                        <td style="padding:5px;">' . $row['Id_No'] . '</td>
+                                        <td style="padding-left:5px;">' . $row['Stu_Name'] . '</td>';
+                                    if ($class && $section) {
+                                        echo '<td style="padding-left:5px;white-space:nowrap;">' . $class . ' ' . $section . '</td>';
+                                    } else {
+                                        echo '<td style="padding-left:5px;white-space:nowrap;">' . $classes[$row['Id_No']] . '</td>';
+                                    }
+                                    echo '<td style="padding-left:5px;padding-right:5px;">' . $row['Password'] . '</td>
+                                        <td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobile . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobile . '</a></td>
+                                        <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $mobile . '"></td>
+                                        </tr>';
+                                    $i++;
+                                }
+                            }
                         }
                     }
                     ?>
@@ -233,8 +244,8 @@ error_reporting(0);
     </script>
     -->
     <script>
-        async function send(url){
-            var response = await fetch( url);
+        async function send(url) {
+            var response = await fetch(url);
             console.log(response.json());
         }
         $('#send').on('click', () => {
@@ -250,7 +261,7 @@ error_reporting(0);
                     //mywin = window.open(stu, '_blank')
                 })
                 alert('All SMS Sent Successfully!')
-            } else{
+            } else {
                 alert('No Student Selected!')
             }
             /*
@@ -258,6 +269,46 @@ error_reporting(0);
                 mywin = window.open($(this).attr('href'), '_blank')
             });
             */
+        });
+    </script>
+
+    <!-- Export Table to Excel -->
+    <script type="text/javascript">
+        $('#export').on('click', function() {
+            cls = '<?php echo $class; ?>';
+            sec = '<?php echo $section; ?>';
+            if (cls != '' && sec != '') {
+                filename = cls + sec;
+            } else {
+                filename = 'All Students';
+            }
+            var downloadLink;
+            var dataType = 'application/vnd.ms-excel';
+            var tableSelect = document.getElementById('table-container');
+            var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+            // Specify file name
+            filename = filename ? filename + '.xls' : 'excel_data.xls';
+
+            // Create download link element
+            downloadLink = document.createElement("a");
+
+            document.body.appendChild(downloadLink);
+
+            if (navigator.msSaveOrOpenBlob) {
+                var blob = new Blob(['\ufeff', tableHTML], {
+                    type: dataType
+                });
+                navigator.msSaveOrOpenBlob(blob, filename);
+            } else {
+                // Create a link to the file
+                downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+
+                // Setting the file name
+                downloadLink.download = filename;
+
+                //triggering the function
+                downloadLink.click();
+            }
         });
     </script>
 </body>

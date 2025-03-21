@@ -266,7 +266,13 @@ error_reporting(0);
                   $print_ids = $unique_ids;
                 } else if ($type == "Combined") {
                   $current_ids = array_unique(array_merge($unique_ids, $sibling_ids));
-                  $print_ids = $current_ids;
+                  //Sorting By Class and Section
+                  $current_ids = mysqli_query($link, "SELECT Id_No FROM `student_master_data` WHERE Id_No IN ('" . implode("','", $current_ids) . "') ORDER BY FIELD(Stu_Class, 'PreKG', 'LKG', 'UKG', '1 CLASS', '2 CLASS', '3 CLASS', '4 CLASS', '5 CLASS', '6 CLASS', '7 CLASS', '8 CLASS', '9 CLASS', '10 CLASS'),FIELD(Stu_Section, 'A', 'B', 'C', 'D')");
+                  $sorted_ids = [];
+                  while($sort_row = mysqli_fetch_assoc($current_ids)){
+                    $sorted_ids[] = $sort_row['Id_No'];
+                  }
+                  $print_ids = $sorted_ids;
                 } else if ($type == "All_Students") {
                   $current_ids = array_unique(array_merge($unique_ids, $sibling_ids));
                   $print_ids = [];
