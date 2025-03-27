@@ -272,15 +272,18 @@ if (!$_SESSION['Admin_Id_No']) {
                     echo "<script>alert('Please Select Role!!')</script>";
                 }
             } else if ($user == "student") {
-                //Check if User Already Exists
-                $check_sql = mysqli_query($link, "SELECT * FROM `student` WHERE Id_No = '$uid'");
-                if ($check_sql) {
-                    if (mysqli_num_rows($check_sql) == 0) {
-                        echo "<script>alert('User does not Exists!!')</script>";
-                    } else {
-                        $sql = "UPDATE `student` SET Stu_Password = '$password',Stu_Hash = '$pass_hash' WHERE Id_No = '$uid'";
-                        if (mysqli_query($link, $sql)) {
-                            echo "<script>
+                if ($_POST['Status']) {
+                    $status = $_POST['Status'];
+                    echo "<script>document.getElementById('status').value = '" . $status . "';</script>";
+                    //Check if User Already Exists
+                    $check_sql = mysqli_query($link, "SELECT * FROM `student` WHERE Id_No = '$uid'");
+                    if ($check_sql) {
+                        if (mysqli_num_rows($check_sql) == 0) {
+                            echo "<script>alert('User does not Exists!!')</script>";
+                        } else {
+                            $sql = "UPDATE `student` SET Stu_Password = '$password',Stu_Hash = '$pass_hash',Status = '$status' WHERE Id_No = '$uid'";
+                            if (mysqli_query($link, $sql)) {
+                                echo "<script>
         alert_row = document.getElementById('alert-row');
         alert = document.getElementById('alert');
         alert_parent = document.getElementById('alert-parent');
@@ -289,8 +292,8 @@ if (!$_SESSION['Admin_Id_No']) {
         alert_parent.classList.add('alert-success');
         alert.innerHTML = 'Successfully Updated " . $_POST['User'] . " User!!';
         </script>";
-                        } else {
-                            echo "<script>
+                            } else {
+                                echo "<script>
         alert_row = document.getElementById('alert-row');
         alert = document.getElementById('alert');
         alert_parent = document.getElementById('alert-parent');
@@ -299,11 +302,14 @@ if (!$_SESSION['Admin_Id_No']) {
         alert_parent.classList.add('alert-danger');
         alert.innerHTML = 'User Updation Failed due to SQL Error!!';
         </script>";
+                            }
                         }
+                    } else {
+                        echo "<script>alert('User Checking Query Error!!')</script>";
                     }
-                } else {
-                    echo "<script>alert('User Checking Query Error!!')</script>";
                 }
+            } else {
+                echo "<script>alert('Please Select Status!!')</script>";
             }
         } else {
             echo "<script>alert('Please Select User Type!!')</script>";
@@ -351,11 +357,13 @@ if (!$_SESSION['Admin_Id_No']) {
     <script type="text/javascript">
         $('#user').on('change', () => {
             if ($('#user').val() == "Faculty") {
+                $('.status').remove()
                 document.querySelector('.button').style.marginTop = '70px';
                 $('#c_password').parent().append('<div class="row role" style="margin-top:20px;"><i class="fas fa-users"></i><select class="form-select" name="Role" id="role" style="padding-left: 60px;"><option value="selectrole" selected disabled>-- Select Role --</option><option value="Faculty">Faculty</option><option value="Faculty_Admin">Faculty Admin</option><option value="Van_Incharge">Van Incharge</option></select></div>')
             } else if ($('#user').val() == "Student") {
                 $('.role').remove()
-                document.querySelector('.button').style.marginTop = '';
+                document.querySelector('.button').style.marginTop = '70px';
+                $('#c_password').parent().append('<div class="row status" style="margin-top:20px;"><i class="fas fa-key"></i><select class="form-select" name="Status" id="status" style="padding-left: 60px;"><option value="selectstatus" selected disabled>-- Select Status --</option><option value="Enabled">Enabled</option><option value="Disabled">Disabled</option></select></div>')
             }
         })
     </script>
@@ -399,6 +407,8 @@ if (!$_SESSION['Admin_Id_No']) {
                                 $('#c_password').val(arr[1]);
                                 if (type == "Faculty") {
                                     $('#role').val(arr[2]);
+                                } else if (type == "Student") {
+                                    $('#status').val(arr[2]);
                                 }
                             }
                         }
