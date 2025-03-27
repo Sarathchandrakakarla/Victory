@@ -5,7 +5,7 @@ if (isset($_POST['Type']) && isset($_POST['Id'])) {
     $type = $_POST['Type'];
     if ($type == "Student") {
         $sql = mysqli_query($link, "SELECT First_Name AS Name FROM `student_master_data` WHERE Id_No = '$id'");
-        $sql1 = mysqli_query($link, "SELECT Stu_Password AS Pass FROM `student` WHERE Id_No = '$id'");
+        $sql1 = mysqli_query($link, "SELECT Stu_Password AS Pass,Status FROM `student` WHERE Id_No = '$id'");
     } else if ($type == "Faculty") {
         $sql = mysqli_query($link, "SELECT Emp_First_Name AS Name FROM `employee_master_data` WHERE Emp_Id = '$id'");
         $sql1 = mysqli_query($link, "SELECT Password AS Pass,Role FROM `faculty` WHERE Id_No = '$id'");
@@ -28,6 +28,8 @@ if (isset($_POST['Type']) && isset($_POST['Id'])) {
                     echo $row1['Pass'] . ',';
                     if ($type == "Faculty") {
                         echo $row1['Role'] . ',';
+                    } else if ($type == "Student") {
+                        echo $row1['Status'] . ',';
                     }
                 }
             }
