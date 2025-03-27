@@ -261,9 +261,11 @@ error_reporting(0);
       document.getElementById('class').value = '" . $class . "';
       document.getElementById('sec').value = '" . $section . "';
       document.getElementById('date').value = '" . $date . "';
-              document.getElementById('" . strtolower($type) . "').checked = true</script>";
+      document.getElementById('" . strtolower($type) . "').checked = true;
+      </script>";
 
       $att = $_POST['att'];
+      $att_status = true;
 
       //Arrays
       $ids = array();
@@ -360,7 +362,27 @@ error_reporting(0);
         */
       }
       if ($att_status) {
-        echo "<script>alert('Attendance Uploaded Successfully!!')</script>";
+        //Submitting Attendance Status
+        $submit_check_query = mysqli_query($link, "SELECT * FROM `class_attendance` WHERE Class = '$class' AND Section = '$section' AND Date = '$date'");
+        if (mysqli_num_rows($submit_check_query) != 0) {
+          while ($submit_row = mysqli_fetch_assoc($submit_check_query)) {
+            $submit_status = $submit_row[$type . '_Status'];
+          }
+        }
+        date_default_timezone_set('Asia/Kolkata');
+        $force_submit_status = false;
+        if (mysqli_num_rows($submit_check_query) == 0) {
+          $submit_query = mysqli_query($link, "INSERT INTO `class_attendance`(Date,Class,Section," . $type . "_Status," . $type . "_Punch_Time) VALUES('$date','$class','$section','Submitted','" . date('h:i:s a', time()) . "')");
+        } else {
+          if ($submit_status == null) {
+            $submit_query = mysqli_query($link, "UPDATE `class_attendance` SET " . $type . "_Status = 'Submitted'," . $type . "_Punch_Time = '" . date('h:i:s a', time()) . "' WHERE Class = '$class' AND Section = '$section' AND Date = '$date'");
+          } else {
+            $force_submit_status = true;
+          }
+        }
+        if ((isset($submit_query) && $submit_query) || ($force_submit_status)) {
+          echo "<script>alert('Attendance Uploaded Successfully!!')</script>";
+        }
       } else {
         echo "<script>alert('Attendance Upload Failed!!')</script>";
       }
