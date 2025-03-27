@@ -299,6 +299,9 @@ error_reporting(0);
              '$doj','$previous_school','$route','$referred_by',NULL)");
                                 }
                                 if ($sql) {
+                                    $password = "VHST" . rand(1111, 9999);
+                                    $pass_hash = password_hash($password, PASSWORD_DEFAULT);
+                                    $login_sql = mysqli_query($link, "INSERT INTO `student`(Id_No,Stu_Name,Stu_Password,Stu_Hash) VALUES('$id','$firstname','$password','$pass_hash')");
                                     echo
                                     "
 		<script>
