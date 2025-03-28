@@ -1,4 +1,13 @@
 <?php
+/*
+Study Certificate
+width:23.00cm
+height:15.00cm
+left:1.70cm
+right:1.30cm
+top:0.50cm
+bottom:0.70cm
+*/
 include_once('../../link.php');
 session_start();
 if (!$_SESSION['Admin_Id_No']) {
