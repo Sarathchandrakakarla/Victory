@@ -177,7 +177,7 @@ error_reporting(0);
                         <select class="form-control" name="Van_Route" id="van_route">
                             <option value="NULL">-- Select Route --</option>
                             <?php
-                            $van_sql = mysqli_query($link, "SELECT Van_Route FROM `van_route`");
+                            $van_sql = mysqli_query($link, "SELECT Van_Route FROM `van_route` ORDER BY Van_Route");
                             while ($van_row = mysqli_fetch_assoc($van_sql)) {
                                 echo '<option value="' . $van_row['Van_Route'] . '" >' . $van_row['Van_Route'] . '</option>';
                             }

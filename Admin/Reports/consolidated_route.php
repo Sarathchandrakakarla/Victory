@@ -112,7 +112,7 @@ if (!$_SESSION['Admin_Id_No']) {
                 $routes = array();
                 $strength = array();
 
-                $res = mysqli_query($link, "SELECT * FROM `van_route`");
+                $res = mysqli_query($link, "SELECT * FROM `van_route` ORDER BY Van_Route");
 
                 while ($row = mysqli_fetch_assoc($res)) {
                     array_push($routes, $row['Van_Route']);

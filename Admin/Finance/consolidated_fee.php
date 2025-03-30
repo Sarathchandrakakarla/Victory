@@ -167,7 +167,7 @@ error_reporting(0);
 
                                 //For Getting Routes
 
-                                $query = mysqli_query($link, "SELECT * FROM `van_route`");
+                                $query = mysqli_query($link, "SELECT * FROM `van_route` ORDER BY Van_Route");
                                 while ($row = mysqli_fetch_assoc($query)) {
                                     array_push($routes, $row['Van_Route']);
                                 }

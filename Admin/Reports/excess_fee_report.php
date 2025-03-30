@@ -165,7 +165,7 @@ error_reporting(0);
                             }
                         } else {
                             $routes = [];
-                            $query1 = mysqli_query($link, "SELECT * FROM van_route");
+                            $query1 = mysqli_query($link, "SELECT * FROM van_route ORDER BY Van_Route");
                             while ($row1 = mysqli_fetch_array($query1)) {
                                 $routes[] = $row1['Van_Route'];
                             }

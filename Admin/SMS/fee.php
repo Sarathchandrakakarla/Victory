@@ -146,7 +146,7 @@ error_reporting(0);
                         <option selected disabled>-- Select Route --</option>
                         <?php
                         $max_fee = array();
-                        $route_query = mysqli_query($link, "SELECT v.Van_Route,f.Fee FROM van_route v,actual_fee f WHERE v.Van_Route=f.Route");
+                        $route_query = mysqli_query($link, "SELECT v.Van_Route,f.Fee FROM van_route v,actual_fee f WHERE v.Van_Route=f.Route ORDER BY v.Van_Route");
                         while ($route_row = mysqli_fetch_assoc($route_query)) {
                             $max_fee[$route_row['Van_Route']] = $route_row['Fee'];
                             echo "<option value='" . $route_row['Van_Route'] . "'>" . $route_row['Van_Route'] . " - " . $route_row['Fee'] . "</option>";

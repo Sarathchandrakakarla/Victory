@@ -120,7 +120,7 @@ error_reporting(0);
                         <select class="form-select" name="Route" id="route" aria-label="Default select example">
                             <option selected disabled>-- Select Route --</option>
                             <?php
-                            $sql = mysqli_query($link, "SELECT * FROM `van_route`");
+                            $sql = mysqli_query($link, "SELECT * FROM `van_route` ORDER BY Van_Route");
                             while ($row = mysqli_fetch_assoc($sql)) {
                                 echo "<option value='" . $row['Van_Route'] . "'>" . $row['Van_Route'] . "</option>";
                             }

@@ -194,7 +194,7 @@ if (isset($_POST['add'])) {
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
-                        $sql = "SELECT * FROM `van_route`";
+                        $sql = "SELECT * FROM `van_route` ORDER BY Van_Route";
                         $result = mysqli_query($link, $sql);
                         $i = 1;
                         while ($row = mysqli_fetch_assoc($result)) {

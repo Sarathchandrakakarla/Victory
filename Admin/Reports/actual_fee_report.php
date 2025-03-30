@@ -106,7 +106,7 @@ error_reporting(0);
                 <div class="col-lg-4">
                     <button class="btn btn-primary print" type="submit" name="show">Show</button>
                     <button class="btn btn-warning">Clear</button>
-                    <button class="btn btn-warning print" onclick="printDiv();return false;">Print</button>
+                    <button class="btn btn-success print" onclick="printDiv();return false;">Print</button>
                     <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
                 </div>
             </div>
@@ -170,7 +170,7 @@ error_reporting(0);
                                     $i++;
                                 }
                             } else {
-                                $sql = "SELECT * FROM `actual_fee` WHERE Type = '$type' ORDER BY S_No";
+                                $sql = "SELECT * FROM `actual_fee` WHERE Type = '$type' ORDER BY Route";
                                 $result = mysqli_query($link, $sql);
                                 $i = 1;
                                 while ($row = mysqli_fetch_assoc($result)) {
