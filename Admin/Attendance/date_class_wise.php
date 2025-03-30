@@ -220,7 +220,7 @@ error_reporting(0);
                             }
                             $i = 1;
                             if (count($ids) == 0) {
-                                echo '<td colspan="6" class="text-center">No Absentees on ' . $date . '</td>';
+                                echo '<td colspan="7" class="text-center">No Absentees on ' . $date . '</td>';
                             } else {
                                 foreach ($ids as $id) {
                                     $query2 = mysqli_query($link, "SELECT First_Name,Father_Name,Stu_Class,Stu_Section,Mobile,House_No,Area FROM `student_master_data` WHERE Id_No = '$id'");

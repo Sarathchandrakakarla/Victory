@@ -91,7 +91,7 @@ error_reporting(0);
                 </div>
             </div>
             <div class="row justify-content-center mt-2">
-                <div class="col-lg-4">
+                <div class="col-lg-5">
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="fee_by" id="class_wise" checked value="Class_Wise">
                         <label class="form-check-label" for="class_wise">Class Wise</label>
@@ -167,6 +167,18 @@ error_reporting(0);
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="fee" id="w_commit" value="W_Commit">
                         <label class="form-check-label" for="w_commit">With Committed Fee</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center mt-4">
+                <div class="col-lg-6">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="fee_filter" id="wo_zero" checked value="Wo_Zero">
+                        <label class="form-check-label" for="wo_zero">Without Zero Balance</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="fee_filter" id="w_zero" value="W_Zero">
+                        <label class="form-check-label" for="w_zero">With Zero Balance</label>
                     </div>
                 </div>
             </div>
@@ -249,6 +261,12 @@ error_reporting(0);
                             echo "<script>document.getElementById('w_commit').checked = true;</script>";
                         } else {
                             echo "<script>document.getElementById('wo_commit').checked = true;</script>";
+                        }
+                        $fee_filter = $_POST['fee_filter'];
+                        if ($fee_filter == "W_Zero") {
+                            echo "<script>document.getElementById('w_zero').checked = true;</script>";
+                        } else {
+                            echo "<script>document.getElementById('wo_zero').checked = true;</script>";
                         }
 
                         if ($_POST['Type']) {
@@ -773,33 +791,35 @@ error_reporting(0);
                                     $total_bal = 0;
                                     $van_total = 0;
                                     foreach ($ids as $id) {
-                                        echo '<tr style="padding: 5px;">
+                                        if ($fee_filter == "W_Zero" || ($fee_filter == "Wo_Zero" && ($balance[$id] != 0 || $van_balance[$id] != 0))) {
+                                            echo '<tr style="padding: 5px;">
                   <td style="text-align:center">' . $i . '</td>
                   <td>' . $id . '</td>
                   <td style="padding:5px;">' . $names[$id] . '</td>';
-                                        if ($fee_by == "Route_Wise" || ($fee_by == "All_Students" && $type == "Vehicle Fee")) {
-                                            echo '<td>' . $classes[$id][0] . '</td>
+                                            if ($fee_by == "Route_Wise" || ($fee_by == "All_Students" && $type == "Vehicle Fee")) {
+                                                echo '<td>' . $classes[$id][0] . '</td>
                                         <td style="text-align:center;">' . $classes[$id][1] . '</td>';
-                                        }
-                                        if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
-                                            echo '
+                                            }
+                                            if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
+                                                echo '
                                                 <td style="text-align:center;">' . $id_routes[$id] . '</td>
                                             ';
-                                        } else if ($fee_by == "All_Students" && $type != "Vehicle Fee") {
-                                            echo '
+                                            } else if ($fee_by == "All_Students" && $type != "Vehicle Fee") {
+                                                echo '
                                                 <td style="text-align:center;">' . $id_classes[$id][0] . '</td>
                                                 <td style="text-align:center;">' . $id_classes[$id][1] . '</td>
                                             ';
-                                        }
-                                        if ($type != "Vehicle Fee") {
-                                            echo '<td style="text-align:center">' . $balance[$id] . '</td>';
-                                            $total_bal += (int)$balance[$id];
-                                        }
-                                        $van_total += (int)$van_balance[$id];
-                                        echo '<td style="text-align:center">' . $van_balance[$id] . '</td>
+                                            }
+                                            if ($type != "Vehicle Fee") {
+                                                echo '<td style="text-align:center">' . $balance[$id] . '</td>';
+                                                $total_bal += (int)$balance[$id];
+                                            }
+                                            $van_total += (int)$van_balance[$id];
+                                            echo '<td style="text-align:center">' . $van_balance[$id] . '</td>
                   <td style="text-align:center">' . $mobile[$id] . '</td>';
-                                        echo '</tr>';
-                                        $i++;
+                                            echo '</tr>';
+                                            $i++;
+                                        }
                                     }
                                     if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
                                         echo '<tr>
@@ -888,7 +908,8 @@ error_reporting(0);
                                     /* if ($fee_by == "All_Students") {
                                         echo '<tr>
                                     <td colspan="7" style="font-weight:bold;text-align:center;">Total</td>';
-                                    } else  */if ($fee_by == "Class_Wise") {
+                                    } else  */
+                                    if ($fee_by == "Class_Wise") {
                                         echo '<tr>
                                     <td colspan="5" style="font-weight:bold;text-align:center;">Total</td>';
                                     } else {

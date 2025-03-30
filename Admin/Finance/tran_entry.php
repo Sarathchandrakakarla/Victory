@@ -276,6 +276,12 @@ if (isset($_POST['Ok'])) {
         color: red;
         cursor: pointer;
     }
+
+    @media print {
+        #action_head {
+            display: none;
+        }
+    }
 </style>
 
 <body>
@@ -363,12 +369,12 @@ if (isset($_POST['Ok'])) {
                 <th id="date"></th>
             </thead>
             <thead id="expenses" hidden>
-                <th>S.No</th>
-                <th>AC.No</th>
-                <th>Amount</th>
-                <th>Purpose</th>
-                <th>Bill No</th>
-                <th>Action</th>
+                <th style='text-align:center;'>S.No</th>
+                <th style='text-align:center;'>AC.No</th>
+                <th style='text-align:center;'>Amount</th>
+                <th style='text-align:center;'>Purpose</th>
+                <th style='text-align:center;'>Bill No</th>
+                <th style='text-align:center;' id='action_head'>Action</th>
             </thead>
             <thead id="collects" hidden>
                 <th>S.No</th>
@@ -555,7 +561,6 @@ if (isset($_POST['Ok'])) {
                 id_no = $(e).parent().siblings().eq(1).text();
                 bill_no = $(e).parent().siblings().eq(5).text();
                 fee_type = $(e).siblings().eq(0).text();
-                console.log(id_no, bill_no)
                 if (confirm('Confirm to Delete Collection ' + id_no + '  ' + bill_no + ' on ' + date + '?')) {
                     $.ajax({
                         type: 'post',
@@ -568,6 +573,7 @@ if (isset($_POST['Ok'])) {
                             Fee_Type: fee_type
                         },
                         success: function(data) {
+                            console.log(data);
                             if (data == "success") {
                                 alert('Payment Deleted Successfully!!');
                             } else if (data == "failure") {

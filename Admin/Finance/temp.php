@@ -69,19 +69,18 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
                 foreach ($details as $detail) {
                     $text .= "<td>" . $i . "</td>";
                     foreach ($detail as $col) {
-                        $text .= "<td>" . $col . "</td>";
+                        $text .= "<td style='text-align:center;'>" . $col . "</td>";
                     }
-                    $text .= "<td><i class='bx bx-trash delete' onclick='delete_row(this)'></i></td>";
+                    $text .= "<td style='text-align:center;'><i class='bx bx-trash delete' onclick='delete_row(this)'></i></td>";
                     $text .= "</tr>";
                     $i++;
                 }
                 $text .= "
                 <tr>
+                    <td colspan='2' style='text-align:center;'><b>Total</b></td>
+                    <td style='text-align:center;'><b>" . $total . "</b></td>
                     <td></td>
                     <td></td>
-                    <td></td>
-                    <td style = 'text-align:center;'><b>Total</b></td>
-                    <td><b>" . $total . "</b></td>
                     <td></td>
                 </tr>
                 ";
@@ -92,11 +91,11 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
     } else if ($type == "Collection") {
         $sql = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Type = 'School Fee' AND DOP = '$date'");
         $sql1 = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Type = 'Vehicle Fee' AND DOP = '$date'");
-        $fee_types = array('School Fee','Vehicle Fee','Admission Fee','Computer fee','Examination Fee');
+        $fee_types = array('School Fee', 'Vehicle Fee', 'Admission Fee', 'Computer fee', 'Examination Fee');
         $grand_total = 0;
-        foreach($fee_types as $type){
-            $sql = mysqli_query($link,"SELECT * FROM `stu_paid_fee` WHERE Type = '$type' AND DOP = '$date'");
-            if($sql){
+        foreach ($fee_types as $type) {
+            $sql = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Type = '$type' AND DOP = '$date'");
+            if ($sql) {
                 if (mysqli_num_rows($sql) > 0) {
                     $total = 0;
                     $details = array();
@@ -113,16 +112,16 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
                     $grand_total += $total;
                     $text .= "
                 <tr>
-                    <td colspan='6' style='text-align:center'><b>". $type ."</b></td>
+                    <td colspan='6' style='text-align:center'><b>" . $type . "</b></td>
                 </tr>
                 <tr>";
                     $i = 1;
                     foreach ($details as $detail) {
                         $text .= "<td>" . $i . "</td>";
                         foreach ($detail as $col) {
-                            $text .= "<td style='padding-left:20px;'>" . $col . "</td>";
+                            $text .= "<td style='padding-left:20px;text-align:center;'>" . $col . "</td>";
                         }
-                        $text .= "<td><label style='opacity:0' id='fee_type'>". $type ."</label><i class='bx bx-trash delete' onclick='delete_row(this)'></i></td>";
+                        $text .= "<td><label style='opacity:0' id='fee_type'>" . $type . "</label><i class='bx bx-trash delete' onclick='delete_row(this)'></i></td>";
                         $text .= "</tr>";
                         $i++;
                     }
@@ -131,9 +130,8 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
                     <td></td>
                     <td></td>
                     <td></td>
-                    <td></td>
-                    <td><b>Total</b></td>
-                    <td><b>" . $total . "</b></td>
+                    <td style='text-align:center;'><b>Total</b></td>
+                    <td style='text-align:center;'><b>" . $total . "</b></td>
                 </tr>";
                 }
             }
@@ -142,8 +140,9 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
                 <tr>
                     <td></td>
                     <td></td>
+                    <td></td>
                     <td style='text-align:center;'><b>Grand Total</b></td>
-                    <td><b>" . ($grand_total) . "</b></td>
+                    <td style='text-align:center;'><b>" . ($grand_total) . "</b></td>
                     <td></td>
                     <td></td>
                 </tr>
