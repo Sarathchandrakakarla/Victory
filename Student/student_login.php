@@ -19,6 +19,10 @@ if (isset($_POST['Login'])) {
         $id = $row['Id_No'];
         $stu_hash = $row['Stu_Hash'];
         if (password_verify($pass, $stu_hash)) {
+            if ($row['Status'] == "Disabled") {
+                echo "<script>alert('Your Login has been Disabled.. Contact Admin Office');location.replace('student_login.php')</script>";
+                exit;
+            }
             $_SESSION['Id_No'] = $id;
             $sql_ = "SELECT * FROM `student_master_data` WHERE Id_No = '$id'";
             $result_ = mysqli_query($link, $sql_);
@@ -142,8 +146,8 @@ if (isset($_POST['Login'])) {
         }
     }
 
-    @media screen and (max-height:600px){
-        footer{
+    @media screen and (max-height:600px) {
+        footer {
             bottom: -200px;
         }
     }
