@@ -47,7 +47,10 @@ if (isset($_POST['Send'])) {
                 echo '<a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707167897089994658&format=JSON" style="display:none;" class="sms_link">' . $mobile . '</a>';
                 echo "
                 <script>
-                    mywin = window.open(document.querySelector('.sms_link').href, '_blank');
+                async function send(url) {
+                    response = await fetch(url);
+                }
+                send(document.querySelector('.sms_link').href);
                 </script>
                 ";
                 $send_status = true;
