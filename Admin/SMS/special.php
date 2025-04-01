@@ -308,19 +308,29 @@ error_reporting(0);
                                     switch ($type) {
                                         case 'New_Year':
                                             $text = getTemplate($type, $txt);
+                                            $template_id = "1707164093805453144";
+                                            $msgtype = "Text";
                                             break;
                                         case 'Pongal':
                                             $text = getTemplate($type, $mobiles[$id][0]);
+                                            $template_id = "1707161924196726375";
+                                            $msgtype = "Unicode";
                                             break;
                                         case 'Festival':
                                             $txt1 = explode(',', $txt);
                                             $text = getTemplate($type, $txt1[0], $txt1[1]);
+                                            $template_id = "1707162010189321072";
+                                            $msgtype = "Text";
                                             break;
                                         case 'Rain':
                                             $text = getTemplate($type, $mobiles[$id][0]);
+                                            $template_id = "1707162010196858901";
+                                            $msgtype = "Text";
                                             break;
                                         case 'Reopen':
                                             $text = getTemplate($type, $txt, $mobiles[$id][0]);
+                                            $template_id = "1707162010165380037";
+                                            $msgtype = "Text";
                                             break;
                                     }
                                     $text = urlencode($text);
@@ -332,7 +342,7 @@ error_reporting(0);
                                     if ($sms_to == "All_Students") {
                                         echo '<td style="white-space:nowrap;">' . $mobiles[$id][2] . '</td>';
                                     }
-                                    echo '<td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=919515744884&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id][1] . '</a></td>
+                                    echo '<td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=' . $msgtype . '&sender=VICKDR&mobile=' . $mobiles[$id][1] . '&message=' . $text . '&route=TRANS&TemplateID=' . $template_id . '&format=JSON" class="sms_link">' . $mobiles[$id][1] . '</a></td>
                                     <td><input type="checkbox" class="person" id="person" name="person[' . $id . ']" value="' . $mobiles[$id][1] . '"></td>
                                     </tr>
                                     ';

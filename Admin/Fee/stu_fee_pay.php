@@ -170,7 +170,7 @@ if (isset($_POST['add'])) {
                     } else {
                         $mobile = $mobile;
                     }
-                    echo '<a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobile . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" id="sms_link" hidden>' . $mobile . '</a>';
+                    echo '<a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707173494146888652&format=JSON" id="sms_link" hidden>' . $mobile . '</a>';
                     echo '<script>
                         //Send Message API
                         async function send(url){

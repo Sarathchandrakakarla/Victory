@@ -329,10 +329,8 @@ error_reporting(0);
                                                 <td>' . $names[$id] . '</td>
                                                 <td>' . $route . '</td>
                                                 <td>' . $balances[$id] . '</td>
-                                                <td><a
-                                                href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                            </a></td>
-                                            <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
+                                                <td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
+                                                <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $mobiles[$id] . '"></td>
                                                 </tr>
                                                 ';
                                                 $i++;
@@ -405,9 +403,7 @@ error_reporting(0);
                                                 <td>' . $id . '</td>
                                                 <td>' . $names[$id] . '</td>
                                                 <td>' . $balances[$id] . '</td>
-                                                <td><a
-                                                href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                            </a></td>
+                                                <td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
                                             <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
                                                 </tr>
                                                 ';
@@ -506,9 +502,7 @@ error_reporting(0);
                                                 <td>' . $names[$id] . '</td>
                                                 <td>' . $class . ' ' . $section . '</td>
                                                 <td>' . $balances[$id] . '</td>
-                                                <td><a
-                                                href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                            </a></td>
+                                                <td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
                                             <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
                                                 </tr>
                                                 ';
@@ -585,9 +579,7 @@ error_reporting(0);
                                                 <td>' . $id . '</td>
                                                 <td>' . $names[$id] . '</td>
                                                 <td>' . $balances[$id] . '</td>
-                                                <td><a
-                                                href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                            </a></td>
+                                                <td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
                                             <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
                                                 </tr>
                                                 ';
@@ -709,11 +701,10 @@ error_reporting(0);
         $('#send').on('click', () => {
             absentees = []
             $(".student:checked").each(function() {
-                var sms_type = document.querySelector('[name="sms_type"]').value;
-                if (sms_type == "Class_Wise") {
-                    absentees.push($(this).parent().siblings().eq(5).children().attr('href'));
-                } else {
+                if (!all_students.checked) {
                     absentees.push($(this).parent().siblings().eq(4).children().attr('href'));
+                } else {
+                    absentees.push($(this).parent().siblings().eq(5).children().attr('href'));
                 }
                 //mywin = window.open($(this).parent().siblings().eq(4).children().attr('href'), '_blank')
             });

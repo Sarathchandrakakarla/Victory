@@ -174,8 +174,7 @@ error_reporting(0);
                                                     $details[$row1['Id_No']] = array($row2['First_Name'], explode(',', $row2['Mobile'], 2)[0], $row2['Stu_Class'] . ' ' . $row2['Stu_Section']);
                                                 } else if (str_contains($row2['Mobile'], ' ')) {
                                                     $details[$row1['Id_No']] = array($row2['First_Name'], explode(' ', $row2['Mobile'], 2)[0], $row2['Stu_Class'] . ' ' . $row2['Stu_Section']);
-                                                }
-                                                 else {
+                                                } else {
                                                     $details[$row1['Id_No']] = array($row2['First_Name'], $row2['Mobile'], $row2['Stu_Class'] . ' ' . $row2['Stu_Section']);
                                                 }
                                             }
@@ -202,8 +201,11 @@ error_reporting(0);
                                         <td>' . $id . '</td>
                                         <td>' . $details[$id][0] . '</td>
                                         <td>' . $details[$id][2] . '</td>
-                                        <td><a href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=91'.$details[$id][1].'&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $details[$id][1] . '</a></td>
-                                        <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="'.$details[$id][1].'"></td>
+                                        <td>
+                                        <a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $details[$id][1] . '&message=' . $text . '&route=TRANS&TemplateID=1707162010221207287&format=JSON" class="sms_link">' . $details[$id][1] . '</a>
+                                        </td>
+                                        <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '">
+                                        </td>
                                         </tr>';
                                         $i++;
                                     }
@@ -264,8 +266,8 @@ error_reporting(0);
     </script>
     -->
     <script>
-        async function send(url){
-            response = await fetch(url)
+        async function send(url) {
+            response = await fetch(url);
         }
         $('#send').on('click', () => {
             absentees = []
@@ -280,7 +282,7 @@ error_reporting(0);
                     //mywin = window.open(stu, '_blank')
                 })
                 alert('All SMS Sent Successfully!')
-            } else{
+            } else {
                 alert('No Student Selected!')
             }
             /*

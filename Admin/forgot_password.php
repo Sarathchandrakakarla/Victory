@@ -39,11 +39,13 @@ if (isset($_POST['Send'])) {
                 $_SESSION['OTP'] = $otp;
                 $text = "The OTP to reset your login pass word into Victory schools portal is :" . $otp . "-Victory schools,Kodur.";
                 $text = urlencode($text);
-                echo "<a href='https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=" . $text . "&MobileNumbers=91".$mobile."&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com' style='display:none;' class='sms_link'>otp</a>";
+                echo '<a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707167897089994658&format=JSON" style="display:none;" class="sms_link">' . $mobile . '</a>';
                 echo "
                 <script>
-                mywin = window.open(document.querySelector('.sms_link').href, '_blank')
-                //document.querySelector('.sms_link').click();
+                async function send(url) {
+                    response = await fetch(url);
+                }
+                send(document.querySelector('.sms_link').href);
                 </script>
                 ";
                 $send_status = true;
