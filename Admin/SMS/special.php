@@ -342,7 +342,7 @@ error_reporting(0);
                                     if ($sms_to == "All_Students") {
                                         echo '<td style="white-space:nowrap;">' . $mobiles[$id][2] . '</td>';
                                     }
-                                    echo '<td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=' . $msgtype . '&sender=VICKDR&mobile=' . $mobiles[$id][1] . '&message=' . $text . '&route=TRANS&TemplateID=' . $template_id . '&format=JSON" class="sms_link">' . $mobiles[$id][1] . '</a></td>
+                                    echo '<td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=' . $msgtype . '&sender=VICKDR&mobile=' . $mobiles[$id][1] . '&message=' . $text . '&route=TRANS&TemplateID=' . $template_id . '&format=JSON" class="sms_link">' . $mobiles[$id][1] . '</a></td>
                                     <td><input type="checkbox" class="person" id="person" name="person[' . $id . ']" value="' . $mobiles[$id][1] . '"></td>
                                     </tr>
                                     ';

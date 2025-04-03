@@ -187,7 +187,7 @@ error_reporting(0);
                                         echo '<td style="padding-left:5px;white-space:nowrap;">' . $classes[$row['Id_No']] . '</td>';
                                     }
                                     echo '<td style="padding-left:5px;padding-right:5px;">' . $row['Password'] . '</td>
-                                        <td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707169202054795768&format=JSON" class="sms_link">' . $mobile . '</a></td>
+                                        <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707169202054795768&format=JSON" class="sms_link">' . $mobile . '</a></td>
                                         <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $mobile . '"></td>
                                         </tr>';
                                     $i++;

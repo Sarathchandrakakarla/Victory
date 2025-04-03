@@ -329,7 +329,7 @@ error_reporting(0);
                                                 <td>' . $names[$id] . '</td>
                                                 <td>' . $route . '</td>
                                                 <td>' . $balances[$id] . '</td>
-                                                <td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
+                                                <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
                                                 <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $mobiles[$id] . '"></td>
                                                 </tr>
                                                 ';
@@ -403,7 +403,7 @@ error_reporting(0);
                                                 <td>' . $id . '</td>
                                                 <td>' . $names[$id] . '</td>
                                                 <td>' . $balances[$id] . '</td>
-                                                <td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
+                                                <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
                                             <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
                                                 </tr>
                                                 ';
@@ -502,7 +502,7 @@ error_reporting(0);
                                                 <td>' . $names[$id] . '</td>
                                                 <td>' . $class . ' ' . $section . '</td>
                                                 <td>' . $balances[$id] . '</td>
-                                                <td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
+                                                <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
                                             <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
                                                 </tr>
                                                 ';
@@ -579,7 +579,7 @@ error_reporting(0);
                                                 <td>' . $id . '</td>
                                                 <td>' . $names[$id] . '</td>
                                                 <td>' . $balances[$id] . '</td>
-                                                <td><a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
+                                                <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
                                             <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
                                                 </tr>
                                                 ';

@@ -202,7 +202,7 @@ error_reporting(0);
                                         <td>' . $details[$id][0] . '</td>
                                         <td>' . $details[$id][2] . '</td>
                                         <td>
-                                        <a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $details[$id][1] . '&message=' . $text . '&route=TRANS&TemplateID=1707162010221207287&format=JSON" class="sms_link">' . $details[$id][1] . '</a>
+                                        <a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $details[$id][1] . '&message=' . $text . '&route=TRANS&TemplateID=1707162010221207287&format=JSON" class="sms_link">' . $details[$id][1] . '</a>
                                         </td>
                                         <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '">
                                         </td>

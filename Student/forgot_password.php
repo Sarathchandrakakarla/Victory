@@ -44,7 +44,7 @@ if (isset($_POST['Send'])) {
                 $_SESSION['OTP'] = $otp;
                 $text = "The OTP to reset your login pass word into Victory schools portal is :" . $otp . "-Victory schools,Kodur.";
                 $text = urlencode($text);
-                echo '<a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707167897089994658&format=JSON" style="display:none;" class="sms_link">' . $mobile . '</a>';
+                echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707167897089994658&format=JSON" style="display:none;" class="sms_link">' . $mobile . '</a>';
                 echo "
                 <script>
                 async function send(url) {
