@@ -33,7 +33,7 @@ error_reporting(0);
     }
 
     .table-container {
-        max-width: 1000px;
+        max-width: 1100px;
         max-height: 500px;
         overflow-x: scroll;
     }
@@ -211,6 +211,7 @@ error_reporting(0);
                 <th>Id No.</th>
                 <th>Name</th>
                 <th id="label" hidden>Class</th>
+                <th id="label2" hidden>Class</th>
                 <th>Balance</th>
                 <th>SMS Link</th>
                 <th>Action <span style="margin:5px;"></span><input type="checkbox" id="select_all" onclick="toggle(this)">Select All</th>
@@ -258,6 +259,7 @@ error_reporting(0);
                                         document.getElementById('route_row').hidden = 'hidden';
                                         document.getElementById('label').hidden = '';
                                         document.getElementById('label').innerHTML = 'Route';
+                                        document.getElementById('label2').hidden = '';
                                     </script>";
                                     $routes = [];
                                     $sql = mysqli_query($link, "SELECT * FROM `van_route`");
@@ -273,7 +275,7 @@ error_reporting(0);
                                         $total = array();
                                         $paid = array();
                                         $balances = array();
-                                        $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Van_Route = '$route'");
+                                        $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Van_Route = '$route' AND (Stu_Class LIKE '% CLASS%' OR Stu_Class = 'PreKG' OR Stu_Class = 'LKG' OR Stu_Class = 'UKG')");
                                         while ($row1 = mysqli_fetch_assoc($query1)) {
                                             array_push($ids, $row1['Id_No']);
                                             $names[$row1['Id_No']] = $row1['First_Name'];
@@ -328,6 +330,7 @@ error_reporting(0);
                                                 <td>' . $id . '</td>
                                                 <td>' . $names[$id] . '</td>
                                                 <td>' . $route . '</td>
+                                                <td style="white-space:nowrap;">' . $classes[$id] . '</td>
                                                 <td>' . $balances[$id] . '</td>
                                                 <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
                                                 <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $mobiles[$id] . '"></td>
@@ -346,8 +349,10 @@ error_reporting(0);
                                 } else {
                                     if ($_POST['Route']) {
                                         $route = $_POST['Route'];
-                                        echo "<script>document.getElementById('route').value = '" . $route . "'</script>";
-                                        $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Van_Route = '$route'");
+                                        echo "<script>document.getElementById('route').value = '" . $route . "';
+                                        document.getElementById('label2').hidden = ''
+                                        </script>";
+                                        $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Van_Route = '$route' AND (Stu_Class LIKE '% CLASS%' OR Stu_Class = 'PreKG' OR Stu_Class = 'LKG' OR Stu_Class = 'UKG')");
                                         while ($row1 = mysqli_fetch_assoc($query1)) {
                                             array_push($ids, $row1['Id_No']);
                                             $names[$row1['Id_No']] = $row1['First_Name'];
@@ -402,6 +407,7 @@ error_reporting(0);
                                                 <td>' . $i . '</td>
                                                 <td>' . $id . '</td>
                                                 <td>' . $names[$id] . '</td>
+                                                <td>' . $classes[$id] . '</td>
                                                 <td>' . $balances[$id] . '</td>
                                                 <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
                                             <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
@@ -430,7 +436,8 @@ error_reporting(0);
                                 document.getElementById('class_row').hidden = 'hidden';
                                 document.getElementById('route_row').hidden = 'hidden';
                                 document.getElementById('label').hidden = '';
-                                    document.getElementById('label').innerHTML = 'Class';
+                                document.getElementById('label').innerHTML = 'Class';
+                                document.getElementById('label2').hidden = 'hiddden';
                                 </script>";
                                     $classes = ['PreKG', 'LKG', 'UKG'];
                                     for ($j = 1; $j <= 10; $j++) {
@@ -520,7 +527,9 @@ error_reporting(0);
                                 } else {
                                     if ($_POST['Class']) {
                                         $class = $_POST['Class'];
-                                        echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
+                                        echo "<script>document.getElementById('class').value = '" . $class . "';
+                                        document.getElementById('label2').hidden = 'hiddden';
+                                        </script>";
                                         if ($_POST['Section']) {
                                             $section = $_POST['Section'];
                                             echo "<script>document.getElementById('sec').value = '" . $section . "'</script>";
@@ -702,9 +711,17 @@ error_reporting(0);
             absentees = []
             $(".student:checked").each(function() {
                 if (!all_students.checked) {
-                    absentees.push($(this).parent().siblings().eq(4).children().attr('href'));
+                    if(type.value == "Vehicle Fee"){
+                        absentees.push($(this).parent().siblings().eq(5).children().attr('href'));
+                    } else{
+                        absentees.push($(this).parent().siblings().eq(4).children().attr('href'));
+                    }
                 } else {
-                    absentees.push($(this).parent().siblings().eq(5).children().attr('href'));
+                    if(type.value == "Vehicle Fee"){
+                        absentees.push($(this).parent().siblings().eq(6).children().attr('href'));
+                    } else{
+                        absentees.push($(this).parent().siblings().eq(5).children().attr('href'));
+                    }
                 }
                 //mywin = window.open($(this).parent().siblings().eq(4).children().attr('href'), '_blank')
             });
