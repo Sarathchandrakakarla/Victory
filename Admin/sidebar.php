@@ -134,6 +134,7 @@
                 <li><a href="/Victory/Admin/Attendance/date_wise.php">Date Wise Absentees View</a></li>
                 <li><a href="/Victory/Admin/Attendance/date_class_wise.php">Date and Class Wise Absentees View</a></li>
                 <li><a href="/Victory/Admin/Attendance/class_wise.php">Class Wise Attendance View</a></li>
+                <li><a href="/Victory/Admin/Attendance/emp_attendance_view.php">Employee Attendance View</a></li>
                 <li><a href="/Victory/Admin/Attendance/attendance_ranking.php">Class Wise Attendance Ranking</a></li>
             </ul>
         </li>
