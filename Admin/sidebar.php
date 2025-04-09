@@ -276,6 +276,7 @@
                 </li>
                 <li><a href="/Victory/Admin/Login/class_wise_credentials.php">Class Wise Credentials View</a></li>
                 <li><a href="/Victory/Admin/Login/faculty_credentials.php">Faculty Credentials View</a></li>
+                <li><a href="/Victory/Admin/Login/student_app_login_report.php">Student App Login Report</a></li>
             </ul>
         </li>
         <li>
