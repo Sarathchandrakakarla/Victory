@@ -110,6 +110,10 @@
                     <a class="link_name" href="#"><label for="">Homework</label></a>
                 </li>
                 <li><a href="/Victory/Admin/Homework/manage_homework.php">Manage Class Wise Homeworks</a></li>
+                <li>
+                    <a class="link_name" href="#" id="view"><label for="">View</label></a>
+                </li>
+                <li><a href="/Victory/Admin/Homework/class_wise_homework_report.php">Class Wise Homeworks Report</a></li>
             </ul>
         </li>
         <li>

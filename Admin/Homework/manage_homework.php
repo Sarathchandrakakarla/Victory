@@ -112,6 +112,7 @@ if (isset($_POST['GetDetails'])) {
     }
     return;
 }
+
 if (isset($_POST['Action'])) {
     $action = $_POST['Action'];
     $date = format_date($_POST['Date']);
@@ -531,6 +532,7 @@ if (isset($_POST['Action'])) {
                                             <a href="/Victory/Files/Homework/' . $class . ' ' . $section . '/' . $date . '/' . $row1['Subjects'] . '.pdf" target="_blank" class="btn btn-warning"><i class="fas fa-eye"></i> View</a>
                                             <button class="btn btn-success" data-bs-toggle="modal" id="update_' . $row1['Subjects'] . '" data-bs-target="#modal" onclick="ShowModal(this.id)"><i class="bx bx-edit-alt"></i> Update</button>
                                             <button class="btn btn-danger" id="delete_' . $row1['Subjects'] . '" onclick="deletework(this.id)"><i class="bx bx-trash"></i> Delete</button>
+                                            <a href="/Victory/Admin/Homework/homework_analytics.php?Action=show&Date=' . $date . '&Class=' . $class . '&Section=' . $section . '&Subject=' . $row1['Subjects'] . '" target="_blank"><button class="btn btn-primary" id="stats_' . $row1['Subjects'] . '"><i class="bx bx-line-chart"></i> Analytics</button></a>
                                             ';
                                         }
                                         echo '
