@@ -167,7 +167,9 @@ if (!$_SESSION['Admin_Id_No']) {
                 echo "<script>document.getElementById('sec').value = '" . $section . "'</script>";
                 echo "<script>document.getElementById('class_label').innerHTML = '" . $class . ' ' . $section . "'</script>";
                 $query1 = mysqli_query($link, "SELECT DISTINCT Subjects AS Subject FROM `class_wise_subjects` WHERE Class = '$class'");
+                $subjects = [];
                 while ($row1 = mysqli_fetch_assoc($query1)) {
+                  $subjects[] = $row1['Subject'];
                   echo '
                   <th>' . $row1['Subject'] . '</th>
                   ';
@@ -179,74 +181,76 @@ if (!$_SESSION['Admin_Id_No']) {
         </tr>
       </thead>
       <tbody id="tbody">
-          <?php
-          function format_date($date)
-          {
-            $arr = explode('-', $date);
-            $t = $arr[0];
-            $arr[0] = $arr[2];
-            $arr[2] = $t;
-            $date = implode('-', $arr);
-            return $date;
-          }
-          echo "<script>date.value = '" . date('Y-m-d') . "';</script>";
-          if (isset($_POST['show'])) {
-            $date = $_POST['Date'];
-            echo "<script>date.value = '" . $date . "';</script>";
-            $date = format_date($date);
-            if ($_POST['Class']) {
-              $class = $_POST['Class'];
-              echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
-              if ($_POST['Section']) {
-                $section = $_POST['Section'];
-                echo "<script>document.getElementById('class_label').innerHTML = '" . $class . ' ' . $section . "'</script>";
-                echo "<script>document.getElementById('sec').value = '" . $section . "'</script>";
+        <?php
+        function format_date($date)
+        {
+          $arr = explode('-', $date);
+          $t = $arr[0];
+          $arr[0] = $arr[2];
+          $arr[2] = $t;
+          $date = implode('-', $arr);
+          return $date;
+        }
+        echo "<script>date.value = '" . date('Y-m-d') . "';</script>";
+        if (isset($_POST['show'])) {
+          $date = $_POST['Date'];
+          echo "<script>date.value = '" . $date . "';</script>";
+          $date = format_date($date);
+          if ($_POST['Class']) {
+            $class = $_POST['Class'];
+            echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
+            if ($_POST['Section']) {
+              $section = $_POST['Section'];
+              echo "<script>document.getElementById('class_label').innerHTML = '" . $class . ' ' . $section . "'</script>";
+              echo "<script>document.getElementById('sec').value = '" . $section . "'</script>";
 
-                $query2 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section'");
-                if (mysqli_num_rows($query2) == 0) {
-                  echo "<script>alert('Class or Section Not Available!')</script>";
-                } else {
-                  $query3 = mysqli_query($link, "SELECT smd.Id_No, smd.First_Name, smd.Mobile, cws.Subjects AS Subject, CASE WHEN hw.Subject IS NULL OR (hw.Image IS NULL AND hw.Text IS NULL) THEN 'Not Given' WHEN sh.Id_No IS NULL THEN 'Not Viewed Yet' ELSE 'Viewed' END AS View_Status FROM student_master_data smd CROSS JOIN (SELECT DISTINCT Subjects FROM class_wise_subjects WHERE Class = '$class') cws LEFT JOIN student_homework sh ON smd.Id_No = sh.Id_No AND sh.Subject = cws.Subjects AND sh.Date = '$date' LEFT JOIN homework hw ON hw.Subject = cws.Subjects AND hw.Date = '$date' AND hw.Class = '$class' AND hw.Section = '$section' WHERE smd.Stu_Class = '$class' AND smd.Stu_Section = '$section'");
-                  $students = [];
-                  while ($row = mysqli_fetch_array($query3)) {
-                    $id = $row[0];
-                    $name = $row[1];
-                    $mobile = $row[2];
-                    $subject = $row[3];
-                    $status = $row[4];
+              $query2 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section'");
+              if (mysqli_num_rows($query2) == 0) {
+                echo "<script>alert('Class or Section Not Available!')</script>";
+              } else {
+                $query3 = mysqli_query($link, "SELECT smd.Id_No, smd.First_Name, smd.Mobile, cws.Subjects AS Subject, CASE WHEN hw.Subject IS NULL OR (hw.Image IS NULL AND hw.Text IS NULL) THEN 'Not Given' WHEN sh.Id_No IS NULL THEN 'Not Viewed Yet' ELSE 'Viewed' END AS View_Status FROM student_master_data smd CROSS JOIN (SELECT DISTINCT Subjects FROM class_wise_subjects WHERE Class = '$class') cws LEFT JOIN student_homework sh ON smd.Id_No = sh.Id_No AND sh.Subject = cws.Subjects AND sh.Date = '$date' LEFT JOIN homework hw ON hw.Subject = cws.Subjects AND hw.Date = '$date' AND hw.Class = '$class' AND hw.Section = '$section' WHERE smd.Stu_Class = '$class' AND smd.Stu_Section = '$section'");
+                $students = [];
+                while ($row = mysqli_fetch_array($query3)) {
+                  $id = $row[0];
+                  $name = $row[1];
+                  $mobile = $row[2];
+                  $subject = $row[3];
+                  $status = $row[4];
 
-                    $mobile = trim(explode(',', $mobile)[0]);
-                    $mobile = trim(explode(' ', $mobile)[0]);
+                  $mobile = trim(explode(',', $mobile)[0]);
+                  $mobile = trim(explode(' ', $mobile)[0]);
 
-                    if (!isset($students[$id])) {
-                      $students[$id] = ['Name' => $name, 'Mobile' => $mobile];
-                    }
-
-                    $students[$id][$subject] = $status;
+                  if (!isset($students[$id])) {
+                    $students[$id] = ['Name' => $name, 'Mobile' => $mobile, "Subjects" => []];
                   }
-                  $i = 1;
-                  foreach ($students as $id => $details) {
-                    echo '
+
+                  $students[$id]['Subjects'][$subject] = $status;
+                }
+                $i = 1;
+                foreach ($students as $id => $details) {
+                  echo '
                     <tr>
                       <td>' . $i . '</td>
                       <td>' . $id . '</td>
+                      <td>' . $details['Name'] . '</td>
+                      <td>' . $details['Mobile'] . '</td>
                       ';
-                    foreach (array_values($details) as $value) {
-                      echo '<td style="white-space:nowrap;">' . $value . '</td>';
-                    }
-                    echo '</tr>
-                    ';
-                    $i++;
+                  foreach($subjects as $subject){
+                    echo '<td style="white-space:nowrap;">' . $details['Subjects'][$subject] . '</td>';
                   }
+                  echo '</tr>
+                    ';
+                  $i++;
                 }
-              } else {
-                echo "<script>alert('Please Select Section!')</script>";
               }
             } else {
-              echo "<script>alert('Please Select Class!')</script>";
+              echo "<script>alert('Please Select Section!')</script>";
             }
+          } else {
+            echo "<script>alert('Please Select Class!')</script>";
           }
-          ?>
+        }
+        ?>
       </tbody>
     </table>
   </div>
