@@ -28,8 +28,19 @@ if (isset($_POST['Save'])) {
       global $balance_status;
       //Arrays
       $classes = array(
-        '10 CLASS', '9 CLASS', '8 CLASS', '7 CLASS', '6 CLASS', '5 CLASS', '4 CLASS', '3 CLASS', '2 CLASS', '1 CLASS',
-        'UKG', 'LKG', 'PreKG'
+        '10 CLASS',
+        '9 CLASS',
+        '8 CLASS',
+        '7 CLASS',
+        '6 CLASS',
+        '5 CLASS',
+        '4 CLASS',
+        '3 CLASS',
+        '2 CLASS',
+        '1 CLASS',
+        'UKG',
+        'LKG',
+        'PreKG'
       );
       $ids = array();
       $paid = array();
@@ -241,7 +252,7 @@ if (isset($_POST['Refresh'])) {
       global $table_status, $refresh_status;
       $year = date('y');
       //Arrays
-      $tables = array("stu_paid_fee", "stu_marks", "commit_date", "tran_details", "attendance_daily", "stu_att_master", "working_days", "holidays", "address_temp", "employee_attendance");
+      $tables = array("stu_paid_fee", "stu_marks", "commit_date", "tran_details", "attendance_daily", "stu_att_master", "working_days", "holidays", "address_temp", "employee_attendance", "class_attendance", "van_attendance", "van_attendance_daily", "student_homework", "homework", "notifications");
       $ids = array();
       //Queries
       foreach ($tables as $table) {
@@ -303,8 +314,19 @@ if (isset($_POST['Promotion'])) {
       global $promotion_status;
       //Arrays
       $classes = array(
-        '10 CLASS', '9 CLASS', '8 CLASS', '7 CLASS', '6 CLASS', '5 CLASS', '4 CLASS', '3 CLASS', '2 CLASS', '1 CLASS',
-        'UKG', 'LKG', 'PreKG'
+        '10 CLASS',
+        '9 CLASS',
+        '8 CLASS',
+        '7 CLASS',
+        '6 CLASS',
+        '5 CLASS',
+        '4 CLASS',
+        '3 CLASS',
+        '2 CLASS',
+        '1 CLASS',
+        'UKG',
+        'LKG',
+        'PreKG'
       );
       $ids = array();
 
@@ -419,8 +441,19 @@ if (isset($_POST['Promotion'])) {
       global $actual_status;
       //Arrays
       $classes = array(
-        '10 CLASS', '9 CLASS', '8 CLASS', '7 CLASS', '6 CLASS', '5 CLASS', '4 CLASS', '3 CLASS', '2 CLASS', '1 CLASS',
-        'UKG', 'LKG', 'PreKG'
+        '10 CLASS',
+        '9 CLASS',
+        '8 CLASS',
+        '7 CLASS',
+        '6 CLASS',
+        '5 CLASS',
+        '4 CLASS',
+        '3 CLASS',
+        '2 CLASS',
+        '1 CLASS',
+        'UKG',
+        'LKG',
+        'PreKG'
       );
       $actual = array();
 
