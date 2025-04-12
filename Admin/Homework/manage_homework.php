@@ -183,7 +183,7 @@ if (isset($_POST['Action'])) {
                     }
                     if (isset($filename)) {
                         $filenames[] = $filename;
-                        $html .= "<img src='" . $filename . "' style='width:100%;' />";
+                        $html .= "<img src='" . $filename . "' style='width:85%;padding:2%;object-fit:contain;' />";
                     }
                 }
                 /* for ($i = 1; $i <= $_POST['Image_Count']; $i++) {
@@ -231,7 +231,7 @@ if (isset($_POST['Action'])) {
                 $sql = mysqli_query($link, "SELECT * FROM `homework` WHERE Date = '$date' AND Class = '$class' AND Section = '$section' AND Subject = '$subject'");
                 while ($row2 = mysqli_fetch_assoc($sql)) {
                     foreach (explode(',', $row2['Image']) as $img) {
-                        $html .= "<img src='" . $img . "' style='width:100%;' />";
+                        $html .= "<img src='" . $img . "' style='width:85%;padding:2%;object-fit:contain;' />";
                         $filenames[] = $img;
                     }
                 }
@@ -241,7 +241,7 @@ if (isset($_POST['Action'])) {
         </html>";
         require '../SMS/vendor/autoload.php';
         try {
-            $html2pdf = new Html2Pdf($orientation = 'L', $format = 'A4');
+            $html2pdf = new Html2Pdf($orientation = 'P', $format = 'A4');
             $html2pdf->writeHTML($html);
             $d = str_replace('\\', '/', dirname(dirname(__DIR__)));
             $html2pdf->output($_SERVER['DOCUMENT_ROOT'] . "Victory/Files/Homework/" . $class . ' ' . $section . '/' . $date . '/' . $subject . '.pdf', 'F');
