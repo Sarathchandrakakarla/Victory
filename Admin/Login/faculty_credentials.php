@@ -109,38 +109,76 @@ error_reporting(0);
         <td style="font-size:25px;" colspan="2">Faculty Credentials</td>
       </tr>
     </table>
-    <table class="table table-striped table-hover" border="1">
-      <thead class="bg-secondary text-light">
-        <tr>
-          <th style="padding:5px;">S.No</th>
-          <th style="padding:5px;">Id No. / Username</th>
-          <th style="padding:5px;">First Name</th>
-          <th style="padding:5px;">Password</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-        <tr>
-          <?php
-          if (isset($_POST['show'])) {
-              $sql = "SELECT Id_No,Faculty_Name,Password FROM faculty WHERE Id_No IN (SELECT Id_No FROM `employee_master_data` WHERE Id_No != 'VHST02674')";
-              $result = mysqli_query($link,$sql);
+    <form action="" method="post">
+      <table class="table table-striped table-hover" border="1">
+        <thead class="bg-secondary text-light">
+          <tr>
+            <th style="padding:5px;">S.No</th>
+            <th style="padding:5px;">Id No. / Username</th>
+            <th style="padding:5px;">First Name</th>
+            <th style="padding:5px;">Password</th>
+            <th class="no-print" style="padding:5px;">Enable/Disable</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr>
+            <?php
+            if (isset($_POST['show'])) {
+              $sql = "SELECT Id_No,Faculty_Name,Password,Status FROM faculty WHERE Id_No IN (SELECT Id_No FROM `employee_master_data` WHERE Id_No != 'VHST02674' AND Status='Working')";
+              $result = mysqli_query($link, $sql);
               $i = 1;
               while ($row = mysqli_fetch_assoc($result)) {
-                    echo '<tr>
+                echo '<tr>
                 <td style="padding:5px;">' . $i . '</td>
                 <td style="padding:5px;">' . $row['Id_No'] . '</td>
                 <td style="padding-left:5px;">' . $row['Faculty_Name'] . '</td>
                 <td style="padding-left:5px;padding-right:5px;">' . $row['Password'] . '</td>
+                <td class="no-print" style="padding-left:30px;">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="status[' . $row['Id_No'] . ']" value="Enabled" role="switch" id="switchCheckChecked" ';
+                if ($row['Status'] == "Enabled") {
+                  echo "checked";
+                } else {
+                  echo "";
+                }
+                echo ' />
+                  </div>
+                </td>
                 </tr>';
-                    $i++;
+                $i++;
               }
-          }
-          ?>
-        </tr>
-      </tbody>
-    </table>
+            }
+            ?>
+          </tr>
+        </tbody>
+      </table>
   </div>
+  <div class="container">
+    <div class="row justify-content-center mt-3">
+      <div class="col-lg-2">
+        <button class="btn btn-primary" name="Update" onclick="if(!confirm('Confirm to Update Access?')){return false;}else{return true;}">Update Access</button>
+      </div>
+    </div>
+  </div>
+  </form>
   <iframe name="print_frame" width="0" height="0" frameborder="0" src="about:blank"></iframe>
+
+  <?php
+  if (isset($_POST['Update'])) {
+    foreach ($_POST['status'] as $id_no => $status) {
+      $sql = "UPDATE faculty SET Status = 'Enabled' WHERE Id_No = '$id_no'";
+      mysqli_query($link, $sql);
+    }
+    $all_employees = mysqli_query($link, "SELECT f.Id_No AS Id_No FROM faculty f JOIN `employee_master_data` emd ON f.Id_No = emd.Emp_Id WHERE emd.Emp_Id != 'VHST02674' AND emd.Status = 'Working'");
+    while ($employee = mysqli_fetch_assoc($all_employees)) {
+      if (!isset($_POST['status'][$employee['Id_No']])) {
+        $sql = "UPDATE faculty SET Status = 'Disabled' WHERE Id_No = '" . $employee['Id_No'] . "'";
+        mysqli_query($link, $sql);
+      }
+    }
+    echo '<script>alert("Access Updated Succesfully!");</script>';
+  }
+  ?>
 
 
   <!-- Scripts -->
@@ -182,11 +220,27 @@ error_reporting(0);
   <!-- Print Table -->
   <script type="text/javascript">
     function printDiv() {
-      window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'>VICTORY HIGH SCHOOL</h2>";
+      // Select all elements in the "Enable/Disable" column
+      let noPrintElements = document.querySelectorAll(".no-print");
+
+      // Hide them before printing
+      noPrintElements.forEach(el => el.style.display = "none");
+
+      // Get the iframe document and insert the printable content
+      let printFrame = window.frames["print_frame"];
+      let printContent = "<h2 style='text-align:center;'>VICTORY HIGH SCHOOL</h2>";
       window.frames["print_frame"].document.body.innerHTML += "<h2 style='text-align:center;'>Faculty Credentials List</h2>";
-      window.frames["print_frame"].document.body.innerHTML += document.querySelector('.table-container').innerHTML;
-      window.frames["print_frame"].window.focus();
-      window.frames["print_frame"].window.print();
+      printContent += document.querySelector('.table-container').innerHTML;
+
+      // Write the content into the iframe
+      printFrame.document.body.innerHTML = printContent;
+      printFrame.window.focus();
+      printFrame.window.print();
+
+      // Restore the "Enable/Disable" column after printing
+      setTimeout(() => {
+        noPrintElements.forEach(el => el.style.display = "");
+      }, 500);
     }
   </script>
 </body>

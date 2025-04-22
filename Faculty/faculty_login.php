@@ -1,3 +1,45 @@
+<?php
+    include '../link.php';
+    session_start();
+    if (isset($_POST['Login'])) {
+        function validate($data)
+        {
+            $data = trim($data);
+            $data = stripslashes($data);
+            $data = htmlspecialchars($data);
+            return $data;
+        }
+        $uname = validate($_POST['UserName']);
+        $pass = validate($_POST['Password']);
+        $sql = "SELECT * FROM `faculty` WHERE Id_No = '$uname'";
+        $result = mysqli_query($link, $sql);
+        if (mysqli_num_rows($result) == 1) {
+            $row = mysqli_fetch_assoc($result);
+            $adm_id = $row['Id_No'];
+            $adm_hash = $row['Fac_Hash'];
+            $role = $row['Role'];
+            if (password_verify($pass, $adm_hash)) {
+                if ($row['Status'] == "Disabled") {
+                    echo "<script>alert('Your Login has been Disabled.. Contact Admin Office');location.replace('faculty_login.php')</script>";
+                    exit;
+                }
+                $_SESSION['Id_No'] = $adm_id;
+                $_SESSION['Role'] = $role;
+                header('Location: faculty_dashboard.php');
+                exit;
+            } else {
+                echo "<script>alert('Incorrect Password');
+                    </script>";
+            }
+        } else {
+            echo "<script>alert('Incorrect Username');
+                    </script>";
+        }
+    } else {
+        echo "<script>alert('variable 'UserName' or variable 'Password' is not declared');
+            </script>";
+    }
+    ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -43,7 +85,7 @@
             bottom: -10%;
         }
     }
-
+    
     @media screen and (max-height:600px){
         footer{
             bottom: -200px;
@@ -103,7 +145,7 @@
         <div class="footer-bottom">
             <p>
                 &copy;
-                <?php echo date('Y'); ?>, <a href="/">Victory Schools </a>. All
+                <?php echo date('Y'); ?>, <a href="/">Victory Educational Society </a>. All
                 Rights Reserved.
             </p>
             <p class="company-tag">
@@ -111,44 +153,6 @@
             </p>
         </div>
     </footer>
-    <?php
-    include '../link.php';
-    session_start();
-    if (isset($_POST['Login'])) {
-        function validate($data)
-        {
-            $data = trim($data);
-            $data = stripslashes($data);
-            $data = htmlspecialchars($data);
-            return $data;
-        }
-        $uname = validate($_POST['UserName']);
-        $pass = validate($_POST['Password']);
-        $sql = "SELECT * FROM `faculty` WHERE Id_No = '$uname'";
-        $result = mysqli_query($link, $sql);
-        if (mysqli_num_rows($result) == 1) {
-            $row = mysqli_fetch_assoc($result);
-            $adm_id = $row['Id_No'];
-            $adm_hash = $row['Fac_Hash'];
-            $role = $row['Role'];
-            if (password_verify($pass, $adm_hash)) {
-                $_SESSION['Id_No'] = $adm_id;
-                $_SESSION['Role'] = $role;
-                header('Location: faculty_dashboard.php');
-                exit;
-            } else {
-                echo "<script>alert('Incorrect Password');
-                    </script>";
-            }
-        } else {
-            echo "<script>alert('Incorrect Username');
-                    </script>";
-        }
-    } else {
-        echo "<script>alert('variable 'UserName' or variable 'Password' is not declared');
-            </script>";
-    }
-    ?>
 </body>
 <script type="text/javascript">
     $('#hide').on('click', function() {
