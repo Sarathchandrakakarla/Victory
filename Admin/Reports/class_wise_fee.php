@@ -236,6 +236,7 @@ error_reporting(0);
                     <th id="van_head" hidden>Van Total</th>
                     <th id="van_bal_head">Van Fee Balance</th>
                     <th>Phone Number</th>
+                    <th>Student Image</th>
                 </tr>
             </thead>
             <tbody>
@@ -817,6 +818,11 @@ error_reporting(0);
                                             $van_total += (int)$van_balance[$id];
                                             echo '<td style="text-align:center">' . $van_balance[$id] . '</td>
                   <td style="text-align:center">' . $mobile[$id] . '</td>';
+                                            if (file_exists("../../Images/stu_img/" . $id . ".jpg")) {
+                                                echo '<td oncontextmenu="return false;"><img src = "../../Images/stu_img/' . $id . '.jpg" class="rounded" width="100px" height="100px"';
+                                            } else {
+                                                echo '<td oncontextmenu="return false;"><img src = "../../Images/stu_img/not_photo.jpg" class="rounded" width="100px" height="100px"';
+                                            }
                                             echo '</tr>';
                                             $i++;
                                         }
