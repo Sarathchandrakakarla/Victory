@@ -219,6 +219,7 @@
                 <li><a href="/Victory/Admin/Fee/paid_details.php">Student Paid Details</a></li>
                 <li><a href="/Victory/Admin/Reports/class_wise_fee_balances.php">Class Wise Consolidated Fee</a></li>
                 <li><a href="/Victory/Admin/Reports/excess_fee_report.php">Excess Fee Balance Report</a></li>
+                <li><a href="/Victory/Admin/Fee/vvip_list.php">VVIP Students List</a></li>
             </ul>
         </li>
         <li>

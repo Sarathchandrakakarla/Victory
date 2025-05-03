@@ -21,6 +21,7 @@ if (isset($_POST['Save'])) {
   } else {
     $balance_status = false;
     $van_balance_status = false;
+    $vvip_balance_status = false;
 
     //Function for Updating School Balances
     function set_balance($link)
@@ -220,18 +221,43 @@ if (isset($_POST['Save'])) {
       }
     }
 
-    /*
-    Calling Functions to Set Balances, Class Promotion, Set New Actual Fee as Actual Fee, Current Balance and Updating Total respectively
-  */
-    set_balance($link);
-    set_van_balance($link);
+    function set_vvip_balance($link)
+    {
+      global $vvip_balance_status;
+      $ids = [];
+      $query1 = mysqli_query($link, "SELECT v.Id_No FROM `vvip` v JOIN `student_master_data` smd ON smd.Id_No = v.Id_No WHERE smd.Stu_Class NOT IN ('PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS')");
+      while ($row1 = mysqli_fetch_assoc($query1)) {
+        $ids[] = $row1['Id_No'];
+      }
+      // Updating Committed Fee and Balance in Stu Fee Master Data
+      foreach ($ids as $id) {
+        if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = 'School Fee'")) != 0 && mysqli_query($link, "UPDATE `stu_fee_master_data` SET Last_Balance = '0',Current_Balance = '0',Total = '0' WHERE Id_No = '$id' AND Type = 'School Fee'")) {
+          $vvip_balance_status = true;
+        } else if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = 'School Fee'")) != 0 && mysqli_query($link, "UPDATE `fee_balances` SET Balance = '0' WHERE Id_No = '$id' AND Type = 'School Fee'")) {
+          $vvip_balance_status = true;
+        } else {
+          $vvip_balance_status = false;
+          echo "<script>alert('VVIP Students Fee Balance Updation Failed!');</script>";
+        }
+      }
+    }
 
-    if ($balance_status || $van_balance_status) {
+    /*
+      Calling Functions to Set Balances, Class Promotion, Set New Actual Fee as Actual Fee, Current Balance and Updating Total respectively
+    */
+    //set_balance($link);
+    //set_van_balance($link);
+    set_vvip_balance($link);
+
+    if ($balance_status || $van_balance_status || $vvip_balance_status) {
       if ($balance_status) {
         echo "<script>alert('All School Fee Balances Updated!!')</script>";
       }
       if ($van_balance_status) {
         echo "<script>alert('All Vehicle Fee Balances Updated!!')</script>";
+      }
+      if ($vvip_balance_status) {
+        echo "<script>alert('All VVIP Students Fee Balances Updated!!')</script>";
       }
       $save_status = true;
     } else {
