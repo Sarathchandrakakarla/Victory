@@ -367,6 +367,16 @@
 				$status = false;
 			}
 			*/
+
+			//VVIP
+			/*
+			$id = $row[0];
+			if (mysqli_query($link, "INSERT INTO `vvip` VALUES('','$id')")) {
+				$status = true;
+			} else {
+				$status = false;
+			}
+			*/
 		}
 
 		if ($status) {
