@@ -1,3 +1,37 @@
+<?php
+include '../link.php';
+session_start();
+if (isset($_POST['Login'])) {
+    function validate($data)
+    {
+        $data = trim($data);
+        $data = stripslashes($data);
+        $data = htmlspecialchars($data);
+        return $data;
+    }
+    $uname = validate($_POST['UserName']);
+    $pass = validate($_POST['Password']);
+    $sql = "SELECT * FROM admin WHERE Admin_Id_No = '$uname'";
+    $result = mysqli_query($link, $sql);
+    if (mysqli_num_rows($result) == 1) {
+        $row = mysqli_fetch_assoc($result);
+        $adm_id = $row['Admin_Id_No'];
+        $adm_hash = $row['Admin_Hash'];
+        if (password_verify($pass, $adm_hash)) {
+            $_SESSION['Admin_Id_No'] = $adm_id;
+            $_SESSION['Role'] = $row['Role'];
+            header('Location: admin_dashboard.php');
+            exit;
+        } else {
+            echo "<script>alert('Incorrect Password');
+                    </script>";
+        }
+    } else {
+        echo "<script>alert('Incorrect Username');
+                    </script>";
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -16,6 +50,14 @@
     <title>Victory EM School</title>
 </head>
 <style>
+    nav {
+        background: #1b1b1b;
+    }
+
+    nav ul li .sub-menu {
+        background: #1b1b1b;
+    }
+
     body {
         background: #1abc9c;
     }
@@ -37,15 +79,15 @@
             font-size: 20px;
         }
     }
-    
-    @media screen and (max-width:500px){
-        footer{
-            bottom:-10%;
+
+    @media screen and (max-width:500px) {
+        footer {
+            bottom: -10%;
         }
     }
 
-    @media screen and (max-height:600px){
-        footer{
+    @media screen and (max-height:600px) {
+        footer {
             bottom: -200px;
         }
     }
@@ -110,43 +152,6 @@
             </p>
         </div>
     </footer>
-    <?php
-    include '../link.php';
-    session_start();
-    if (isset($_POST['Login'])) {
-        function validate($data)
-        {
-            $data = trim($data);
-            $data = stripslashes($data);
-            $data = htmlspecialchars($data);
-            return $data;
-        }
-        $uname = validate($_POST['UserName']);
-        $pass = validate($_POST['Password']);
-        $sql = "SELECT * FROM admin WHERE Admin_Id_No = '$uname'";
-        $result = mysqli_query($link, $sql);
-        if (mysqli_num_rows($result) == 1) {
-            $row = mysqli_fetch_assoc($result);
-            $adm_id = $row['Admin_Id_No'];
-            $adm_hash = $row['Admin_Hash'];
-            if (password_verify($pass, $adm_hash)) {
-                $_SESSION['Admin_Id_No'] = $adm_id;
-                $_SESSION['Role'] = $row['Role'];
-                header('Location: admin_dashboard.php');
-                exit;
-            } else {
-                echo "<script>alert('Incorrect Password');
-                    </script>";
-            }
-        } else {
-            echo "<script>alert('Incorrect Username');
-                    </script>";
-        }
-    } else {
-        echo "<script>alert('variable 'UserName' or variable 'Password' is not declared');
-            </script>";
-    }
-    ?> 
 </body>
 <script type="text/javascript">
     $('#hide').on('click', function() {

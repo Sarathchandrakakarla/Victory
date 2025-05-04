@@ -118,6 +118,14 @@ if (isset($_POST['Login'])) {
     <title>Victory EM School</title>
 </head>
 <style>
+    nav {
+        background: #1b1b1b;
+    }
+
+    nav ul li .sub-menu {
+        background: #1b1b1b;
+    }
+
     body {
         background: #1abc9c;
     }

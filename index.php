@@ -50,7 +50,8 @@ if (filesize("test.txt") != 0) {
     display: flex;
     height: 80px;
     width: 100%;
-    background: #1b1b1b;
+    /* background: #1b1b1b; */
+    background-image: linear-gradient(to top, #48c6ef 0%, #6f86d6 100%);
     align-items: center;
     justify-content: space-evenly;
     flex-wrap: wrap;
@@ -107,7 +108,8 @@ if (filesize("test.txt") != 0) {
     position: absolute;
     top: 35px;
     left: 0;
-    background: #1b1b1b;
+    /* background: #1b1b1b; */
+    background-image: linear-gradient(to top, #48c6ef 0%, #6f86d6 100%);
     padding: 0 0 10px 0;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     border-radius: 0 0 4px 4px;
@@ -372,7 +374,7 @@ if (filesize("test.txt") != 0) {
     </div>
   <?php } ?>
   <!-- Carousel -->
-  <div class="container-fluid carousel-holder">
+  <div class="container-fluid carousel-holder bg-light">
     <div class="row">
       <div class="col-lg-12">
         <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel" style="border-radius: 10px">
@@ -412,7 +414,7 @@ if (filesize("test.txt") != 0) {
       </div>
     </div>
   </div>
-  <div class="play-div">
+  <div class="play-div p-2">
     <div class="row justify-content-center">
       <div class="col-lg-4 mt-4" id="play-text">
         <p><b>Download Android App of our Victory School</b></p>
