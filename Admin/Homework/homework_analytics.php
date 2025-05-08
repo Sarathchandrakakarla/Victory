@@ -38,7 +38,7 @@ if (!$_SESSION['Admin_Id_No']) {
     }
 
     .table-container {
-        max-width: 900px;
+        max-width: 1100px;
         max-height: 500px;
         overflow-x: scroll;
     }
@@ -108,6 +108,8 @@ if (!$_SESSION['Admin_Id_No']) {
                     <th style="padding:5px;">Viewed Status</th>
                     <th style="padding:5px;">First Viewed Time</th>
                     <th style="padding:5px;">Latest Viewed Time</th>
+                    <th style="padding:5px;">Response</th>
+                    <th style="padding:5px;">Response Time</th>
                 </tr>
             </thead>
             <tbody id="tbody">
@@ -125,7 +127,7 @@ if (!$_SESSION['Admin_Id_No']) {
                             class_label.innerHTML = '" . $class . " " . $section . " - " . $date . " - " . $subject . "';
                         </script>
                         ";
-                        $query1 = mysqli_query($link, "SELECT smd.Id_No, smd.First_Name, CASE WHEN sh.Id_No IS NULL THEN 'Not Viewed Yet' ELSE 'Viewed' END AS View_Status, CASE WHEN sh.Id_No IS NULL THEN NULL ELSE sh.First_View END AS First_View, CASE WHEN sh.Id_No IS NULL THEN NULL ELSE sh.Latest_View END AS Latest_View FROM student_master_data smd LEFT JOIN student_homework sh ON smd.Id_No = sh.Id_No AND sh.Date = '$date' AND sh.Subject = '$subject' WHERE smd.Stu_Class = '$class' AND smd.Stu_Section = '$section'");
+                        $query1 = mysqli_query($link, "SELECT smd.Id_No, smd.First_Name, CASE WHEN sh.Id_No IS NULL THEN 'Not Viewed Yet' ELSE 'Viewed' END AS View_Status, CASE WHEN sh.Id_No IS NULL THEN NULL ELSE sh.First_View END AS First_View, CASE WHEN sh.Id_No IS NULL THEN NULL ELSE sh.Latest_View END AS Latest_View, CASE WHEN sh.Id_No IS NULL THEN NULL ELSE sh.Response_Time END AS Response_Time,Image,Text FROM student_master_data smd LEFT JOIN student_homework sh ON smd.Id_No = sh.Id_No AND sh.Date = '$date' AND sh.Subject = '$subject' WHERE smd.Stu_Class = '$class' AND smd.Stu_Section = '$section'");
                         $i = 1;
                         while ($row1 = mysqli_fetch_assoc($query1)) {
                             echo '
@@ -135,8 +137,18 @@ if (!$_SESSION['Admin_Id_No']) {
                                 <td>' . $row1['First_Name'] . '</td>
                                 <td style="white-space:nowrap;">' . $row1['View_Status'] . '</td>
                                 <td>' . $row1['First_View'] . '</td>
-                                <td>' . $row1['Latest_View'] . '</td>
-                            </tr>
+                                <td>' . $row1['Latest_View'] . '</td>';
+                            if ($row1['Image'] || $row1['Text']) {
+                                echo '<td><a href="/Victory/Files/Homework/Student Homework/' . $date . '/' . $row1['Id_No'] . '-' . $subject . '.pdf" target="_blank" class="btn btn-warning"><i class="fas fa-eye"></i> View</a></td>
+                                <td>' . $row1['Response_Time'] . '</td>
+                                ';
+                            } else {
+                                echo '
+                                <td></td>
+                                <td></td>
+                                ';
+                            }
+                            echo '</tr>
                             ';
                             $report[$row1['View_Status']]++;
                             $i++;
