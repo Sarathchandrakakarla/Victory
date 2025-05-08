@@ -49,7 +49,15 @@ if (isset($_POST['Delete_All'])) {
             }
         }
     }
-    echo "<script>alert('Successfully Deleted!');</script>";
+    $delete_sql = mysqli_query($link, "DELETE FROM `homework` WHERE STR_TO_DATE(Date, '%d-%m-%Y') < CURDATE() - INTERVAL 7 DAY AND Class = '$class' AND Section = '$section' AND Subject = '$subject'");
+    $student_delete_sql = mysqli_query($link, "DELETE sh FROM `student_homework` sh JOIN `student_master_data` smd ON sh.Id_No = smd.Id_No WHERE STR_TO_DATE(sh.Date, '%d-%m-%Y') < CURDATE() - INTERVAL 7 DAY AND smd.Stu_Class = '$class' AND smd.Stu_Section = '$section' AND sh.Subject = '$subject'");
+
+
+    if ($delete_sql && $student_delete_sql) {
+        echo "<script>alert('Successfully Deleted!');</script>";
+    } else {
+        echo "<script>alert('Successfully Deletion Failed!');</script>";
+    }
 }
 
 if (isset($_POST['Previous'])) {
