@@ -245,8 +245,8 @@ if (isset($_POST['Save'])) {
     /*
       Calling Functions to Set Balances, Class Promotion, Set New Actual Fee as Actual Fee, Current Balance and Updating Total respectively
     */
-    //set_balance($link);
-    //set_van_balance($link);
+    set_balance($link);
+    set_van_balance($link);
     set_vvip_balance($link);
 
     if ($balance_status || $van_balance_status || $vvip_balance_status) {
