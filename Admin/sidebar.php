@@ -189,8 +189,12 @@
                 </li>
                 <li><a href="/Victory/Admin/Employee/Emp_register.php">Employee Details Entry</a></li>
                 <li><a href="/Victory/Admin/Employee/show_emp_page.php">Show/Modify Employee Details</a></li>
+                <li>
+                    <a class="link_name" href="#" id="view"><label for="">View</label></a>
+                </li>
                 <li><a href="/Victory/Admin/Reports/search_employee.php">Search Employee</a></li>
                 <li><a href="/Victory/Admin/Reports/employee_list.php">Employee List</a></li>
+                <li><a href="/Victory/Admin/Employee/class_teacher.php">Class Teacher List</a></li>
                 <li><a href="/Victory/Admin/Reports/referred_by.php">Referred By</a></li>
             </ul>
         </li>
