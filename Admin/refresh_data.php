@@ -1,4 +1,5 @@
 <?php
+ini_set('max_execution_time', 0);
 session_start();
 if (!$_SESSION['Admin_Id_No']) {
   echo "<script>
