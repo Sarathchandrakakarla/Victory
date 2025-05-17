@@ -48,7 +48,7 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
     }
     $date = implode('-', $d);
     if ($type == "Expenditure") {
-        $sql = mysqli_query($link, "SELECT * FROM `tran_details` WHERE DOP = '$date'");
+        $sql = mysqli_query($link, "SELECT td.AC_No,dmd.Name,td.* FROM `tran_details` td JOIN `debiter_master_data` dmd ON td.AC_No = dmd.AC_No WHERE DOP = '$date' AND td.AC_No != 'VHDB051'");
         if ($sql) {
             if (mysqli_num_rows($sql) == 0) {
                 echo "";
@@ -58,6 +58,7 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
                 while ($row = mysqli_fetch_assoc($sql)) {
                     $temp = array();
                     array_push($temp, $row['AC_No']);
+                    array_push($temp, $row['Name']);
                     array_push($temp, $row['Amount']);
                     array_push($temp, $row['Purpose']);
                     array_push($temp, $row['Bill_No']);
@@ -77,7 +78,7 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
                 }
                 $text .= "
                 <tr>
-                    <td colspan='2' style='text-align:center;'><b>Total</b></td>
+                    <td colspan='3' style='text-align:center;'><b>Total</b></td>
                     <td style='text-align:center;'><b>" . $total . "</b></td>
                     <td></td>
                     <td></td>
@@ -93,10 +94,15 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
         $sql1 = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Type = 'Vehicle Fee' AND DOP = '$date'");
         $fee_types = array('School Fee', 'Vehicle Fee', 'Admission Fee', 'Computer fee', 'Examination Fee');
         $grand_total = 0;
+        $grand_cash_total = 0;
+        $grand_upi_total = 0;
+        $text = "<tr>";
         foreach ($fee_types as $type) {
             $sql = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Type = '$type' AND DOP = '$date'");
             if ($sql) {
                 if (mysqli_num_rows($sql) > 0) {
+                    $cash_total = 0;
+                    $upi_total = 0;
                     $total = 0;
                     $details = array();
                     while ($row = mysqli_fetch_assoc($sql)) {
@@ -106,20 +112,28 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
                         array_push($temp, $row['Class'] . ' ' . $row['Section']);
                         array_push($temp, $row['Fee']);
                         array_push($temp, $row['Bill_No']);
+                        array_push($temp, $row['Payment_Type']);
+                        if ($row['Payment_Type'] == "Cash") {
+                            $cash_total += (int)$row['Fee'];
+                        } else if ($row['Payment_Type'] == "UPI") {
+                            $upi_total += (int)$row['Fee'];
+                        }
                         $total += (int)$row['Fee'];
                         array_push($details, $temp);
                     }
+                    $grand_cash_total += $cash_total;
+                    $grand_upi_total += $upi_total;
                     $grand_total += $total;
                     $text .= "
                 <tr>
-                    <td colspan='6' style='text-align:center'><b>" . $type . "</b></td>
+                    <td colspan='8' style='text-align:center'><b>" . $type . "</b></td>
                 </tr>
                 <tr>";
                     $i = 1;
                     foreach ($details as $detail) {
                         $text .= "<td>" . $i . "</td>";
                         foreach ($detail as $col) {
-                            $text .= "<td style='padding-left:20px;text-align:center;'>" . $col . "</td>";
+                            $text .= "<td style='padding-left:20px;text-align:center;white-space:nowrap;'>" . $col . "</td>";
                         }
                         $text .= "<td><label style='opacity:0' id='fee_type'>" . $type . "</label><i class='bx bx-trash delete' onclick='delete_row(this)'></i></td>";
                         $text .= "</tr>";
@@ -129,9 +143,23 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
                 <tr>
                     <td></td>
                     <td></td>
+                    <td style='text-align:center;'><b>Cash Total</b></td>
+                    <td style='text-align:center;'><b>" . $cash_total . "</b></td>
+                    <td></td>
+                    <td style='text-align:center;'><b>UPI Total</b></td>
+                    <td style='text-align:center;'><b>" . $upi_total . "</b></td>
+                    <td></td>
+                </tr>";
+                    $text .= "
+                <tr>
+                    <td></td>
+                    <td></td>
                     <td></td>
                     <td style='text-align:center;'><b>Total</b></td>
                     <td style='text-align:center;'><b>" . $total . "</b></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
                 </tr>";
                 }
             }
@@ -140,13 +168,47 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
                 <tr>
                     <td></td>
                     <td></td>
+                    <td style='text-align:center;'><b>Grand Cash Total</b></td>
+                    <td style='text-align:center;'><b>" . ($grand_cash_total) . "</b></td>
                     <td></td>
-                    <td style='text-align:center;'><b>Grand Total</b></td>
+                    <td style='text-align:center;white-space:nowrap;'><b>Grand UPI Total</b></td>
+                    <td style='text-align:center;'><b>" . ($grand_upi_total) . "</b></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style='text-align:center;white-space:nowrap;'><b>Grand Total</b></td>
                     <td style='text-align:center;'><b>" . ($grand_total) . "</b></td>
+                    <td></td>
                     <td></td>
                     <td></td>
                 </tr>
                 ";
+        $debiter_query = mysqli_query($link, "SELECT * FROM `tran_details` WHERE DOP = '$date' AND AC_No = 'VHDB051'");
+        $upi_amount = 0;
+        if (mysqli_num_rows($debiter_query) != 0) {
+            while ($debiter_row = mysqli_fetch_assoc($debiter_query)) {
+                $upi_amount = $debiter_row['Amount'];
+            }
+        }
+        $text .= "
+            <tr>
+                <td colspan='8'></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td style='text-align:center;white-space:nowrap;'><b>Student UPI Amount</b></td>
+                <td><b>" . $upi_amount . "</b></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            ";
+
         echo $text;
         /*
         if ($sql && $sql1) {

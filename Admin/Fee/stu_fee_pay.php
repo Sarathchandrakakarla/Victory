@@ -30,16 +30,24 @@ if (isset($_POST['Ok'])) {
                 }
                 $total_fee = 0;
                 $ignore = 0;
-                $tot_query = mysqli_query($link,"SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
-                if(mysqli_num_rows($tot_query) == 0){
+                $tot_query = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
+                if (mysqli_num_rows($tot_query) == 0) {
                     $ignore = 1;
+                    $query2 = mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
+                    if (mysqli_num_rows($query2) == 0) {
+                        echo "<script>alert('Student Not Found in Fee Master Data and Fee Balances! Please Add student in Fee Master Data')</script>";
+                    } else {
+                        while ($row2 = mysqli_fetch_assoc($query2)) {
+                            $total_fee = $row2['Balance'];
+                        }
+                    }
                 }
-                while($tot_row = mysqli_fetch_assoc($tot_query)){
+                while ($tot_row = mysqli_fetch_assoc($tot_query)) {
                     $total_fee = $tot_row['Last_Balance'] + $tot_row['Current_Balance'];
                 }
-                $paid_query = mysqli_query($link,"SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type'");
+                $paid_query = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type'");
                 $paid_tot = 0;
-                while($paid_row = mysqli_fetch_assoc($paid_query)){
+                while ($paid_row = mysqli_fetch_assoc($paid_query)) {
                     $paid_tot += (int)$paid_row['Fee'];
                 }
                 $_SESSION['Final_Balance'] = $total_fee - $paid_tot;
@@ -63,7 +71,9 @@ if (isset($_POST['add'])) {
     if ($_POST['Type']) {
         $type = $_POST['Type'];
         $date = $_POST['DOP'];
+        $payment_type = $_POST['Payment_Type'];
         $_SESSION['DOP'] = $date;
+        $_SESSION['Payment_Type'] = $payment_type;
         if ($_POST['Id_No']) {
             $id = $_POST['Id_No'];
             $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Id_No = '$id'");
@@ -127,12 +137,12 @@ if (isset($_POST['add'])) {
             $date = implode("-", $arr);
             if ($_POST['Bill_No']) {
                 $bill = $_POST['Bill_No'];
-                if($_SESSION['Ignore'] == 0 && (int)$amount > (int)$_SESSION['Final_Balance']){
+                if ($_SESSION['Ignore'] == 0 && (int)$amount > (int)$_SESSION['Final_Balance']) {
                     echo "<script>alert('Amount Exceeded by Student Balance!')</script>";
-                } else{
+                } else {
                     if ($type == "Vehicle Fee") {
-                    $sql = "INSERT INTO `stu_paid_fee` VALUES('','$id','$name','$type','$class','$section','$amount','$date','$bill','$route')";
-                    /* Excluded on 05-02-23
+                        $sql = "INSERT INTO `stu_paid_fee` VALUES('','$id','$name','$type','$class','$section','$amount','$date','$payment_type','$bill','$route')";
+                        /* Excluded on 05-02-23
                     $sql1 = mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
                     while ($row = mysqli_fetch_assoc($sql1)) {
                         $balance = $row['Balance'];
@@ -141,8 +151,8 @@ if (isset($_POST['add'])) {
                     $sql2 = "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'";
                     */
                     } else {
-                    $sql = "INSERT INTO `stu_paid_fee` VALUES('','$id','$name','$type','$class','$section','$amount','$date','$bill','0')";
-                    /* Excluded on 05-02-23
+                        $sql = "INSERT INTO `stu_paid_fee` VALUES('','$id','$name','$type','$class','$section','$amount','$date','$payment_type','$bill',NULL)";
+                        /* Excluded on 05-02-23
                     $sql1 = mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
                     while ($row = mysqli_fetch_assoc($sql1)) {
                         $balance = $row['Balance'];
@@ -153,34 +163,34 @@ if (isset($_POST['add'])) {
                     }
                     //$fee_balance_sql = mysqli_query($link,"SELECT * FROM `fee_balances` ");
                     if (str_contains(strtolower($class), "others") || str_contains(strtolower($class), "drop")) {
-                    $fee_balance_sql = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
-                    while ($fee_row = mysqli_fetch_assoc($fee_balance_sql)) {
-                        $balance = (int)$fee_row['Last_Balance'];
-                    }
-                    $balance -= (int)$amount;
-                    mysqli_query($link, "UPDATE `stu_fee_master_data` SET Last_Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
-                    mysqli_query($link, "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
+                        $fee_balance_sql = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
+                        while ($fee_row = mysqli_fetch_assoc($fee_balance_sql)) {
+                            $balance = (int)$fee_row['Last_Balance'];
+                        }
+                        $balance -= (int)$amount;
+                        mysqli_query($link, "UPDATE `stu_fee_master_data` SET Last_Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
+                        mysqli_query($link, "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
                     }
                     if (mysqli_query($link, $sql)) {
-                    $text = "Dear parent ,We received with thanks, the amount of Rs " . $amount . " towards the " . $type . " of your child " . $name . " on " . format_date($_SESSION['DOP']) . " Principal, Victory High school,KDR";
-                    if (str_contains($mobile, ',')) {
-                        $mobile = explode(',', $mobile, 2)[0];
-                    } else if (str_contains($mobile, ' ')) {
-                        $mobile = explode(' ', $mobile, 2)[0];
-                    } else {
-                        $mobile = $mobile;
-                    }
-                    echo '<a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707173494146888652&format=JSON" id="sms_link" hidden>' . $mobile . '</a>';
-                    echo '<script>
+                        $text = "Dear parent ,We received with thanks, the amount of Rs " . $amount . " towards the " . $type . " of your child " . $name . " on " . format_date($_SESSION['DOP']) . " Principal, Victory High school,KDR";
+                        if (str_contains($mobile, ',')) {
+                            $mobile = explode(',', $mobile, 2)[0];
+                        } else if (str_contains($mobile, ' ')) {
+                            $mobile = explode(' ', $mobile, 2)[0];
+                        } else {
+                            $mobile = $mobile;
+                        }
+                        echo '<a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707173494146888652&format=JSON" id="sms_link" hidden>' . $mobile . '</a>';
+                        echo '<script>
                         //Send Message API
                         async function send(url){
                             response = await fetch(url)
                         }
                         send(document.getElementById("sms_link").href);
                     </script>';
-                    echo "<script>alert('Fee Inserted Successfully!!')</script>";
+                        echo "<script>alert('Fee Inserted Successfully!!')</script>";
                     } else {
-                    echo "<script>alert('Fee Insertion Failed!!')</script>";
+                        echo "<script>alert('Fee Insertion Failed!!')</script>";
                     }
                 }
             } else {
@@ -480,6 +490,27 @@ if (isset($_POST['add'])) {
                                                             } else {
                                                                 echo "";
                                                             } ?>" name="Bill_No" />
+                    </div>
+                    <div class="input-box">
+                        <span class="details">Fee Balance</span>
+                        <input type="text" id="last" value="<?php if (isset($_SESSION['Final_Balance'])) {
+                                                                echo $_SESSION['Final_Balance'];
+                                                            } else {
+                                                                echo "";
+                                                            } ?>" name="Fee_Balance" readonly />
+                    </div>
+                    <div class="gender-details">
+                        <span class="gender-title">Mode of Payment</span>
+                        <div class="category">
+                            <input type="radio" id="cash" value="Cash" name="Payment_Type" <?php if (!isset($_SESSION['Payment_Type']) || (isset($_SESSION['Payment_Type']) && $_SESSION['Payment_Type'] == "Cash")) {
+                                                                                                echo "checked";
+                                                                                            } ?> />
+                            <span><label for="cash">Cash</label></span>
+                            <input type="radio" id="upi" value="UPI" name="Payment_Type" <?php if (isset($_SESSION['Payment_Type']) && $_SESSION['Payment_Type'] == "UPI") {
+                                                                                                echo "checked";
+                                                                                            } ?> />
+                            <span><label for="upi">UPI</label></span>
+                        </div>
                     </div>
                 </div>
                 <div class="button">

@@ -267,7 +267,7 @@ if (isset($_POST['Ok'])) {
     }
 
     .table-container {
-        max-width: 900px;
+        max-width: 1100px;
         max-height: 500px;
         overflow-x: scroll;
     }
@@ -363,14 +363,12 @@ if (isset($_POST['Ok'])) {
     <div class="container table-container">
         <table class="table table-striped">
             <thead>
-                <th></th>
-                <th></th>
-                <th style="text-align: center;">Date of payment:</th>
-                <th id="date"></th>
+                <th colspan="8" style="text-align: center;">Date of payment: <span id="date"></span></th>
             </thead>
             <thead id="expenses" hidden>
                 <th style='text-align:center;'>S.No</th>
                 <th style='text-align:center;'>AC.No</th>
+                <th style='text-align:center;'>Name</th>
                 <th style='text-align:center;'>Amount</th>
                 <th style='text-align:center;'>Purpose</th>
                 <th style='text-align:center;'>Bill No</th>
@@ -383,6 +381,7 @@ if (isset($_POST['Ok'])) {
                 <th>Class</th>
                 <th>Amount</th>
                 <th>Bill No</th>
+                <th>Mode of Payment</th>
                 <th>Action</th>
             </thead>
             <tbody id="tbody">
