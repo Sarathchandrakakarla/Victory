@@ -66,6 +66,7 @@ if (isset($_POST['add'])) {
         if ($_POST['Type']) {
             $type = $_POST['Type'];
             $status = $_POST['Status'];
+            $emp_id = $_SESSION['Admin_Id_No'];
 
             //Queries
             $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Id_No = '$id'");
@@ -84,7 +85,7 @@ if (isset($_POST['add'])) {
                         if (mysqli_num_rows($check_query) > 0) {
                             echo "<script>alert('Student Already Inserted!')</script>";
                         } else {
-                            $query2 = mysqli_query($link, "INSERT INTO `commit_date` VALUES('','$id','$type','$date','$status')");
+                            $query2 = mysqli_query($link, "INSERT INTO `commit_date` VALUES('','$id','$type','$date','$status','$emp_id')");
                             if ($query2) {
                                 echo "<script>alert('Student Inserted Successfully!')</script>";
                             } else {
@@ -111,7 +112,8 @@ if (isset($_POST['update'])) {
         if ($_POST['Type']) {
             $type = $_POST['Type'];
             $status = $_POST['Status'];
-            $query = mysqli_query($link, "UPDATE `commit_date` SET Status = '$status' WHERE Id_No = '$id' AND DOC = '$date' AND Type = '$type'");
+            $emp_id = $_SESSION['Admin_Id_No'];
+            $query = mysqli_query($link, "UPDATE `commit_date` SET Status = '$status',Emp_Id = '$emp_id' WHERE Id_No = '$id' AND DOC = '$date' AND Type = '$type'");
             if ($query) {
                 echo "<script>alert('Data Updated Successfully!')</script>";
             } else {
