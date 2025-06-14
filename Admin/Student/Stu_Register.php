@@ -302,13 +302,35 @@ error_reporting(0);
                                     $password = "VHST" . rand(1111, 9999);
                                     $pass_hash = password_hash($password, PASSWORD_DEFAULT);
                                     $login_sql = mysqli_query($link, "INSERT INTO `student`(Id_No,Stu_Name,Stu_Password,Stu_Hash) VALUES('$id','$firstname','$password','$pass_hash')");
+
+                                    //SMS Sending
+                                    $text = "Dear sir/Madam, we thank you for your trust on our victory schools and joining your child " . $firstname . " in the class " . $class . " " . $section . " with ID No: " . $id . ".We promise you to take of your child to the best of your expectation. Principal, Victory schools,Kodur-Ph: 08566-244584";
+                                    $sms_mobile = $mobile;
+                                    if (str_contains($sms_mobile, ',')) {
+                                        $sms_mobile = explode(',', $sms_mobile, 2)[0];
+                                    } else if (str_contains($sms_mobile, ' ')) {
+                                        $sms_mobile = explode(' ', $sms_mobile, 2)[0];
+                                    } else {
+                                        $sms_mobile = $sms_mobile;
+                                    }
+                                    $sms_mobile = trim($sms_mobile);
+                                    echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $sms_mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707174971721622158&format=JSON" id="sms_link" hidden>' . $sms_mobile . '</a>';
+                                    echo '<script>
+                                            //Send Message API
+                                            async function send(url){
+                                                response = await fetch(url)
+                                            }
+                                            send(document.getElementById("sms_link").href);
+                                        </script>';
+
+
                                     echo
                                     "
-		<script>
-		alert('Student Inserted Successfully!');
-        location.replace('');
-		</script>
-		";
+                                    <script>
+                                    alert('Student Inserted Successfully!');
+                                    location.replace('');
+                                    </script>
+                                    ";
                                 } else {
                                     echo
                                     "
