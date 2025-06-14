@@ -189,7 +189,7 @@ error_reporting(0);
                                         $paid += (int)$row5['Fee'];
                                     }
                                     while ($row4 = mysqli_fetch_array($query4)) {
-                                        if ($report_type == "Excess" && (int)$row4['Last_Balance'] != 0) {
+                                        if ($report_type == "Excess" && (int)$row4['Last_Balance'] != 0 && (int)$row4['Current_Balance'] + (int)$row4['Last_Balance'] - $paid > (int)$row4['Current_Balance']) {
                                             $fees[$row3['Id_No']] = ["Name" => $row3['First_Name'], "Class" => $row3['Stu_Class'] . " " . $row3['Stu_Section'], "Committed" => $row4['Current_Balance'], "Previous" => $row4['Last_Balance'], "Total" => (int)$row4['Current_Balance'] + (int)$row4['Last_Balance'], "Paid" => $paid, "Mobile" => $row3['Mobile']];
                                             if ($type == "Vehicle Fee") {
                                                 $fees[$row3['Id_No']]["Route"] = $row3['Van_Route'];
@@ -213,7 +213,7 @@ error_reporting(0);
                             echo '
                             <script>document.getElementById("paid").hidden = "";</script>
                             ';
-                        } else{
+                        } else {
                             echo '
                             <script>document.getElementById("paid").hidden = "hidden";</script>
                             ';
