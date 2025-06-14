@@ -48,7 +48,7 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
     }
     $date = implode('-', $d);
     if ($type == "Expenditure") {
-        $sql = mysqli_query($link, "SELECT td.AC_No,dmd.Name,td.* FROM `tran_details` td JOIN `debiter_master_data` dmd ON td.AC_No = dmd.AC_No WHERE DOP = '$date' AND td.AC_No != 'VHDB051'");
+        $sql = mysqli_query($link, "SELECT td.AC_No,dmd.Name,td.* FROM `tran_details` td JOIN `debiter_master_data` dmd ON td.AC_No = dmd.AC_No WHERE DOP = '$date'");
         if ($sql) {
             if (mysqli_num_rows($sql) == 0) {
                 echo "";
