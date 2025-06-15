@@ -492,6 +492,14 @@ if (isset($_POST['Promotion'])) {
         echo "<script>alert('Passedout students and DROPPED students Deletion from stu_fee_master_data Failed!')</script>";
       }
 
+      //Deleting Admission Fee Students from stu_fee_master_data
+      $adm_fee_delete_query = mysqli_query($link, "DELETE FROM `stu_fee_master_data` WHERE Type = 'Admission Fee'");
+      if ($adm_fee_delete_query) {
+        echo "<script>alert('Admission Fee students Deleted from stu_fee_master_data!!')</script>";
+      } else {
+        echo "<script>alert('Admission Fee students Deletion from stu_fee_master_data Failed!')</script>";
+      }
+
       //Getting actual Fees of each class
       foreach ($classes as $class) {
         $actual_query = mysqli_query($link, "SELECT Fee FROM `actual_fee` WHERE Class = '$class' AND Type = 'School Fee'");
