@@ -78,10 +78,45 @@ error_reporting(0);
     ?>
     <form action="" method="POST">
         <div class="container">
+            <div class="row justify-content-center mt-3">
+                <div class="col-lg-3">
+                    <input type="checkbox" id="select_all" name="select_all" id="select_all" onclick="toggle(this)"><label for="select_all"><b>Select All</b></label><br>
+                    <input type="checkbox" class="column" value="Emp_Id" id="Emp_Id" name="columns[]"><label for="Emp_Id">Id No</label><br>
+                    <input type="checkbox" class="column" value="Emp_First_Name" id="Emp_First_Name" name="columns[]"><label for="Emp_First_Name">First Name</label><br>
+                    <input type="checkbox" class="column" value="Emp_Sur_Name" id="Emp_Sur_Name" name="columns[]"><label for="Emp_Sur_Name">Sur Name</label><br>
+                    <input type="checkbox" class="column" value="Father_Name" id="Father_Name" name="columns[]"><label for="Father_Name">Father Name</label><br>
+                    <input type="checkbox" class="column" value="Qualification" id="Qualification" name="columns[]"><label for="Qualification">Qualification</label><br>
+                    <input type="checkbox" class="column" value="Relation" id="Relation" name="columns[]"><label for="Relation">Relation</label><br>
+                    <input type="checkbox" class="column" value="DOB" id="DOB" name="columns[]"><label for="DOB">DOB</label><br>
+                </div>
+                <div class="col-lg-3">
+                    <input type="checkbox" class="column" value="Mobile" id="Mobile" name="columns[]"><label for="Mobile">All Mobile Nos</label><br>
+                    <input type="checkbox" class="column" value="S_Mobile" id="S_Mobile" name="columns[]"><label for="S_Mobile">Single Mobile No</label><br>
+                    <input type="checkbox" class="column" value="House_No" id="House_No" name="columns[]"><label for="House_No">House No</label><br>
+                    <input type="checkbox" class="column" value="Area" id="Area" name="columns[]"><label for="Area">Area</label><br>
+                    <input type="checkbox" class="column" value="Village" id="Village" name="columns[]"><label for="Village">Village</label><br>
+                    <input type="checkbox" class="column" value="DOJ" id="DOJ" name="columns[]"><label for="DOJ">DOJ</label><br>
+                    <input type="checkbox" class="column" value="Designation" id="Designation" name="columns[]"><label for="Designation">Designation</label><br>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center mt-2">
+            <div class="col-lg-4">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Photo" id="wo_photo" checked value="Without_Photo">
+                    <label class="form-check-label" for="wo_photo">Without Photo</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Photo" id="w_photo" value="With_Photo">
+                    <label class="form-check-label" for="w_photo">With Photo</label>
+                </div>
+            </div>
+        </div>
+        <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-4">
                     <button class="btn btn-primary" type="submit" name="show">Show</button>
-                    <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
+                    <button class="btn btn-warning" type="reset" onclick="hideTable();resetTableHead();">Clear</button>
                     <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
                     <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
                 </div>
@@ -107,52 +142,74 @@ error_reporting(0);
         </table>
         <table class="table table-striped table-hover" border="1">
             <thead class="bg-secondary text-light">
-                <tr>
+                <tr class="table-head">
                     <th style="padding:5px;">S.No</th>
-                    <th style="padding:5px;">Id No.</th>
-                    <th>Name</th>
-                    <th>SurName</th>
-                    <th>Father Name</th>
-                    <th>Qualification</th>
-                    <th>Relation</th>
-                    <th>DOB</th>
-                    <th>Mobile</th>
-                    <th>Door No.</th>
-                    <th>Area</th>
-                    <th>Village</th>
-                    <th>Date of Join</th>
-                    <th>Designation</th>
                 </tr>
             </thead>
             <tbody id="tbody">
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
+                        $photo = $_POST['Photo'];
+                        if ($photo == 'With_Photo') {
+                            echo "<script>
+                            document.getElementById('w_photo').checked = true;
+                            </script>";
+                        } else {
+                            echo "<script>
+                            document.getElementById('wo_photo').checked = true;
+                            </script>";
+                        }
                         $query1 = mysqli_query($link, "SELECT * FROM `employee_master_data` WHERE Status = 'Working' ORDER BY Emp_Id");
                         if (mysqli_num_rows($query1) == 0) {
                             echo "<script>alert('No Employee Found!!')</script>";
                         } else {
-                            $i = 1;
-                            while($row1 = mysqli_fetch_assoc($query1)){
-                                echo "<tr>";
-                                echo "
-                                <td>".$i."</td>
-                                <td>".$row1['Emp_Id']."</td>
-                                <td>".$row1['Emp_First_Name']."</td>
-                                <td>".$row1['Emp_Sur_Name']."</td>
-                                <td>".$row1['Father_Name']."</td>
-                                <td>".$row1['Qualification']."</td>
-                                <td>".$row1['Relation']."</td>
-                                <td style='padding:5px;'>".$row1['DOB']."</td>
-                                <td>".$row1['Mobile']."</td>
-                                <td>".$row1['House_No']."</td>
-                                <td>".$row1['Area']."</td>
-                                <td>".$row1['Village']."</td>
-                                <td style='padding:5px;'>".$row1['DOJ']."</td>
-                                <td>".$row1['Designation']."</td>
-                                ";
-                                echo "</tr>";
-                                $i++;
+                            $cols = array();
+                            if (isset($_POST['columns'])) {
+                                if ($_POST['select_all']) {
+                                    echo "<script>document.getElementById('select_all').checked = true;</script>";
+                                }
+                                foreach ($_POST["columns"] as $col) {
+                                    echo "<script>document.getElementById('" . $col . "').checked = true;</script>";
+                                    array_push($cols, $col);
+                                    echo "<script>
+                                    $('.table-head').append('<th>" . str_replace('_', ' ', $col) . "</th>')
+                                    </script>";
+                                }
+                                if ($photo == "With_Photo") {
+                                    echo "<script>
+                                    $('.table-head').append('<th>Emp Image</th>')
+                                    </script>";
+                                }
+                                $i = 1;
+                                while ($row = mysqli_fetch_assoc($query1)) {
+                                    echo '<tr>
+                                            <td>' . $i . '</td>';
+                                    foreach ($cols as $col) {
+                                        if ($col == "S_Mobile") {
+                                            if (str_contains($row['Mobile'], ',')) {
+                                                echo '<td>' . trim(explode(',', $row['Mobile'], 2)[0]) . '</td>';
+                                            } else if (str_contains($row['Mobile'], ' ')) {
+                                                echo '<td>' . trim(explode(' ', $row['Mobile'], 2)[0]) . '</td>';
+                                            } else {
+                                                echo '<td>' . trim($row['Mobile']) . '</td>';
+                                            }
+                                        } else {
+                                            echo '<td>' . $row[$col] . '</td>';
+                                        }
+                                    }
+                                    if ($photo == "With_Photo") {
+                                        if (file_exists("../../Images/emp_img/" . $row['Emp_Id'] . ".jpg")) {
+                                            echo '<td oncontextmenu="return false;"><img src = "../../Images/emp_img/' . $row['Emp_Id'] . '.jpg" class="rounded" width="100px" height="100px"';
+                                        } else {
+                                            echo '<td oncontextmenu="return false;"><img src = "../../Images/emp_img/not_photo.jpg" class="rounded" width="100px" height="100px"';
+                                        }
+                                    }
+                                    echo '</tr>';
+                                    $i++;
+                                }
+                            } else {
+                                echo "<script>alert('No Column Selected!')</script>";
                             }
                         }
                     }
@@ -165,6 +222,23 @@ error_reporting(0);
 
 
     <!-- Scripts -->
+
+    <!-- Checkbox Select All -->
+    <script type="text/javascript">
+        function toggle(source) {
+            checkboxes = document.getElementsByClassName('column');
+            for (var i = 0, n = checkboxes.length; i < n; i++) {
+                checkboxes[i].checked = source.checked;
+            }
+        }
+        $('.column').on('click', function() {
+            if ($('.column').not(':checked').length == 0) {
+                document.getElementById('select_all').checked = true;
+            } else {
+                document.getElementById('select_all').checked = false;
+            }
+        });
+    </script>
 
     <!-- Export Table to Excel -->
     <script type="text/javascript">
@@ -208,6 +282,19 @@ error_reporting(0);
             window.frames["print_frame"].document.body.innerHTML += document.querySelector('.table-container').innerHTML;
             window.frames["print_frame"].window.focus();
             window.frames["print_frame"].window.print();
+        }
+    </script>
+
+    <!-- Reset table head -->
+    <script>
+        function resetTableHead() {
+            // Find the <tr> with the class 'table-head'
+            const tr = document.querySelector('tr.table-head');
+
+            // Keep the first child and remove the rest
+            while (tr.children.length > 1) {
+                tr.removeChild(tr.lastElementChild);
+            }
         }
     </script>
 </body>
