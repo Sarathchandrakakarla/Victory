@@ -66,6 +66,7 @@
                 <li><a href="/Victory/Admin/Reports/address_no_wise.php">Address Number Wise</a></li>
                 <li><a href="/Victory/Admin/Reports/route_wise_report.php">Van Routes List</a></li>
                 <li><a href="/Victory/Admin/Reports/strength.php">Strength Particulars</a></li>
+                <li><a href="/Victory/Admin/Reports/doj_report.php">Joining Date Report</a></li>
                 <li><a href="/Victory/Admin/Reports/consolidated_route.php">Consolidated Route</a></li>
                 <li><a href="/Victory/Admin/Student/unique_students.php">Unique Parents List</a></li>
                 <li><a href="/Victory/Admin/Reports/images_missing.php">Missing Images Report</a></li>
@@ -155,6 +156,7 @@
                     <a class="link_name" href="#"><label for="">Time Table</label></a>
                 </li>
                 <li><a href="/Victory/Admin/Time_Table/time_table.php">Time Table Entry/View</a></li>
+                <li><a href="/Victory/Admin/Time_Table/faculty_time_table.php">Faculty Time Table</a></li>
             </ul>
         </li>
         <li>
@@ -259,6 +261,7 @@
                     <a class="link_name" href="#"><label for="">SMS</label></a>
                 </li>
                 <li><a href="/Victory/Admin/SMS/absent.php">Student Absent</a></li>
+                <li><a href="/Victory/Admin/SMS/faculty_attendance.php">Teacher Absent</a></li>
                 <li><a href="/Victory/Admin/SMS/fee.php">Student Fee</a></li>
                 <li><a href="/Victory/Admin/SMS/marks.php">Student Marks</a></li>
                 <li><a href="/Victory/Admin/SMS/special.php">Special SMS</a></li>
