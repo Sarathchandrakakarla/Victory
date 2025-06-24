@@ -275,14 +275,14 @@ error_reporting(0);
 
                             $d = explode('-', $dob);
                             $j = explode('-', $doj);
-                            //Removing 20 from 2023
+                            /* //Removing 20 from 2023
                             if (substr($j[0], 0, strlen("20")) == "20") {
                                 $j[0] = substr($j[0], strlen("20"));
                             }
                             //Removing 19 from 1998
                             else if (substr($j[0], 0, strlen("19")) == "19") {
                                 $j[0] = substr($j[0], strlen("19"));
-                            }
+                            } */
                             $dob = $d[2] . "-" . $d[1] . "-" . $d[0];
                             $doj = $j[2] . "-" . $j[1] . "-" . $j[0];
 

@@ -55,14 +55,14 @@ if (isset($_POST["update"])) {
   $d = explode('-', $dob);
   $j = explode('-', $doj);
   $dob = $d[2] . "-" . $d[1] . "-" . $d[0];
-  //Removing 20 from 2023
+  /* //Removing 20 from 2023
   if (substr($j[0], 0, strlen("20")) == "20") {
     $j[0] = substr($j[0], strlen("20"));
   }
   //Removing 19 from 1998
   else if (substr($j[0], 0, strlen("19")) == "19") {
     $j[0] = substr($j[0], strlen("19"));
-  }
+  } */
   $doj = $j[2] . "-" . $j[1] . "-" . $j[0];
   //Siblings Arrangement
   $sibling_status = $_POST['Siblings'];
@@ -612,7 +612,13 @@ if (isset($_POST["update"])) {
         $('#dob').val(year1 + '-' + month1 + '-' + date1);
       <?php } ?>
       <?php if (!isset($_POST['DOJ'])) { ?>
-        $('#doj').val('20' + year2 + '-' + month2 + '-' + date2);
+        $('#doj').val(year2 + '-' + month2 + '-' + date2);
+        console.log(doj)
+        /* if (year2 == "99") {
+          $('#doj').val('19' + year2 + '-' + month2 + '-' + date2);
+        } else {
+          $('#doj').val('20' + year2 + '-' + month2 + '-' + date2);
+        } */
       <?php } ?>
     });
   </script>

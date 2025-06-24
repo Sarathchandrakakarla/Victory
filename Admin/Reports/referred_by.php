@@ -83,7 +83,7 @@ error_reporting(0);
                     <label for=""> <b>Year of Join(Student):</b></label>
                 </div>
                 <div class="col-lg-3">
-                    <input type="text" placeholder="Year (yy)" minlength="2" maxlength="2" class="form-control" name="Year" id="year" required>
+                    <input type="text" placeholder="Year (yyyy)" minlength="4" maxlength="4" class="form-control" name="Year" id="year" required>
                 </div>
             </div>
             <div class="row justify-content-center mt-2">
