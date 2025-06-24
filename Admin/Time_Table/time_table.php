@@ -375,7 +375,7 @@ error_reporting(0);
                 }
 
                 //Head Master and Nagaraju Sir
-                $additional_ids = ['VHEM006', 'VHEM011'];
+                $additional_ids = ['VHEM006'];
                 foreach ($additional_ids as $id) {
                     $status = true;
                     foreach ($periods as $period) {
