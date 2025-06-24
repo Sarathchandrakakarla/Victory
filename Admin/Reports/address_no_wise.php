@@ -78,13 +78,25 @@ error_reporting(0);
                     <input type="text" class="form-control" name="Id_No" oninput="this.value = this.value.toUpperCase()" id="id_no">
                 </div>
             </div>
+            <div class="row justify-content-center mt-2">
+                <div class="col-lg-4">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="Photo" id="wo_photo" checked value="Without_Photo">
+                        <label class="form-check-label" for="wo_photo">Without Photo</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="Photo" id="w_photo" value="With_Photo">
+                        <label class="form-check-label" for="w_photo">With Photo</label>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-5">
-                    <button class="btn btn-primary" type="submit" name="show">Show Previous</button>
                     <button class="btn btn-primary" type="submit" name="add">Insert</button>
                     <button class="btn btn-primary" type="submit" onclick="if(!confirm('Confirm to Delete All Previous Records?')){return false;}else{return true;}" name="delete_all">Delete All</button>
+                    <button class="btn btn-primary" type="submit" name="show">Show Previous</button>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                 </div>
             </div>
@@ -118,6 +130,7 @@ error_reporting(0);
                     <th>Area</th>
                     <th>Village</th>
                     <th>Mobile</th>
+                    <th id="stu_image_head">Student Photo</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -125,6 +138,18 @@ error_reporting(0);
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
+                        $photo = $_POST['Photo'];
+                        if ($photo == 'With_Photo') {
+                            echo "<script>
+                            document.getElementById('w_photo').checked = true;
+                            document.getElementById('stu_image_head').hidden = '';
+                            </script>";
+                        } else {
+                            echo "<script>
+                            document.getElementById('wo_photo').checked = true;
+                            document.getElementById('stu_image_head').hidden = 'hidden';
+                            </script>";
+                        }
                         $i = 1;
                         $main_query = mysqli_query($link, "SELECT * FROM `address_temp`");
                         if (mysqli_num_rows($main_query) == 0) {
@@ -142,14 +167,27 @@ error_reporting(0);
                     <td>' . $main_row['House_No'] . '</td>
                     <td>' . $main_row['Area'] . '</td>
                     <td>' . $main_row['Village'] . '</td>
-                    <td>' . $main_row['Mobile'] . '</td>
-                    <td><i class="bx bx-trash delete"></i></td>
+                    <td>' . $main_row['Mobile'] . '</td>';
+                                if ($photo == 'With_Photo') {
+                                    echo '<td><img src="../../Images/stu_img/' . $main_row['Id_No'] . '.jpg"  class="rounded" width="100px" height="100px"/></td>';
+                                }
+                                echo '<td><i class="bx bx-trash delete"></i></td>
                     </tr>';
                                 $i++;
                             }
                         }
                     }
                     if (isset($_POST['add'])) {
+                        $photo = $_POST['Photo'];
+                        if ($photo == 'With_Photo') {
+                            echo "<script>
+                            document.getElementById('w_photo').checked = true;
+                            </script>";
+                        } else {
+                            echo "<script>
+                            document.getElementById('wo_photo').checked = true;
+                            </script>";
+                        }
                         if ($_POST['Id_No']) {
                             $id = $_POST['Id_No'];
                             echo "<script>document.getElementById('id_no').value = '" . $id . "'</script>";
@@ -184,19 +222,22 @@ error_reporting(0);
                                     $i = 1;
                                     while ($row = mysqli_fetch_assoc($result)) {
                                         echo '<tr>
-                <td>' . $i . '</td>
-                <td>' . $row['Id_No'] . '</td>
-                <td>' . $row['First_Name'] . '</td>
-                <td>' . $row['Sur_Name'] . '</td>
-                <td>' . $row['Father_Name'] . '</td>
-                <td>' . $row['Gender'] . '</td>
-                <td>' . $row['Class'] . ' ' . $row['Section'] . '</td>
-                <td>' . $row['House_No'] . '</td>
-                <td>' . $row['Area'] . '</td>
-                <td>' . $row['Village'] . '</td>
-                <td>' . $row['Mobile'] . '</td>
-                <td><i class="bx bx-trash delete"></i></td>
-                </tr>';
+                                            <td>' . $i . '</td>
+                                            <td>' . $row['Id_No'] . '</td>
+                                            <td>' . $row['First_Name'] . '</td>
+                                            <td>' . $row['Sur_Name'] . '</td>
+                                            <td>' . $row['Father_Name'] . '</td>
+                                            <td>' . $row['Gender'] . '</td>
+                                            <td>' . $row['Class'] . ' ' . $row['Section'] . '</td>
+                                            <td>' . $row['House_No'] . '</td>
+                                            <td>' . $row['Area'] . '</td>
+                                            <td>' . $row['Village'] . '</td>
+                                            <td>' . $row['Mobile'] . '</td>';
+                                        if ($photo == 'With_Photo') {
+                                            echo '<td><img src="../../Images/stu_img/' . $row['Id_No'] . '.jpg"  class="rounded" width="100px" height="100px"/></td>';
+                                        }
+                                        echo '<td><i class="bx bx-trash delete"></i></td>
+                                        </tr>';
                                         $i++;
                                     }
                                 }
