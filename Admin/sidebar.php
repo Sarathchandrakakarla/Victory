@@ -319,6 +319,7 @@
                 <?php } ?>
                 <li><a href="/Victory/Admin/add_stu_user.php">Add Student/Faculty User</a></li>
                 <li><a href="/Victory/Admin/stu_pass_change.php">Change Student/Faculty Password</a></li>
+                <li><a href="/Victory/Admin/topics.php">Manage Notification Groups</a></li>
                 <li><a href="/Victory/Admin/backup_db.php">Backup Database</a></li>
             </ul>
         </li>

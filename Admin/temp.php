@@ -97,3 +97,14 @@ if (isset($_POST['Video_Id'])) {
         echo "Failure";
     }
 }
+
+if ($_POST['Group']) {
+    $group = $_POST['Group'];
+    $s = "DELETE FROM `topics` WHERE Topic = '$group'";
+    $res = mysqli_query($link, $s);
+    if ($res) {
+        echo "Success";
+    } else {
+        echo "Failure";
+    }
+}
