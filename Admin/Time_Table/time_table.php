@@ -86,6 +86,9 @@ error_reporting(0);
                 <div class="col-lg-3">
                     <button class="btn btn-primary edit" onclick="edit();return false;"><i class="bx bx-edit"></i>Edit</button>
                     <button class="btn btn-primary save" name="Save" onclick="return false;" disabled><i class="bx bx-save"></i>Save</button>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#emplist">
+                        Employee List
+                    </button>
                 </div>
             </div>
         </div>
@@ -245,7 +248,7 @@ error_reporting(0);
                         $date = date('d-m-Y');
                         date_default_timezone_set("Asia/Kolkata");
                         $am_pm = strtoupper(date('a', $timestamp));
-                        $absent_sql = mysqli_query($link, "SELECT * FROM `employee_attendance` WHERE Date = '$date' AND $am_pm = 'A'");
+                        $absent_sql = mysqli_query($link, "SELECT * FROM `employee_attendance` WHERE Date = '$date' AND $am_pm = 'A' OR $am_pm = 'L'");
                         if (mysqli_num_rows($absent_sql) == 0) {
                             echo "<script>alert('There are No Absentees!');</script>";
                         } else {
@@ -279,6 +282,45 @@ error_reporting(0);
             </table>
         </div>
     </form>
+
+    <!-- Employee List Modal -->
+    <div class="modal fade" id="emplist" tabindex="-1" aria-labelledby="empListLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="empListLabel">Employee List</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <th class="border border-dark">S No</th>
+                            <th class="border border-dark">Id No.</th>
+                            <th class="border border-dark">Name</th>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $query4 = mysqli_query($link, "SELECT * FROM `employee_master_data` WHERE Status = 'Working' ORDER BY Emp_Id");
+                            $i = 1;
+                            while ($row4 = mysqli_fetch_assoc($query4)) {
+                                echo "
+                                <tr>
+                                    <td class='border border-dark'>" . $i . "</td>
+                                    <td class='border border-dark'>" . $row4['Emp_Id'] . "</td>
+                                    <td class='border border-dark'>" . $row4['Emp_First_Name'] . "</td>
+                                </tr>
+                                ";
+                                $i++;
+                            }
+                            ?>
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="leisure-container table-container mt-5">
         <table class="table table-hover">
@@ -532,9 +574,9 @@ error_reporting(0);
                         if (JSON.stringify(elm) == "null") {
                             continue
                         } else {
-                            if(elm.classList.contains('allocated')){
+                            if (elm.classList.contains('allocated')) {
                                 allocated_text += cls + '_' + section + '_period_' + period + '=' + document.getElementById(cls + '_' + section + '_period_' + period).innerHTML + '&'
-                            } else{
+                            } else {
                                 text += cls + '_' + section + '_period_' + period + '=' + document.getElementById(cls + '_' + section + '_period_' + period).innerHTML + '&'
                             }
                         }
@@ -546,7 +588,7 @@ error_reporting(0);
                 url: 'temp.php',
                 data: {
                     Time_Table: text,
-                    Allocated:allocated_text
+                    Allocated: allocated_text
                 },
                 success: function(data) {
                     console.log(data)

@@ -87,11 +87,14 @@ error_reporting(0);
                 </div>
             </div>
             <div class="row justify-content-center mt-4">
-                <div class="col-lg-4">
+                <div class="col-lg-5">
                     <button class="btn btn-primary" type="submit" name="show">Show</button>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                     <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
                     <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#emplist">
+                        Employee List
+                    </button>
                 </div>
             </div>
         </div>
@@ -162,6 +165,44 @@ error_reporting(0);
                 </tr>
             </tbody>
         </table>
+    </div>
+    <!-- Employee List Modal -->
+    <div class="modal fade" id="emplist" tabindex="-1" aria-labelledby="empListLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="empListLabel">Employee List</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <th class="border border-dark">S No</th>
+                            <th class="border border-dark">Id No.</th>
+                            <th class="border border-dark">Name</th>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $query4 = mysqli_query($link, "SELECT * FROM `employee_master_data` WHERE Status = 'Working' ORDER BY Emp_Id");
+                            $i = 1;
+                            while ($row4 = mysqli_fetch_assoc($query4)) {
+                                echo "
+                                <tr>
+                                    <td class='border border-dark'>" . $i . "</td>
+                                    <td class='border border-dark'>" . $row4['Emp_Id'] . "</td>
+                                    <td class='border border-dark'>" . $row4['Emp_First_Name'] . "</td>
+                                </tr>
+                                ";
+                                $i++;
+                            }
+                            ?>
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+        </div>
     </div>
     <iframe name="print_frame" width="0" height="0" frameborder="0" src="about:blank"></iframe>
 
