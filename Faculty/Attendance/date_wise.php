@@ -1,12 +1,9 @@
 <?php
-include '../../link.php';
+include_once('../../link.php');
 session_start();
 if (!$_SESSION['Id_No']) {
-    echo "<script>
-  alert('Faculty Id Not Rendered');
-  location.replace('faculty_login.php');
-  </script>
-  </script>";
+    echo "<script>alert('Faculty Id Not Rendered');
+    location.replace('../faculty_login.php');</script>";
 }
 error_reporting(0);
 ?>
@@ -17,8 +14,8 @@ error_reporting(0);
 <head>
     <meta charset="UTF-8" />
     <title>Victory Schools</title>
-    <link rel="shortcut icon" href="../../Images/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="../../css/sidebar-style.css" />
+    <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
     <!-- Boxiocns CDN Link -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
@@ -102,7 +99,19 @@ error_reporting(0);
                     </div>
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="att_type" id="pm" value="PM">
-                        <label class="form-check-label" for="pm">Evening</label>
+                        <label class="form-check-label" for="pm">Afternoon</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center mt-4">
+                <div class="col-lg-3">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="stu_type" id="a" checked value="A">
+                        <label class="form-check-label" for="a">Absent</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="stu_type" id="l" value="L">
+                        <label class="form-check-label" for="l">Leave</label>
                     </div>
                 </div>
             </div>
@@ -123,9 +132,9 @@ error_reporting(0);
         </form>
     </div>
     <div class="container">
-        <div class="row justify-content-center mt-3">
-            <div class="col-lg-5" style="color: red;">
-                NOTE: 1. Please Give Margin: Minimum in Page Setup
+        <div class="row justify-content-center mt-4">
+            <div class="col-lg-4">
+                <h3><b>Absentees Report</b></h3>
             </div>
         </div>
     </div>
@@ -135,9 +144,9 @@ error_reporting(0);
                 <th style="border:1px solid black;">S.No</th>
                 <th style="border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;text-align:center;">Id No.</th>
                 <th style="border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;text-align:center;">Name</th>
-                <th style="border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;text-align:center;">Class</th>
                 <th style="border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;text-align:center;">Father Name</th>
-                <th style="border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;text-align:center;">Van Route</th>
+                <th style="border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;text-align:center;">Class</th>
+                <th style="border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;text-align:center;">Area</th>
                 <th style="border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;text-align:center;">Mobile</th>
             </thead>
             <tbody id="tbody">
@@ -155,55 +164,102 @@ error_reporting(0);
                     if (isset($_POST['show'])) {
                         $date = $_POST['Date'];
                         $type = $_POST['att_type'];
+                        $stu_type = $_POST['stu_type'];
                         echo "<script>document.getElementById('date').value = '" . $date . "';
               document.getElementById('" . strtolower($type) . "').checked = true;
               document.getElementById('" . strtolower($stu_type) . "').checked = true;
               </script>";
+                        $classes = ['PreKG', 'LKG', 'UKG'];
+                        for ($i = 1; $i <= 10; $i++) {
+                            array_push($classes, $i . ' CLASS');
+                        }
+                        $sections = ['A', 'B', 'C', 'D'];
+                        $all_ids = [];
+                        foreach ($classes as $class) {
+                            foreach ($sections as $section) {
+                                $sql = mysqli_query($link, "SELECT Id_No FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section'");
+                                while ($students_row = mysqli_fetch_assoc($sql)) {
+                                    array_push($all_ids, $students_row["Id_No"]);
+                                }
+                            }
+                        }
                         $date = format_date($date);
-
                         //Arrays
                         $ids = array();
                         $names = array();
+                        foreach ($all_ids as $stu_id) {
 
-                        //Queries
-                        $query1 = mysqli_query($link, "SELECT Id_No FROM `van_attendance_daily` WHERE Date = '$date' AND $type = 'A'");
-
-                        if ($query1) {
-                            if (mysqli_num_rows($query1) == 0) {
-                                echo "<script>alert('No Student Found on " . $date . " " . $type . " of Absent!!')</script>";
-                            } else {
-                                while ($row1 = mysqli_fetch_assoc($query1)) {
-                                    array_push($ids, $row1['Id_No']);
+                            //Queries
+                            $query1 = mysqli_query($link, "SELECT * FROM `attendance_daily` WHERE Id_No = '$stu_id' AND Date = '$date' AND $type = '$stu_type'");
+                            if ($query1) {
+                                if (mysqli_num_rows($query1) != 0) {
+                                    array_push($ids, $stu_id);
                                 }
-                                $i = 1;
-                                foreach ($ids as $id) {
-                                    $query2 = mysqli_query($link, "SELECT First_Name,Father_Name,Stu_Class,Stu_Section,Mobile,House_No,Van_Route FROM `student_master_data` WHERE Id_No = '$id'");
-                                    while ($row2 = mysqli_fetch_assoc($query2)) {
-                                        echo '
+                            }
+                        }
+                        if (count($ids) == 0) {
+                            if ($stu_type == "A") {
+                                if ($class_type == "Class_Wise") {
+                                    echo "<script>alert('No Student Found in " . $class . " on " . $date . " " . $type . " of Absent!!')</script>";
+                                } else {
+                                    echo "<script>alert('No Student Found in " . $class . " and " . $section . " on " . $date . " " . $type . " of Absent!!')</script>";
+                                }
+                            } else if ($stu_type == "L") {
+                                if ($class_type == "Class_Wise") {
+                                    echo "<script>alert('No Student Found in " . $class . " on " . $date . " " . $type . " of Leave!!')</script>";
+                                } else {
+                                    echo "<script>alert('No Student Found in " . $class . " and " . $section . " on " . $date . " " . $type . " of Leave!!')</script>";
+                                }
+                            }
+                            echo "<script>document.getElementById('total').innerHTML = '0'</script>";
+                        } else {
+                            $i = 1;
+                            foreach ($ids as $id) {
+                                $query2 = mysqli_query($link, "SELECT First_Name,Father_Name,Stu_Class,Stu_Section,Mobile,House_No,Area FROM `student_master_data` WHERE Id_No = '$id'");
+                                while ($row2 = mysqli_fetch_assoc($query2)) {
+                                    echo '
                                             <td style="border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black;text-align:center;">' . $i . '</td>
                                             <td style="border-right:1px solid black;border-bottom:1px solid black;">' . $id . '</td>
                                             <td style="border-right:1px solid black;border-bottom:1px solid black;">' . $row2['First_Name'] . '</td>
-                                            <td style="width:150px;border-right:1px solid black;border-bottom:1px solid black;">' . $row2['Stu_Class'] . ' ' . $row2['Stu_Section'] . '</td>
                                             <td style="border-right:1px solid black;border-bottom:1px solid black;">' . $row2['Father_Name'] . '</td>
-                                            <td style="border-right:1px solid black;border-bottom:1px solid black;">' . $row2['Van_Route'] . '</td>
+                                            <td style="border-right:1px solid black;border-bottom:1px solid black;">' . $row2['Stu_Class'] . '  ' . $row2['Stu_Section'] . '</td>
+                                            <td style="border-right:1px solid black;border-bottom:1px solid black;">' . $row2['Area'] . '</td>
                                             <td style="border-right:1px solid black;border-bottom:1px solid black;">' . $row2['Mobile'] . '</td>
                                             ';
-                                    }
-                                    $i++;
-                                    echo '</tr>';
                                 }
-                                echo "<script>document.getElementById('total').innerHTML = '" . ($i - 1) . "'</script>";
+                                $i++;
+                                echo '</tr>';
                             }
-                        } else {
-                            echo "<script>alert('Error in Fetching Id Nos!')</script>";
+                            echo "<script>document.getElementById('total').innerHTML = '" . ($i - 1) . "'</script>";
                         }
                     }
-
                     ?>
             </tbody>
         </table>
     </div>
     <iframe name="print_frame" width="0" height="0" frameborder="0" src="about:blank"></iframe>
+
+    <!-- Scripts -->
+
+    <!-- Change labels -->
+    <script type="text/javascript">
+        let section_row = document.getElementById('section_row');
+        document.body.addEventListener('change', function(e) {
+            let target = e.target;
+            switch (target.id) {
+                case 'class_wise':
+                    if (!section_row.hidden) {
+                        section_row.hidden = 'hidden';
+                    }
+                    break;
+                case 'section_wise':
+                    if (section_row.hidden) {
+                        section_row.hidden = '';
+                    }
+                    break;
+            }
+        });
+    </script>
 
     <!-- Print Table -->
     <script type="text/javascript">

@@ -72,7 +72,9 @@ error_reporting(0);
 </style>
 
 <body class="bg-light">
-    <?php include '../sidebar.php'; ?>
+    <?php
+    include '../sidebar.php';
+    ?>
     <form action="" method="POST" autocomplete="off">
         <div class="container">
             <div class="row justify-content-center mt-5">
@@ -102,11 +104,11 @@ error_reporting(0);
                 <div class="col-lg-3">
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="mark_type" id="normal" checked value="Normal">
-                        <label class="form-check-label" for="inlineRadio2">Normal</label>
+                        <label class="form-check-label" for="normal">Normal</label>
                     </div>
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="mark_type" id="gpa" value="GPA">
-                        <label class="form-check-label" for="inlineRadio1">GPA</label>
+                        <label class="form-check-label" for="gpa">GPA</label>
                     </div>
                 </div>
             </div>
@@ -123,7 +125,7 @@ error_reporting(0);
     </form>
     <div class="container">
         <div class="row justify-content-center mt-4">
-            <div class="col-lg-5">
+            <div class="col-lg-6">
                 <h3><b>Student Marks Details Report</b></h3>
             </div>
         </div>
@@ -322,90 +324,87 @@ error_reporting(0);
                     $marks = array();
                     $sub_count = array();
                     $full_marks = array();
-                    if (!str_contains($class, ' CLASS')) {
-                        echo "<script>alert(Data Not Available for this Student)</script>";
-                    } else {
-                        $exm_sql = mysqli_query($link, "SELECT * FROM `class_wise_examination` WHERE Class = '$class'");
-                        while ($row2 = mysqli_fetch_assoc($exm_sql)) {
-                            array_push($exams, $row2['Exam']);
+                    $exm_sql = mysqli_query($link, "SELECT * FROM `class_wise_examination` WHERE Class = '$class'");
+                    while ($row2 = mysqli_fetch_assoc($exm_sql)) {
+                        array_push($exams, $row2['Exam']);
+                    }
+                    foreach ($exams as $exam) {
+                        $sub_sql = mysqli_query($link, "SELECT * FROM `class_wise_subjects` WHERE Class = '$class' AND Exam = '$exam'");
+                        $sub_count[$exam] = mysqli_num_rows($sub_sql);
+                        $temp = array();
+                        while ($row3 = mysqli_fetch_assoc($sub_sql)) {
+                            array_push($temp, $row3['Subjects']);
+                            $max[$exam][$row3['Subjects']] = $row3['Max_Marks'];
                         }
-                        foreach ($exams as $exam) {
-                            $sub_sql = mysqli_query($link, "SELECT * FROM `class_wise_subjects` WHERE Class = '$class' AND Exam = '$exam'");
-                            $sub_count[$exam] = mysqli_num_rows($sub_sql);
-                            $temp = array();
-                            while ($row3 = mysqli_fetch_assoc($sub_sql)) {
-                                array_push($temp, $row3['Subjects']);
-                                $max[$exam][$row3['Subjects']] = $row3['Max_Marks'];
-                            }
-                            $subs[$exam] = $temp;
-                            $temp = array();
-                        }
+                        $subs[$exam] = $temp;
+                        $temp = array();
+                    }
 
-                        foreach ($exams as $exam) {
-                            $marks_sql = mysqli_query($link, "SELECT * FROM `stu_marks` WHERE Id_No = '$id' AND Exam = '$exam'");
-                            $temp1 = array();
-                            while ($row4 = mysqli_fetch_assoc($marks_sql)) {
-                                $i = 1;
-                                foreach ($subs[$exam] as $sub) {
-                                    $temp1[$sub] = $row4['sub' . $i];
-                                    $i++;
-                                }
-                                $i = 1;
-                                $full_marks[$exam] = $temp1;
+                    foreach ($exams as $exam) {
+                        $marks_sql = mysqli_query($link, "SELECT * FROM `stu_marks` WHERE Id_No = '$id' AND Exam = '$exam'");
+                        $temp1 = array();
+                        while ($row4 = mysqli_fetch_assoc($marks_sql)) {
+                            $i = 1;
+                            foreach ($subs[$exam] as $sub) {
+                                $temp1[$sub] = $row4['sub' . $i];
+                                $i++;
                             }
+                            $i = 1;
+                            $full_marks[$exam] = $temp1;
                         }
+                    }
 
-                        echo '<div class="container table-container" id="table-container">
+                    echo '<div class="container table-container" id="table-container">
             <table class="table table-hover" border="1">
               <tbody id="tbody">
               <tr>';
 
-                        foreach ($exams as $exam) {
-                            foreach (array_keys($full_marks) as $exm) {
-                                if ($exam == $exm) {
-                                    if ($sub_count[$exam] != 0) {
-                                        echo '<td class="bg-secondary text-light" colspan="2" style="width:1000px;text-align:center;"><b>' . $exam . '</b></td>';
-                                        echo '</tr>
+                    foreach ($exams as $exam) {
+                        foreach (array_keys($full_marks) as $exm) {
+                            if ($exam == $exm) {
+                                if ($sub_count[$exam] != 0) {
+                                    echo '<td class="bg-secondary text-light" colspan="2" style="width:1000px;text-align:center;"><b>' . $exam . '</b></td>';
+                                    echo '</tr>
                       <tr>';
-                                        $tot = 0;
-                                        $max_tot = 0;
-                                        foreach ($subs[$exam] as $sub) {
-                                            if ($full_marks[$exam][$sub] != 'A') {
-                                                echo '<tr>
+                                    $tot = 0;
+                                    $max_tot = 0;
+                                    foreach ($subs[$exam] as $sub) {
+                                        if ($full_marks[$exam][$sub] != 'A') {
+                                            echo '<tr>
                             <th style="height:30px;">' . $sub . '</th>
                             <td style="padding-left:10px;">' . $full_marks[$exam][$sub] . '/' . $max[$exam][$sub] . '</td>
                           </tr>';
-                                            } else {
-                                                echo '<tr>
+                                        } else {
+                                            echo '<tr>
                             <th style="height:30px;">' . $sub . '</th>
                             <td style="padding-left:20px;">' . $full_marks[$exam][$sub] . '</td>
                           </tr>';
-                                            }
-                                            $tot += (int)$full_marks[$exam][$sub];
-                                            $max_tot += $max[$exam][$sub];
                                         }
-                                        echo '<tr>
+                                        $tot += (int)$full_marks[$exam][$sub];
+                                        $max_tot += $max[$exam][$sub];
+                                    }
+                                    echo '<tr>
                       <th>Total</th>
                       <td style="padding-left:10px;">' . $tot . '/' . $max_tot . '</td>
                       </tr>';
-                                        if ($mark_type == "Normal") {
-                                            $percentage = round(((int)$tot / $max_tot) * 100, 2);
-                                            if ($percentage >= 80 && $percentage <= 100) {
-                                                $grade = "Excellent";
-                                            } else if ($percentage >= 70 && $percentage < 80) {
-                                                $grade = "Good";
-                                            } else if ($percentage >= 60 && $percentage < 70) {
-                                                $grade = "Satisfactory";
-                                            } else if ($percentage >= 50 && $percentage < 60) {
-                                                $grade = "Above Average";
-                                            } else if ($percentage >= 35 && $percentage < 50) {
-                                                $grade = "Average";
-                                            } else if ($percentage > 0 && $percentage < 35) {
-                                                $grade = "Below Average";
-                                            } else {
-                                                $grade = "";
-                                            }
-                                            echo '<tr>
+                                    if ($mark_type == "Normal") {
+                                        $percentage = round(((int)$tot / $max_tot) * 100, 2);
+                                        if ($percentage >= 80 && $percentage <= 100) {
+                                            $grade = "Excellent";
+                                        } else if ($percentage >= 70 && $percentage < 80) {
+                                            $grade = "Good";
+                                        } else if ($percentage >= 60 && $percentage < 70) {
+                                            $grade = "Satisfactory";
+                                        } else if ($percentage >= 50 && $percentage < 60) {
+                                            $grade = "Above Average";
+                                        } else if ($percentage >= 35 && $percentage < 50) {
+                                            $grade = "Average";
+                                        } else if ($percentage > 0 && $percentage < 35) {
+                                            $grade = "Below Average";
+                                        } else {
+                                            $grade = "";
+                                        }
+                                        echo '<tr>
                       <th>Percentage</th>
                       <td style="padding-left:10px;">' . $percentage . '</td>
                       </tr>
@@ -413,57 +412,57 @@ error_reporting(0);
                       <th>Grade</th>
                       <td style="padding-left:10px;">' . $grade . '</td>
                       </tr>';
-                                        } else {
-                                            $grades = array();
+                                    } else {
+                                        $grades = array();
 
-                                            //Calculating Subject Wise Grades
-                                            foreach ($subs[$exam] as $sub) {
-                                                $mark = ((int)$full_marks[$exam][$sub] / (int)$max[$exam][$sub]) * 100;
-                                                if ($mark >= 91 && $mark <= 100) {
-                                                    $grades[$sub] = array("A1", 10);
-                                                } else if ($mark >= 81 && $mark <= 90) {
-                                                    $grades[$sub] = array("A2", 9);
-                                                } else if ($mark >= 71 && $mark <= 80) {
-                                                    $grades[$sub] = array("B1", 8);
-                                                } else if ($mark >= 61 && $mark <= 70) {
-                                                    $grades[$sub] = array("B2", 7);
-                                                } else if ($mark >= 51 && $mark <= 60) {
-                                                    $grades[$sub] = array("C1", 6);
-                                                } else if ($mark >= 41 && $mark <= 50) {
-                                                    $grades[$sub] = array("C2", 5);
-                                                } else if ($mark >= 35 && $mark <= 40) {
-                                                    $grades[$sub] = array("D1", 4);
-                                                } else if ($mark >= 0 && $mark <= 34) {
-                                                    $grades[$sub] = array("E", 3);
-                                                }
-
-                                                //Calculating Average of grade points
-                                                $sum = 0;
-                                                foreach ($subs[$exam] as $sub) {
-                                                    $sum += $grades[$sub][1];
-                                                }
-                                                $avg = round($sum / $sub_count[$exam], 1);
-                                                if ($avg == 10) {
-                                                    $grade = "A1";
-                                                } else if ($avg >= 9 && $avg < 10) {
-                                                    $grade = "A2";
-                                                } else if ($avg >= 8 && $avg < 9) {
-                                                    $grade = "B1";
-                                                } else if ($avg >= 7 && $avg < 8) {
-                                                    $grade = "B2";
-                                                } else if ($avg >= 6 && $avg < 7) {
-                                                    $grade = "C1";
-                                                } else if ($avg >= 5 && $avg < 6) {
-                                                    $grade = "C2";
-                                                } else if ($avg >= 4 && $avg < 5) {
-                                                    $grade = "D1";
-                                                } else if ($avg >= 3 && $avg < 4) {
-                                                    $grade = "D2";
-                                                } else if ($avg >= 0 && $avg < 3) {
-                                                    $grade = "E1";
-                                                }
+                                        //Calculating Subject Wise Grades
+                                        foreach ($subs[$exam] as $sub) {
+                                            $mark = ((int)$full_marks[$exam][$sub] / (int)$max[$exam][$sub]) * 100;
+                                            if ($mark >= 91 && $mark <= 100) {
+                                                $grades[$sub] = array("A1", 10);
+                                            } else if ($mark >= 81 && $mark <= 90) {
+                                                $grades[$sub] = array("A2", 9);
+                                            } else if ($mark >= 71 && $mark <= 80) {
+                                                $grades[$sub] = array("B1", 8);
+                                            } else if ($mark >= 61 && $mark <= 70) {
+                                                $grades[$sub] = array("B2", 7);
+                                            } else if ($mark >= 51 && $mark <= 60) {
+                                                $grades[$sub] = array("C1", 6);
+                                            } else if ($mark >= 41 && $mark <= 50) {
+                                                $grades[$sub] = array("C2", 5);
+                                            } else if ($mark >= 35 && $mark <= 40) {
+                                                $grades[$sub] = array("D1", 4);
+                                            } else if ($mark >= 0 && $mark <= 34) {
+                                                $grades[$sub] = array("E", 3);
                                             }
-                                            echo '<tr>
+
+                                            //Calculating Average of grade points
+                                            $sum = 0;
+                                            foreach ($subs[$exam] as $sub) {
+                                                $sum += $grades[$sub][1];
+                                            }
+                                            $avg = round($sum / $sub_count[$exam], 1);
+                                            if ($avg == 10) {
+                                                $grade = "A1";
+                                            } else if ($avg >= 9 && $avg < 10) {
+                                                $grade = "A2";
+                                            } else if ($avg >= 8 && $avg < 9) {
+                                                $grade = "B1";
+                                            } else if ($avg >= 7 && $avg < 8) {
+                                                $grade = "B2";
+                                            } else if ($avg >= 6 && $avg < 7) {
+                                                $grade = "C1";
+                                            } else if ($avg >= 5 && $avg < 6) {
+                                                $grade = "C2";
+                                            } else if ($avg >= 4 && $avg < 5) {
+                                                $grade = "D1";
+                                            } else if ($avg >= 3 && $avg < 4) {
+                                                $grade = "D2";
+                                            } else if ($avg >= 0 && $avg < 3) {
+                                                $grade = "E1";
+                                            }
+                                        }
+                                        echo '<tr>
                     <th style="height:30px;">Grade</th>
                     <td style="padding-left:10px;">' . $grade . '</td>
                 </tr>
@@ -472,10 +471,9 @@ error_reporting(0);
                     <th style="height:30px;">GPA</th>
                     <td style="padding-left:10px;">' . $avg . '</td>
                 </tr>';
-                                        }
-
-                                        echo '</tr>';
                                     }
+
+                                    echo '</tr>';
                                 }
                             }
                         }
@@ -509,7 +507,6 @@ error_reporting(0);
                         Id: id
                     },
                     success: function(data) {
-                        console.log(data);
                         $('#exam').html(data);
                     }
                 })

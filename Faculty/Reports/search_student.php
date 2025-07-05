@@ -37,6 +37,7 @@ error_reporting(0);
     .table-container {
         max-width: 1000px;
         max-height: 500px;
+        margin-left: 8%;
         overflow-x: scroll;
     }
 
@@ -60,11 +61,13 @@ error_reporting(0);
 </style>
 
 <body class="bg-light">
-    <?php include '../sidebar.php'; ?>
+    <?php
+    include '../sidebar.php';
+    ?>
     <form action="" method="POST" autocomplete="off">
         <div class="container mt-3">
             <div class="row justify-content-center">
-                <div class="col-lg-6">
+                <div class="col-lg-8">
                     <h2>Search By</h2>
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="search_by" id="stu_name" checked value="First_Name">
@@ -77,6 +80,10 @@ error_reporting(0);
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="search_by" id="father_name" value="Father_Name">
                         <label class="form-check-label" for="father_name">Father's Name</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="search_by" id="mobile" value="Mobile">
+                        <label class="form-check-label" for="mobile">Mobile Number</label>
                     </div>
                 </div>
             </div>
@@ -114,6 +121,7 @@ error_reporting(0);
                     <th>Father Name</th>
                     <th>Class</th>
                     <th>Section</th>
+                    <th>Mobile Number</th>
                 </tr>
             </thead>
             <tbody>
@@ -128,9 +136,13 @@ error_reporting(0);
                             echo "<script>document.getElementById('sur_name').checked = true;
                             document.getElementById('Search_Label').innerHTML = 'Surname';</script>";
                         } else if ($search == "Father_Name") {
-                            echo "<script>console.log(1);</script>";
                             echo "<script>document.getElementById('father_name').checked = true;
                             document.getElementById('Search_Label').innerHTML = 'Father\'s Name';</script>";
+                        } else if ($search == "Mobile") {
+                            echo "<script>document.getElementById('mobile').checked = true;
+                            document.getElementById('Search_Label').innerHTML = 'Mobile Number';
+                            document.getElementById('txtinp').min=10;
+                            document.getElementById('txtinp').max=10;</script>";
                         }
                         $txtinp = $_POST['txtinp'];
                         echo "<script>document.getElementById('txtinp').value = '" . $txtinp . "'</script>";
@@ -147,6 +159,7 @@ error_reporting(0);
               <td>' . $row['Father_Name'] . '</td>
               <td>' . $row['Stu_Class'] . '</td>
               <td>' . $row['Stu_Section'] . '</td>
+              <td>' . $row['Mobile'] . '</td>
               </tr>';
                                 $i++;
                             }
@@ -168,6 +181,7 @@ error_reporting(0);
     <!-- Change labels -->
     <script type="text/javascript">
         let result = document.getElementById('Search_Label');
+        let txtinp = document.getElementById('txtinp');
         document.body.addEventListener('change', function(e) {
             let target = e.target;
             let message;
@@ -180,6 +194,11 @@ error_reporting(0);
                     break;
                 case 'sur_name':
                     message = "Surname";
+                    break;
+                case 'mobile':
+                    message = "Mobile Number";
+                    txtinp.minLength = 10;
+                    txtinp.maxLength = 10;
                     break;
             }
             result.innerHTML = message;

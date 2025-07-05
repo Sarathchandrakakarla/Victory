@@ -83,7 +83,8 @@
           <li>
             <a class="link_name" href="#"><label for="">Time Table</label></a>
           </li>
-          <li><a href="/Victory/Faculty/time_table.php">Time Table Entry/View</a></li>
+          <li><a href="/Victory/Faculty/time_table.php">School Time Table</a></li>
+          <li><a href="/Victory/Faculty/my_time_table.php">My Time Table</a></li>
         </ul>
       </li>
     <?php } ?>
@@ -108,7 +109,7 @@
             <a class="link_name" href="#" id="view"><label for="">View</label></a>
           </li>
           <li><a href="/Victory/Faculty/Attendance/date_wise.php">Date Wise Absentees View</a></li>
-        <li><a href="/Victory/Faculty/Attendance/route_wise.php">Route Wise Attendance View</a></li>
+          <li><a href="/Victory/Faculty/Attendance/route_wise.php">Route Wise Attendance View</a></li>
         </ul>
       </li>
     <?php } ?>
