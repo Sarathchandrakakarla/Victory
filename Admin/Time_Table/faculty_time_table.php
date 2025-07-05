@@ -134,7 +134,6 @@ error_reporting(0);
                         $id = $_POST['Id_No'];
                         echo '<script>
                             document.getElementById("id_no").value = "' . $id . '";
-                            document.getElementById("' . strtolower($type) . '").checked = true;
                         </script>';
                         $query1 = mysqli_query($link, "SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM employee_master_data WHERE Emp_Id = '$id') THEN 'Employee Not Found' WHEN NOT EXISTS (SELECT 1 FROM time_table WHERE (Period1 LIKE '$id%' OR Period2 LIKE '$id%' OR Period3 LIKE '$id%' OR Period4 LIKE '$id%' OR Period5 LIKE '$id%' OR Period6 LIKE '$id%' OR Period7 LIKE '$id%' OR Period8 LIKE '$id%')) THEN 'Time Table Not Assigned' ELSE 'OK' END AS status");
                         $status = mysqli_fetch_array($query1)['status'];
