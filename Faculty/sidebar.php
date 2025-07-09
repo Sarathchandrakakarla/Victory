@@ -49,10 +49,16 @@
           <li>
             <a class="link_name" href="#"><label for="">Student</label></a>
           </li>
+          <li><a href="/Victory/Faculty/Reports/student_performance.php">Student Performance Entry</a></li>
+          <li>
+            <a class="link_name" href="#" id="view"><label for="">View</label></a>
+          </li>
           <li><a href="/Victory/Faculty/Reports/show_student_page.php">Show Student Details</a></li>
           <li><a href="/Victory/Faculty/Reports/class_wise_stu_report.php">Class wise Student Report</a></li>
           <li><a href="/Victory/Faculty/Reports/search_student.php">Search Student</a></li>
           <li><a href="/Victory/Faculty/Reports/address.php">Address</a></li>
+          <li><a href="/Victory/Faculty/Reports/student_performance_report.php">Student Performance Report</a></li>
+          <li><a href="/Victory/Faculty/Reports/quarterly_performance_report.php">Quarterly Performance Report</a></li>
         </ul>
       </li>
       <li>

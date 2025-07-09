@@ -93,8 +93,8 @@ error_reporting(0);
             </div>
         </div>
 
-        <div class="container table-container">
-            <table class="table table-striped table-hover mt-5" id="table-container">
+        <div class="container table-container mt-5">
+            <table class="table table-striped table-hover" id="table-container">
                 <thead class="bg-warning">
                     <th style="text-align:center;border-top: 2px solid black;border-bottom: 2px solid black;border-left: 2px solid black;border-right: 2px solid black;">Class</th>
                     <?php
@@ -171,7 +171,7 @@ error_reporting(0);
                                                     date_default_timezone_set("Asia/Kolkata");
                                                     $am_pm = strtoupper(date('a', $timestamp));
                                                     $teacher_status = true;
-                                                    $teacher_status_sql = mysqli_query($link, "SELECT * FROM `employee_attendance` WHERE Id_No = '$teacher_id' AND Date = '$date' AND AM = 'A'");
+                                                    $teacher_status_sql = mysqli_query($link, "SELECT * FROM `employee_attendance` WHERE Id_No = '$teacher_id' AND Date = '$date' AND (AM = 'A' OR AM = 'L')");
                                                     if (mysqli_num_rows($teacher_status_sql) == 0) {
                                                         $teacher_status = true;
                                                     } else {
@@ -180,7 +180,7 @@ error_reporting(0);
                                                     if ($teacher_status) {
                                                         echo "<td class='period " . $teacher_id . "'  id='" . $class . "_" . $section . "_period_" . $i . "' style='text-align:center;border-right: 2px solid black;border-bottom: 2px solid black;background-color:green;font-weight:bold;'>" . $teacher_id . " <br> " . $teacher_name . " <br> " . $subject . "</td>";
                                                     } else {
-                                                        echo "<td class='period absent " . $teacher_id . "'  id='" . $class . "_" . $section . "_period_" . $i . "' style='text-align:center;border-right: 2px solid black;border-bottom: 2px solid black;background-color:red;font-weight:bold;'>" . $teacher_id . " <br> " . $teacher_name . " <br> " . $subject . "</td>";
+                                                        echo "<td class='period absent " . $teacher_id . "'  id='" . $class . "_" . $section . "_period_" . $i . "' style='text-align:center;border-right: 2px solid black;border-bottom: 2px solid black;background-color:#BA0021;font-weight:bold;'>" . $teacher_id . " <br> " . $teacher_name . " <br> " . $subject . "</td>";
                                                     }
                                                 } else {
                                                     echo "<td class='period'  id='" . $class . "_" . $section . "_period_" . $i . "' style='text-align:center;border-right: 2px solid black;border-bottom: 2px solid black;'></td>";
@@ -218,7 +218,7 @@ error_reporting(0);
                                                     date_default_timezone_set("Asia/Kolkata");
                                                     $am_pm = strtoupper(date('a', $timestamp));
                                                     $teacher_status = true;
-                                                    $teacher_status_sql = mysqli_query($link, "SELECT * FROM `employee_attendance` WHERE Id_No = '$teacher_id' AND Date = '$date' AND PM = 'A'");
+                                                    $teacher_status_sql = mysqli_query($link, "SELECT * FROM `employee_attendance` WHERE Id_No = '$teacher_id' AND Date = '$date' AND (PM = 'A' OR PM = 'L')");
                                                     if (mysqli_num_rows($teacher_status_sql) == 0) {
                                                         $teacher_status = true;
                                                     } else {
@@ -227,7 +227,7 @@ error_reporting(0);
                                                     if ($teacher_status) {
                                                         echo "<td class='period " . $teacher_id . "'  id='" . $class . "_" . $section . "_period_" . $i . "' style='text-align:center;border-right: 2px solid black;border-bottom: 2px solid black;background-color:green;font-weight:bold;'>" . $teacher_id . " <br> " . $teacher_name . " <br> " . $subject . "</td>";
                                                     } else {
-                                                        echo "<td class='period absent " . $teacher_id . "'  id='" . $class . "_" . $section . "_period_" . $i . "' style='text-align:center;border-right: 2px solid black;border-bottom: 2px solid black;background-color:red;font-weight:bold;'>" . $teacher_id . " <br> " . $teacher_name . " <br> " . $subject . "</td>";
+                                                        echo "<td class='period absent " . $teacher_id . "'  id='" . $class . "_" . $section . "_period_" . $i . "' style='text-align:center;border-right: 2px solid black;border-bottom: 2px solid black;background-color:#BA0021;font-weight:bold;'>" . $teacher_id . " <br> " . $teacher_name . " <br> " . $subject . "</td>";
                                                     }
                                                 } else {
                                                     echo "<td class='period'  id='" . $class . "_" . $section . "_period_" . $i . "' style='color:black;text-align:center;border-right: 2px solid black;border-bottom: 2px solid black;'></td>";
@@ -248,7 +248,7 @@ error_reporting(0);
                         $date = date('d-m-Y');
                         date_default_timezone_set("Asia/Kolkata");
                         $am_pm = strtoupper(date('a', $timestamp));
-                        $absent_sql = mysqli_query($link, "SELECT * FROM `employee_attendance` WHERE Date = '$date' AND $am_pm = 'A' OR $am_pm = 'L'");
+                        $absent_sql = mysqli_query($link, "SELECT * FROM `employee_attendance` WHERE Date = '$date' AND ($am_pm = 'A' OR $am_pm = 'L')");
                         if (mysqli_num_rows($absent_sql) == 0) {
                             echo "<script>alert('There are No Absentees!');</script>";
                         } else {
@@ -260,7 +260,7 @@ error_reporting(0);
                                 echo "<script>
                             const nodeList = document.querySelectorAll('." . $teacher_id . "');
                             for (let i = 0; i < nodeList.length; i++) {
-                              nodeList[i].style.backgroundColor = 'red';
+                              nodeList[i].style.backgroundColor = '#BA0021';
                             }
                             </script>";
                             }
@@ -360,7 +360,7 @@ error_reporting(0);
                             $query1 = mysqli_query($link, "SELECT * FROM `time_table` WHERE Class = '$class' AND Section = '$section'");
                             if (mysqli_num_rows($query1) > 0) {
                                 while ($row1 = mysqli_fetch_assoc($query1)) {
-                                    if ($row1[$period] != NULL && $row1[$period] != 'Handwriting') {
+                                    if ($row1[$period] != NULL) {
                                         array_push($period_faculties[$period], explode(',', $row1[$period])[0]);
                                         array_push($overall_faculties, explode(',', $row1[$period])[0]);
                                     }

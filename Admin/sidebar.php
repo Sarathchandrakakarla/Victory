@@ -87,6 +87,7 @@
                 <li><a href="/Victory/Admin/Marks/class_wise_examination.php">Class Wise Examinations Entry</a></li>
                 <li><a href="/Victory/Admin/Marks/class_wise_subjects.php">Class Wise Subjects Entry</a></li>
                 <li><a href="/Victory/Admin/Marks/class_marks.php">Class Wise Marks Entry</a></li>
+                <li><a href="/Victory/Admin/Reports/student_performance.php">Student Performance Entry</a></li>
                 <li>
                     <a class="link_name" href="#" id="view"><label for="">View</label></a>
                 </li>
@@ -95,6 +96,8 @@
                 <li><a href="/Victory/Admin/Reports/marks_entry_slip.php">Marks Entry Slip</a></li>
                 <li><a href="/Victory/Admin/Marks/hallticket.php">Hall Ticket</a></li>
                 <li><a href="/Victory/Admin/Marks/marklist.php">Mark List</a></li>
+                <li><a href="/Victory/Admin/Reports/student_performance_report.php">Student Performance Report</a></li>
+                <li><a href="/Victory/Admin/Reports/quarterly_performance_report.php">Quarterly Performance Report</a></li>
                 <li><a href="/Victory/Admin/Reports/consolidated_marks.php">Consolidated Marks</a></li>
             </ul>
         </li>

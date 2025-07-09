@@ -140,23 +140,23 @@ error_reporting(0);
                     <th>Section</th>
                     <?php
                     if (isset($_POST['ok'])) {
-                        if($_POST['Class']){
+                        if ($_POST['Class']) {
                             $class = $_POST['Class'];
                             echo "<script>document.getElementById('class').value='$class'</script>";
-                            $s = mysqli_query($link,"SELECT * FROM `class_wise_examination` WHERE Class = '$class'");
+                            $s = mysqli_query($link, "SELECT * FROM `class_wise_examination` WHERE Class = '$class'");
                             echo "<script>document.getElementById('exam').innerHTML = '';</script>";
                             if (mysqli_num_rows($s) > 0) {
-                                echo "<script>$('#exam').html('<option value=".'selectexam'." disabled selected>--Select Exam--</option>');</script>";
+                                echo "<script>$('#exam').html('<option value=" . 'selectexam' . " disabled selected>--Select Exam--</option>');</script>";
                                 while ($r = mysqli_fetch_assoc($s)) {
-                                    echo "<script>$('#exam').append('<option value=' + '".$r['Exam']."' + '>".$r['Exam']."</option>');</script>";
+                                    echo "<script>$('#exam').append('<option value=' + '" . $r['Exam'] . "' + '>" . $r['Exam'] . "</option>');</script>";
                                 }
                             } else {
                                 echo "<script>$('#exam').html('<option selected disabled>No Exam Found</option>');</script>";
                             }
-                            if($_POST['Section']){
+                            if ($_POST['Section']) {
                                 $section = $_POST['Section'];
                                 echo "<script>$('#section').val('$section')</script>";
-                                if($_POST['Exam']){
+                                if ($_POST['Exam']) {
                                     $exam = $_POST['Exam'];
                                     echo "<script>document.getElementById('exam').value='$exam';</script>";
                                     $_SESSION['exm_Class'] = $class;
@@ -197,13 +197,13 @@ error_reporting(0);
                                             $k++;
                                         }
                                     }
-                                } else{
+                                } else {
                                     echo "<script>alert('Please Select Exam!');</script>";
                                 }
-                            } else{
+                            } else {
                                 echo "<script>alert('Please Select Section!');</script>";
                             }
-                        } else{
+                        } else {
                             echo "<script>alert('Please Select Class!');</script>";
                         }
                     }
@@ -231,12 +231,12 @@ error_reporting(0);
         document.getElementById('class').value='$cls';
         document.getElementById('section').value='$sec';
         </script>";
-        $s = mysqli_query($link,"SELECT * FROM `class_wise_examination` WHERE Class = '$cls'");
+        $s = mysqli_query($link, "SELECT * FROM `class_wise_examination` WHERE Class = '$cls'");
         echo "<script>document.getElementById('exam').innerHTML = '';</script>";
         if (mysqli_num_rows($s) > 0) {
-            echo "<script>$('#exam').html('<option value=".'selectexam'." disabled selected>--Select Exam--</option>');</script>";
+            echo "<script>$('#exam').html('<option value=" . 'selectexam' . " disabled selected>--Select Exam--</option>');</script>";
             while ($r = mysqli_fetch_assoc($s)) {
-                echo "<script>$('#exam').append('<option value=' + '".$r['Exam']."' + '>".$r['Exam']."</option>');</script>";
+                echo "<script>$('#exam').append('<option value=' + '" . $r['Exam'] . "' + '>" . $r['Exam'] . "</option>');</script>";
             }
         } else {
             echo "<script>$('#exam').html('<option selected disabled>No Exam Found</option>');</script>";
@@ -323,7 +323,7 @@ error_reporting(0);
                         }
                         //If Id is not there in DB, Insert Student
                         if (!$flag) {
-                            
+
                             $i_sql .= "(Class,Section,Id_No,First_Name,Exam)VALUES('" . $cls . "','" . $sec . "','" . $id . "','" . $names[$id] . "','" . $exm . "');";
                             if (mysqli_query($link, $i_sql)) {
                                 $status = true;
@@ -441,18 +441,17 @@ error_reporting(0);
     </script>
     <script>
         // JavaScript code to handle down arrow key navigation
-document.addEventListener("keydown", function (event) {
-  if (event.key === "Enter") {
-    const focusedInput = document.activeElement;
-    const allInputs = document.querySelectorAll("#marks-table tbody tr .form-control");
-    const currentIndex = Array.from(allInputs).indexOf(focusedInput);
-    const subjectsCount = parseInt('<?php if(isset($sub_count)){echo $sub_count;} ?>')
-    const nextIndex = (currentIndex + subjectsCount-1);
-    event.preventDefault();
-    $(allInputs[nextIndex]).focus().select();
-  }
-});
-
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                const focusedInput = document.activeElement;
+                const allInputs = document.querySelectorAll("#marks-table tbody tr .form-control");
+                const currentIndex = Array.from(allInputs).indexOf(focusedInput);
+                const subjectsCount = parseInt('<?php echo isset($sub_count) ? $sub_count : 0; ?>');
+                const nextIndex = (currentIndex + subjectsCount - 1);
+                event.preventDefault();
+                $(allInputs[nextIndex]).focus().select();
+            }
+        });
     </script>
 </body>
 

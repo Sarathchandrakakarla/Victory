@@ -549,6 +549,8 @@ error_reporting(0);
                 filename = route + '_Address';
             } else if (type == "Id_Wise") {
                 filename = '<?php echo $from_id . " To " . $to_id; ?>';
+            } else if (type == "Droppers") {
+                filename = "Droppers";
             }
             var downloadLink;
             var dataType = 'application/vnd.ms-excel';
