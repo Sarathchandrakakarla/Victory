@@ -197,6 +197,7 @@ include "link.php";
       <li><a href="Gallery/gallery.html" id="link">Gallery</a></li>
       <li><a href="contact.html" id="link">Contact</a></li>
       <li><a class="active" href="youtube.php" id="link">Our Stories</a></li>
+      <li><a href="blog/blog_index.php" id="link">Blog</a></li>
       <li>
         <a href="#">Login</a>
         <ul class="login-sub-menu sub-menu">

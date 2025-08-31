@@ -336,7 +336,7 @@ error_reporting(0);
                             //Checking Every Mark in local and DB and Update Data
                             for ($c = 0; $c < count($subs); $c++) {
                                 if (($id_old_marks[$id][$c] != '') || ($id_new_marks[$id][$c] != '' && $id_old_marks[$id][$c] == '')) {
-                                    $u_sql .= "sub" . ($c + 1) . " = " . $id_new_marks[$id][$c] . "',Total = '" . $total . "' WHERE Id_No = '" . $id . "' AND Exam = '" . $exm . "';";
+                                    $u_sql .= "sub" . ($c + 1) . " = '" . $id_new_marks[$id][$c] . "',Total = '" . $total . "' WHERE Id_No = '" . $id . "' AND Exam = '" . $exm . "';";
                                     if (mysqli_query($link, $u_sql)) {
                                         $status = true;
                                     } else {

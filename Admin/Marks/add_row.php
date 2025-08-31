@@ -7,7 +7,7 @@ if(isset($_POST['page'])){
         $exam=$_POST['Exam'];
         $subject=$_POST['Subject'];
         $max=$_POST['Max'];
-        if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM class_wise_subjects WHERE Class = '$class' AND EXAM = '$exam' AND Subjects = '$subject'")) >= 1) {
+        if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM class_wise_subjects WHERE Class = '$class' AND Exam = '$exam' AND Subjects = '$subject'")) >= 1) {
             echo "exists";
         }
         else{
