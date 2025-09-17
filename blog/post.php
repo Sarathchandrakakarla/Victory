@@ -14,11 +14,22 @@ include '../link.php';
     <meta http-equiv="Expires" content="0" />
     <!-- Links for Header -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
 
     <!-- Links for Carousel -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <!-- Magnific Popup CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css" />
+
+    <!-- jQuery is required -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Magnific Popup JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
+
 </head>
 <style>
     /* Google Fonts Import Link */
@@ -194,7 +205,8 @@ include '../link.php';
         .not-found {
             max-width: 252px;
         }
-        .media-container img{
+
+        .media-container img {
             margin-bottom: 5%;
         }
     }
@@ -271,13 +283,13 @@ include '../link.php';
 
 
                 <!-- Description -->
-                <p class="lead"><?php echo nl2br(htmlspecialchars($post['Description'])); ?></p>
+                <p class="lead" style="text-align: justify;"><?php echo nl2br(htmlspecialchars($post['Description'])); ?></p>
 
                 <?php
                 if (!empty($post['Cover_Photo'])) {
                     echo '
                     <div class="mb-4 text-center">
-                        <img src="../Images/blog/posts_images/' . htmlspecialchars(trim($post['Cover_Photo'])) . '" 
+                        <img src="../Images/blog/posts_images/post_' . $post_id . '/' . htmlspecialchars(trim($post['Cover_Photo'])) . '" 
                             class="img-fluid rounded shadow-sm w-100" 
                             alt="Cover Photo"
                             style="max-height: 400px; object-fit: contain;">
@@ -286,26 +298,97 @@ include '../link.php';
                 ?>
 
                 <!-- Body -->
-                <div class="post-body mb-5">
+                <div class="post-body mb-5" style="text-align:justify;">
                     <?php echo nl2br($post['Body']); ?>
                 </div>
 
-                <!-- Media (up to 4 images, can be NULL) -->
+                <!-- Media  -->
                 <?php
-
-                $media = !empty($post['Media']) ? explode(",", $post['Media']) : [];
-                if (!empty($media)) {
+                $mediaJson = $post['Media'] ?? '[]';
+                $media = json_decode($mediaJson, true);
+                /* if (!empty($media) && is_array($media)) {
                     $count = count($media);
-                    echo '<div class="row g-3 mb-4">';
-                    foreach ($media as $img) {
-                        echo '
-                <div class="col-12 col-md-' . ($count == 1 ? 12 : ($count == 2 ? 6 : ($count == 3 ? 4 : 3))) . ' media-container">
-                    <img src="../Images/blog/posts_images/' . htmlspecialchars(trim($img)) . '" class="img-fluid rounded shadow-sm" alt="Post Image">
-                </div>';
+                    echo '<div class="row g-3 mb-4 magnific-gallery">';
+                    foreach ($media as $file) {
+                        $file = trim($file);
+                        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                        $colClass = ($count == 1 ? 12 : ($count == 2 ? 6 : ($count == 3 ? 4 : 3)));
+
+                        echo '<div class="col-12 col-md-' . $colClass . ' media-container">';
+
+                        $filePath = '../Images/blog/posts_images/post_' . $post_id . '/' . htmlspecialchars($file);
+
+                        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'])) {
+                            // Image preview
+                            //echo '<img src="' . $filePath . '" class="img-fluid rounded shadow-sm" alt="Post Image">';
+                            echo "<a href='{$filePath}' class='popup-link' title='" . basename($file) . "'>";
+                            echo "<img src='{$filePath}' class='img-fluid rounded shadow-sm' alt='Post Image'>";
+                            echo "</a>";
+                        } elseif (in_array($ext, ['mp4', 'webm', 'ogg'])) {
+                            // Video preview
+                            echo '<video class="img-fluid rounded shadow-sm" controls>
+                    <source src="' . $filePath . '" type="video/' . $ext . '">
+                    Your browser does not support the video tag.
+                  </video>';
+                        } elseif ($ext === 'pdf') {
+                            // PDF icon preview with link
+                            echo '<a href="' . $filePath . '" target="_blank" class="d-flex flex-column align-items-center text-decoration-none" title="Open PDF">
+                    <i class="bi bi-file-earmark-pdf" style="font-size: 3rem; color: #d9534f;"></i>
+                    <span class="mt-2 text-truncate" style="max-width: 100%;">' . basename($file) . '</span>
+                  </a>';
+                        } else {
+                            // Fallback: link to file
+                            echo '<a href="' . $filePath . '" target="_blank">' . htmlspecialchars(basename($file)) . '</a>';
+                        }
+
+                        echo '</div>';
                     }
                     echo '</div>';
-                }
+                } */
                 ?>
+                <?php if (!empty($media)): ?>
+                    <div class="row g-3 mb-4 magnific-gallery">
+                        <?php
+                        $count = count($media);
+                        foreach ($media as $file):
+                            $file = trim($file);
+                            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                            $colClass = ($count == 1) ? 'col-12' : (($count == 2) ? 'col-6' : (($count == 3) ? 'col-4' : 'col-3'));
+                            $fileUrl = '../Images/blog/posts_images/post_' . $post_id . '/' . htmlspecialchars($file);
+
+                            echo "<div class='{$colClass}'>";
+
+                            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'])) {
+                                // Image
+                                echo "<a href='{$fileUrl}' class='popup-link' title='" . basename($file) . "'>";
+                                echo "<img src='{$fileUrl}' class='img-fluid rounded shadow-sm' alt='Post Image'>";
+                                echo "</a>";
+                            } elseif (in_array($ext, ['mp4', 'webm', 'ogg'])) {
+                                // Video
+                                echo "<a href='{$fileUrl}' class='popup-link popup-video' title='" . basename($file) . "'>";
+                                echo "<video class='img-fluid rounded shadow-sm' controls preload='metadata' style='max-width:100%; cursor: pointer;'>";
+                                echo "<source src='{$fileUrl}' type='video/{$ext}'>";
+                                echo "Your browser does not support the video tag.";
+                                echo "</video>";
+                                echo "</a>";
+                            } elseif ($ext === 'pdf') {
+                                // PDF: link to open in new tab (popup not supported)
+                                echo "<a href='{$fileUrl}' target='_blank' class='d-block text-center text-decoration-none popup-pdf' title='" . basename($file) . "'>";
+                                echo "<i class='bi bi-file-earmark-pdf' style='font-size: 3rem; color: #d9534f;'></i><br>";
+                                echo "<small>" . basename($file) . "</small>";
+                                echo "</a>";
+                            } else {
+                                // Other files: provide download link
+                                echo "<a href='{$fileUrl}' target='_blank'>" . basename($file) . "</a>";
+                            }
+
+                            echo "</div>";
+                        endforeach;
+                        ?>
+                    </div>
+                <?php endif; ?>
+
+
 
                 <!-- References / Further Reading -->
                 <?php
@@ -349,6 +432,41 @@ include '../link.php';
             </small>
         </div>
     </footer>
+
+    <!-- Magnificpopup -->
+    <script>
+        $(document).ready(function() {
+            $('.magnific-gallery').magnificPopup({
+                delegate: 'a', // all anchors inside gallery
+                type: 'image', // default type
+                gallery: {
+                    enabled: true
+                },
+                callbacks: {
+                    elementParse: function(item) {
+                        if (item.el.hasClass('popup-video')) {
+                            item.type = 'iframe'; // load video in iframe
+                        } else if (item.el.hasClass('popup-pdf')) {
+                            item.type = 'iframe'; // load PDF in iframe too
+                            item.iframe = {
+                                patterns: {
+                                    pdf: {
+                                        index: '.pdf',
+                                        src: '%id%',
+                                    }
+                                }
+                            };
+                        } else {
+                            item.type = 'image';
+                        }
+                    }
+                },
+                closeBtnInside: true,
+                showCloseBtn: true,
+                closeOnContentClick: false
+            });
+        });
+    </script>
 
 </body>
 
