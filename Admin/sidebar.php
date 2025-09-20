@@ -308,6 +308,7 @@
                         <a class="link_name" href="#"><label for="">Our Blog</label></a>
                     </li>
                     <li><a href="/Victory/Admin/Blog/manage_blog.php">Manage Blog Posts</a></li>
+                    <li><a href="/Victory/Admin/Blog/manage_requests.php">Manage Requests</a></li>
                 </ul>
             </li>
         <?php } ?>

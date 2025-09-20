@@ -1,57 +1,53 @@
 <?php
 include '../link.php';
 
-// School posts pagination
-$school_limit = 3;
-$school_page = isset($_GET['school_page']) ? (int)$_GET['school_page'] : 1;
-$school_start = ($school_page - 1) * $school_limit;
-$res_school = mysqli_query($link, "SELECT COUNT(*) as total FROM posts WHERE Author = 'School'");
-$total_school = mysqli_fetch_assoc($res_school)['total'];
-$total_school_pages = ceil($total_school / $school_limit);
-$query_school = mysqli_query($link, "SELECT * FROM posts WHERE Author = 'School' ORDER BY Posted_On DESC LIMIT $school_start, $school_limit");
+// Pagination logic
+$limit = 3; // posts per page
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$start = ($page - 1) * $limit;
 
-// Student posts pagination
-$student_limit = 3;
-$student_page = isset($_GET['student_page']) ? (int)$_GET['student_page'] : 1;
-$student_start = ($student_page - 1) * $student_limit;
-$res_student = mysqli_query($link, "SELECT COUNT(*) as total FROM posts WHERE Author LIKE 'VHST%'");
-$total_student = mysqli_fetch_assoc($res_student)['total'];
-$total_student_pages = ceil($total_student / $student_limit);
-$query_student = mysqli_query($link, "SELECT * FROM posts WHERE Author LIKE 'VHST%' ORDER BY Posted_On DESC LIMIT $student_start, $student_limit");
+$totalResult = mysqli_query($link, "SELECT COUNT(*) as total FROM posts WHERE Author = 'School' ORDER BY Posted_On DESC");
+$totalRow = mysqli_fetch_assoc($totalResult);
+$totalPosts = $totalRow['total'];
+$totalPages = ceil($totalPosts / $limit);
 
-// Faculty posts pagination
-$faculty_limit = 3;
-$faculty_page = isset($_GET['faculty_page']) ? (int)$_GET['faculty_page'] : 1;
-$faculty_start = ($faculty_page - 1) * $faculty_limit;
-$res_faculty = mysqli_query($link, "SELECT COUNT(*) as total FROM posts WHERE Author LIKE 'VHEM%'");
-$total_faculty = mysqli_fetch_assoc($res_faculty)['total'];
-$total_faculty_pages = ceil($total_faculty / $faculty_limit);
-$query_faculty = mysqli_query($link, "SELECT * FROM posts WHERE Author LIKE 'VHEM%' ORDER BY Posted_On DESC LIMIT $faculty_start, $faculty_limit");
+$query1 = mysqli_query($link, "SELECT * FROM posts WHERE Author = 'School' 
+  ORDER BY Posted_On DESC 
+  LIMIT $start, $limit");
 
-function pagination($totalPages, $page, $prefix)
-{
-  $maxVisible = 2;
-  $pages = [];
-  if ($totalPages <= 2) {
-    for ($i = 1; $i <= $totalPages; $i++) $pages[] = $i;
-  } else {
-    $pages[] = 1;
-    if ($page > $maxVisible + 1) $pages[] = '...';
-    for ($i = max(2, $page - 1); $i <= min($totalPages - 1, $page + 1); $i++) $pages[] = $i;
-    if ($page < $totalPages - $maxVisible) $pages[] = '...';
-    $pages[] = $totalPages;
+// Smart pagination array
+$pages = [];
+$maxVisible = 2; // how many pages to show near start/end
+
+if ($totalPages <= 2) {
+  // Show all if total pages small
+  for ($i = 1; $i <= $totalPages; $i++) {
+    $pages[] = $i;
   }
-  echo '<ul class="pagination justify-content-center">';
-  if ($page > 1) echo '<li class="page-item"><a class="page-link" href="?' . $prefix . '_page=' . ($page - 1) . '">Previous</a></li>';
-  foreach ($pages as $p) {
-    if ($p === '...') {
-      echo '<li class="page-item"><a class="page-link ellipsis" href="javascript:void(0);" onclick="jumpTo' . $prefix . 'Page()">...</a></li>';
-    } else {
-      echo '<li class="page-item' . ($p == $page ? ' active' : '') . '"><a class="page-link" href="?' . $prefix . '_page=' . $p . '">' . $p . '</a></li>';
-    }
+} else {
+  // Always show first page
+  $pages[] = 1;
+
+  // Ellipsis if needed after first page
+  if ($page > $maxVisible + 1) {
+    $pages[] = '...';
   }
-  if ($page < $totalPages) echo '<li class="page-item"><a class="page-link" href="?' . $prefix . '_page=' . ($page + 1) . '">Next</a></li>';
-  echo '</ul>';
+
+  // Pages around current
+  $startPage = max(2, $page - 1);
+  $endPage = min($totalPages - 1, $page + 1);
+
+  for ($i = $startPage; $i <= $endPage; $i++) {
+    $pages[] = $i;
+  }
+
+  // Ellipsis before last page if needed
+  if ($page < $totalPages - $maxVisible) {
+    $pages[] = '...';
+  }
+
+  // Always show last page
+  $pages[] = $totalPages;
 }
 ?>
 
@@ -376,7 +372,7 @@ function pagination($totalPages, $page, $prefix)
       <li><a href="../Gallery/gallery.html">Gallery</a></li>
       <li><a href="../contact.html">Contact</a></li>
       <li><a href="../youtube.php" id="link">Our Stories</a></li>
-      <li><a class="active" href="blog_index.php" id="link">Our Blog</a></li>
+      <li><a class="active" href="blog_index.php" id="link">Blog</a></li>
       <li>
         <a href="#">Login</a>
         <ul class="login-sub-menu sub-menu">
@@ -406,110 +402,72 @@ function pagination($totalPages, $page, $prefix)
       ?>
     </div>
     <h3 class="text-center">Engage in Events and Activities from Victory Schools</h3>
-    <!-- Posts From School Section -->
     <h5 class="text-center mt-4">Posts From the School Desk</h5>
     <div class="cards-container">
+      <!-- Blog Grid -->
       <div class="row mt-4">
-        <?php while ($row = mysqli_fetch_assoc($query_school)) { ?>
+        <?php while ($row1 = mysqli_fetch_assoc($query1)) {
+          $author = htmlspecialchars($row1['Author']);
+          if (str_contains($row1['Author'], 'VHST')) {
+            $name = mysqli_fetch_row(mysqli_query($link, "SELECT First_Name FROM `student_master_data` WHERE Id_No = '$author'"))[0];
+            $author .= ', ' . $name;
+          } else if (str_contains($row1['Author'], 'VHEM')) {
+            $name = mysqli_fetch_row(mysqli_query($link, "SELECT Emp_First_Name FROM `employee_master_data` WHERE Emp_Id = '$author'"))[0];
+            $author .= ', ' . $name;
+          }
+        ?>
           <div class="col-md-4 mb-4">
             <div class="card h-100">
-              <img src="../Images/blog/posts_images/post_<?php echo $row['Post_Id']; ?>/<?php echo $row['Cover_Photo']; ?>" class="card-img-top" alt="">
+              <img src="../Images/blog/posts_images/<?php echo 'post_' . $row1['Post_Id'] . '/' . $row1['Cover_Photo']; ?>" class="card-img-top" alt="">
               <div class="card-body">
-                <h5 class="card-title"><?php echo $row['Title']; ?></h5>
-                <p class="card-text"><?php echo $row['Description']; ?></p>
-                <div class="spacer"></div>
+                <h5 class="card-title"><?php echo $row1['Title']; ?></h5>
+                <p class="card-text"><?php echo $row1['Description']; ?></p>
+                <div class="spacer"></div> <!-- This pushes Author content down -->
+
                 <p class="card-text mb-0">
-                  <small class="text-muted">Author: <?php echo $row['Author']; ?></small>
+                  <small class="text-muted">Author: <?php echo $author; ?></small>
                 </p>
               </div>
               <div class="card-footer d-flex justify-content-between small text-muted">
-                <span><?php echo date("M d, Y", strtotime($row['Posted_On'])); ?></span>
-                <a href="post.php?id=<?php echo $row['Post_Id']; ?>">Read More</a>
+                <span><?php echo date("M d, Y", strtotime($row1['Posted_On'])); ?></span>
+                <a href="post.php?id=<?php echo $row1['Post_Id']; ?>">Read More</a>
               </div>
             </div>
           </div>
         <?php } ?>
       </div>
+
+      <!-- Pagination -->
       <nav class="pagination-nav mt-4">
-        <?php pagination($total_school_pages, $school_page, "school"); ?>
+        <ul class="pagination justify-content-center">
+          <?php if ($page > 1): ?>
+            <li class="page-item">
+              <a class="page-link page-previous" href="?page=<?php echo $page - 1; ?>">Previous</a>
+            </li>
+          <?php endif; ?>
+
+          <?php foreach ($pages as $p): ?>
+            <?php if ($p === '...'): ?>
+              <li class="page-item">
+                <a class="page-link ellipsis" href="javascript:void(0);" onclick="jumpToPage()">...</a>
+              </li>
+            <?php else: ?>
+              <li class="page-item <?php echo ($p == $page) ? 'active' : ''; ?>">
+                <a class="page-link" href="?page=<?php echo $p; ?>"><?php echo $p; ?></a>
+              </li>
+            <?php endif; ?>
+          <?php endforeach; ?>
+
+          <?php if ($page < $totalPages): ?>
+            <li class="page-item">
+              <a class="page-link page-next" href="?page=<?php echo $page + 1; ?>">Next</a>
+            </li>
+          <?php endif; ?>
+        </ul>
       </nav>
     </div>
 
-    <!-- Posts From Students Section -->
-    <?php
-    if ($total_student > 0) {
-    ?>
-      <h5 class="text-center" style="margin-top: 10%;">Posts From Our Students</h5>
-      <div class="cards-container">
-        <div class="row mt-4">
-          <?php while ($row = mysqli_fetch_assoc($query_student)) {
-            $name = mysqli_fetch_row(mysqli_query($link, "SELECT First_Name FROM student_master_data WHERE Id_No = '" . htmlspecialchars($row['Author']) . "'"))[0];
-            $author = htmlspecialchars($row['Author']) . ', ' . $name;
-          ?>
-            <div class="col-md-4 mb-4">
-              <div class="card h-100">
-                <img src="../Images/blog/posts_images/post_<?php echo $row['Post_Id']; ?>/<?php echo $row['Cover_Photo']; ?>" class="card-img-top" alt="">
-                <div class="card-body">
-                  <h5 class="card-title"><?php echo $row['Title']; ?></h5>
-                  <p class="card-text"><?php echo $row['Description']; ?></p>
-                  <div class="spacer"></div>
-                  <p class="card-text mb-0">
-                    <small class="text-muted">Author: <?php echo $author; ?></small>
-                  </p>
-                </div>
-                <div class="card-footer d-flex justify-content-between small text-muted">
-                  <span><?php echo date("M d, Y", strtotime($row['Posted_On'])); ?></span>
-                  <a href="post.php?id=<?php echo $row['Post_Id']; ?>">Read More</a>
-                </div>
-              </div>
-            </div>
-          <?php } ?>
-        </div>
-        <nav class="pagination-nav mt-4">
-          <?php pagination($total_student_pages, $student_page, "student"); ?>
-        </nav>
-      </div>
-    <?php
-    }
-    ?>
 
-    <!-- Posts From Faculty Section -->
-    <?php
-    if ($total_faculty > 0) {
-    ?>
-      <h5 class="text-center" style="margin-top: 10%;">Posts From Our Faculty</h5>
-      <div class="cards-container">
-        <div class="row mt-4">
-          <?php while ($row = mysqli_fetch_assoc($query_faculty)) {
-            $name = mysqli_fetch_row(mysqli_query($link, "SELECT Emp_First_Name FROM employee_master_data WHERE Emp_Id = '" . htmlspecialchars($row['Author']) . "'"))[0];
-            $author = htmlspecialchars($row['Author']) . ', ' . $name;
-          ?>
-            <div class="col-md-4 mb-4">
-              <div class="card h-100">
-                <img src="../Images/blog/posts_images/post_<?php echo $row['Post_Id']; ?>/<?php echo $row['Cover_Photo']; ?>" class="card-img-top" alt="">
-                <div class="card-body">
-                  <h5 class="card-title"><?php echo $row['Title']; ?></h5>
-                  <p class="card-text"><?php echo $row['Description']; ?></p>
-                  <div class="spacer"></div>
-                  <p class="card-text mb-0">
-                    <small class="text-muted">Author: <?php echo $author; ?></small>
-                  </p>
-                </div>
-                <div class="card-footer d-flex justify-content-between small text-muted">
-                  <span><?php echo date("M d, Y", strtotime($row['Posted_On'])); ?></span>
-                  <a href="post.php?id=<?php echo $row['Post_Id']; ?>">Read More</a>
-                </div>
-              </div>
-            </div>
-          <?php } ?>
-        </div>
-        <nav class="pagination-nav mt-4">
-          <?php pagination($total_faculty_pages, $faculty_page, "faculty"); ?>
-        </nav>
-      </div>
-    <?php
-    }
-    ?>
   </div>
 
   <footer class="bg-dark text-light py-3 mt-5">
@@ -529,42 +487,6 @@ function pagination($totalPages, $page, $prefix)
         page = parseInt(page);
         if (!isNaN(page) && page > 0) {
           window.location.href = "?page=" + page;
-        } else {
-          alert("Invalid page number!");
-        }
-      }
-    }
-
-    function jumpToschoolPage() {
-      let page = prompt("Enter school page number:");
-      if (page !== null) {
-        page = parseInt(page);
-        if (!isNaN(page) && page > 0) {
-          window.location.href = "?school_page=" + page;
-        } else {
-          alert("Invalid page number!");
-        }
-      }
-    }
-
-    function jumpTostudentPage() {
-      let page = prompt("Enter student page number:");
-      if (page !== null) {
-        page = parseInt(page);
-        if (!isNaN(page) && page > 0) {
-          window.location.href = "?student_page=" + page;
-        } else {
-          alert("Invalid page number!");
-        }
-      }
-    }
-
-    function jumpTofacultyPage() {
-      let page = prompt("Enter faculty page number:");
-      if (page !== null) {
-        page = parseInt(page);
-        if (!isNaN(page) && page > 0) {
-          window.location.href = "?faculty_page=" + page;
         } else {
           alert("Invalid page number!");
         }

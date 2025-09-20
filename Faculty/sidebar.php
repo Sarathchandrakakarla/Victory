@@ -122,6 +122,21 @@
     <li>
       <div class="iocn-link">
         <a href="#">
+          <i class="bx bx-news"></i>
+          <span class="link_name">Our Blog</span>
+        </a>
+        <i class="bx bxs-chevron-down arrow"></i>
+      </div>
+      <ul class="sub-menu">
+        <li>
+          <a class="link_name" href="#"><label for="">Our Blog</label></a>
+        </li>
+        <li><a href="/Victory/Faculty/Blog/manage_blog.php">Manage Blog Posts</a></li>
+      </ul>
+    </li>
+    <li>
+      <div class="iocn-link">
+        <a href="#">
           <i class="bx bx-cog"></i>
           <span class="link_name">Settings</span>
         </a>

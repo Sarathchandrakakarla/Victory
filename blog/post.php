@@ -231,7 +231,7 @@ include '../link.php';
             <li><a href="../Gallery/gallery.html">Gallery</a></li>
             <li><a href="../contact.html">Contact</a></li>
             <li><a href="../youtube.php" id="link">Our Stories</a></li>
-            <li><a href="blog_index.php" id="link">Blog</a></li>
+            <li><a href="blog_index.php" id="link">Our Blog</a></li>
             <li>
                 <a href="#">Login</a>
                 <ul class="login-sub-menu sub-menu">
@@ -270,6 +270,14 @@ include '../link.php';
         </div>
     </div>';
         } else {
+            $author = htmlspecialchars($post['Author']);
+            if (str_contains($post['Author'], 'VHST')) {
+                $name = mysqli_fetch_row(mysqli_query($link, "SELECT First_Name FROM `student_master_data` WHERE Id_No = '$author'"))[0];
+                $author .= ', ' . $name;
+            } else if (str_contains($post['Author'], 'VHEM')) {
+                $name = mysqli_fetch_row(mysqli_query($link, "SELECT Emp_First_Name FROM `employee_master_data` WHERE Emp_Id = '$author'"))[0];
+                $author .= ', ' . $name;
+            }
         ?>
             <div class="container my-5">
                 <!-- Title -->
@@ -277,7 +285,7 @@ include '../link.php';
 
                 <!-- Meta -->
                 <div class="text-muted mb-4">
-                    By <span class="fw-semibold"><?php echo htmlspecialchars($post['Author']); ?></span>
+                    By <span class="fw-semibold"><?php echo $author; ?></span>
                     | <?php echo date("F j, Y g:i A", strtotime($post['Posted_On'])); ?>
                 </div>
 
