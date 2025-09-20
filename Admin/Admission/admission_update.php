@@ -218,7 +218,7 @@ error_reporting(0);
                     </div>
                     <div class="input-box">
                         <span class="details">Admission No.<span class="required">*</span></span>
-                        <input type="text" placeholder="Enter Admission No" id="adm_no" name="Adm_No" required />
+                        <input type="text" placeholder="Enter Adm No. (first 4 digits Ex:5897)" id="adm_no" name="Adm_No" required />
                     </div>
                     <div class="input-box">
                         <span class="details"></span>
