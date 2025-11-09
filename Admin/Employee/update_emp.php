@@ -54,7 +54,7 @@ if (isset($_POST["update"])) {
   $status = validate($_POST['Status']);
   $ac = validate($_POST['AC_No']);
   $bank_name = validate($_POST['Bank_Name']);
-  
+
   if ($dob != "") {
     $dob = format_date($dob);
   }

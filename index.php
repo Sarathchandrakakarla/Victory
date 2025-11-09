@@ -314,10 +314,11 @@ if (filesize("test.txt") != 0) {
   }
 
   @media screen and (max-width:576px) {
-    #play-text{
+    #play-text {
       text-align: center;
     }
-    #play-icon{
+
+    #play-icon {
       padding-left: 25%;
     }
   }

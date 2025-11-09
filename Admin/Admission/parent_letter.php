@@ -239,6 +239,11 @@ if (isset($_POST['Ok'])) {
                                             } else {
                                                 echo "";
                                             } ?>>D</option>
+                        <option value="E" <?php if (isset($section) && $section == "E") {
+                                                echo "selected";
+                                            } else {
+                                                echo "";
+                                            } ?>>E</option>
                     </select>
                 </div>
             </div>

@@ -113,7 +113,7 @@ error_reporting(0);
                     for ($i = 1; $i <= 10; $i++) {
                         array_push($classes, $i . ' CLASS');
                     }
-                    $sections = ['A', 'B', 'C', 'D'];
+                    $sections = ['A', 'B', 'C', 'D', 'E'];
                     $final_classes = [];
                     foreach ($classes as $class) {
                         $temp = [];

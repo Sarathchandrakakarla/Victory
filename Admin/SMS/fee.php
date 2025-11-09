@@ -133,6 +133,7 @@ error_reporting(0);
                             <option value="B">B</option>
                             <option value="C">C</option>
                             <option value="D">D</option>
+                            <option value="E">E</option>
                         </select>
                     </div>
                 </div>
@@ -443,7 +444,7 @@ error_reporting(0);
                                     for ($j = 1; $j <= 10; $j++) {
                                         $classes[] = $j . " CLASS";
                                     }
-                                    $sections = ['A', 'B', 'C', 'D'];
+                                    $sections = ['A', 'B', 'C', 'D', 'E'];
                                     $i = 1;
                                     foreach ($classes as $class) {
                                         foreach ($sections as $section) {
@@ -711,15 +712,15 @@ error_reporting(0);
             absentees = []
             $(".student:checked").each(function() {
                 if (!all_students.checked) {
-                    if(type.value == "Vehicle Fee"){
+                    if (type.value == "Vehicle Fee") {
                         absentees.push($(this).parent().siblings().eq(5).children().attr('href'));
-                    } else{
+                    } else {
                         absentees.push($(this).parent().siblings().eq(4).children().attr('href'));
                     }
                 } else {
-                    if(type.value == "Vehicle Fee"){
+                    if (type.value == "Vehicle Fee") {
                         absentees.push($(this).parent().siblings().eq(6).children().attr('href'));
-                    } else{
+                    } else {
                         absentees.push($(this).parent().siblings().eq(5).children().attr('href'));
                     }
                 }
@@ -741,23 +742,6 @@ error_reporting(0);
             });
             */
         });
-    </script>
-
-    <!-- Fetch Exam -->
-    <script type="text/javascript">
-        function fetchExam(cls) {
-            $('#exam').html('');
-            $.ajax({
-                type: 'post',
-                url: '../Reports/temp.php',
-                data: {
-                    class: cls
-                },
-                success: function(data) {
-                    $("#exam").html(data);
-                }
-            })
-        }
     </script>
 </body>
 

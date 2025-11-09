@@ -15,4 +15,3 @@ function runDaemon()
 
 // Run the daemon
 runDaemon();
-?>

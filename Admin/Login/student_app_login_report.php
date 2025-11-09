@@ -121,6 +121,7 @@ if (!$_SESSION['Admin_Id_No']) {
                     <option value="B">B</option>
                     <option value="C">C</option>
                     <option value="D">D</option>
+                    <option value="E">E</option>
                 </select>
             </div>
         </div>
@@ -300,7 +301,7 @@ if (!$_SESSION['Admin_Id_No']) {
                         $loggedin_students = getData();
                         if (!isset($_POST['Class']) && !isset($_POST['Section'])) {
                             echo '<script>type_txt_label.innerHTML = "All Classes";</script>';
-                            $query1 = mysqli_query($link, "SELECT smd.Id_No,First_Name,Mobile,Stu_Class AS Class,Stu_Section AS Section,Mobile,Stu_Password FROM `student_master_data` smd JOIN `student` s ON smd.Id_No = s.Id_No WHERE Stu_Class IN ('" . implode("','", $classes) . "') ORDER BY FIELD(Stu_Class,'" . implode("','", $classes) . "'), FIELD(Stu_Section,'A','B','C','D')");
+                            $query1 = mysqli_query($link, "SELECT smd.Id_No,First_Name,Mobile,Stu_Class AS Class,Stu_Section AS Section,Mobile,Stu_Password FROM `student_master_data` smd JOIN `student` s ON smd.Id_No = s.Id_No WHERE Stu_Class IN ('" . implode("','", $classes) . "') ORDER BY FIELD(Stu_Class,'" . implode("','", $classes) . "'), FIELD(Stu_Section,'A','B','C','D','E')");
                         } else if (isset($_POST['Class']) && !isset($_POST['Section'])) {
                             $class = $_POST['Class'];
                             echo "
@@ -363,7 +364,7 @@ if (!$_SESSION['Admin_Id_No']) {
                             $loggedin_students = getData();
                             $loggedin_students = checkFirstLoginDate($loggedin_students, $from_date, $to_date);
                         }
-                        $query1 = mysqli_query($link, "SELECT smd.Id_No,First_Name,Stu_Class AS Class,Stu_Section AS Section,Mobile,Stu_Password FROM `student_master_data` smd JOIN `student` s ON smd.Id_No = s.Id_No WHERE smd.Id_No IN ('" . implode("','", array_keys($loggedin_students)) . "') ORDER BY FIELD(Stu_Class,'" . implode("','", $classes) . "'), FIELD(Stu_Section,'A','B','C','D')");
+                        $query1 = mysqli_query($link, "SELECT smd.Id_No,First_Name,Stu_Class AS Class,Stu_Section AS Section,Mobile,Stu_Password FROM `student_master_data` smd JOIN `student` s ON smd.Id_No = s.Id_No WHERE smd.Id_No IN ('" . implode("','", array_keys($loggedin_students)) . "') ORDER BY FIELD(Stu_Class,'" . implode("','", $classes) . "'), FIELD(Stu_Section,'A','B','C','D','E')");
                         if (count($loggedin_students) > 0) {
                             //To Get Newest and Oldest Dates of Logged In Students
                             $dateObjects = array_map(function ($dateString) {

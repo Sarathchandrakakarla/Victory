@@ -321,7 +321,7 @@ if (!$_SESSION['Admin_Id_No']) {
                 }
             }
         }
-        $('#add-btn').on('click',function(){
+        $('#add-btn').on('click', function() {
             insert();
         });
     </script>

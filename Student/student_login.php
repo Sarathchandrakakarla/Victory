@@ -91,14 +91,8 @@ if (isset($_POST['Login'])) {
                     </script>";
             */
     }
-} else {
-    echo "<script>alert('variable 'Login is not declared');
-            </script>";
 }
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">

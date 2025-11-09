@@ -246,9 +246,9 @@ error_reporting(0);
                     echo '<tr>';
                     $i = true;
                     foreach ($details as $detail) {
-                        if($i){
+                        if ($i) {
                             echo '<td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;">' . $detail . '</td>';
-                        } else{
+                        } else {
                             echo '<td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;">' . $detail . '</td>';
                         }
                         $i = false;
@@ -287,7 +287,7 @@ error_reporting(0);
                         Id_No: id_no,
                         Date: date,
                         Bill_No: bill_no,
-                        Amount:amount,
+                        Amount: amount,
                         Fee_Type: fee_type
                     },
                     success: function(data) {

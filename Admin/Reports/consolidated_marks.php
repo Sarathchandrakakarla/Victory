@@ -111,6 +111,7 @@ error_reporting(0);
                         <option value="B">B</option>
                         <option value="C">C</option>
                         <option value="D">D</option>
+                        <option value="E">E</option>
                     </select>
                 </div>
             </div>
@@ -335,7 +336,7 @@ error_reporting(0);
                                 }
                                 echo '
                                         <td>' . $sum . '</td>
-                                        <td>' . round(((float)$sum / (float)$max_total) * 100,1) . '%</td>
+                                        <td>' . round(((float)$sum / (float)$max_total) * 100, 1) . '%</td>
                                         ';
                                 if ($sum != $t) {
                                     $rank++;

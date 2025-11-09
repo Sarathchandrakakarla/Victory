@@ -132,7 +132,7 @@ if (isset($_POST["delete"])) {
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
 </head>
 <style>
-.container {
+    .container {
         margin: 50px 350px;
         max-width: 700px;
         height: 650px;
@@ -142,6 +142,7 @@ if (isset($_POST["delete"])) {
         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
         background-image: linear-gradient(to top, #37ecba 0%, #72afd3 100%);
     }
+
     #sign-out {
         display: none;
     }

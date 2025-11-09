@@ -114,6 +114,7 @@ error_reporting(0);
                         <option value="B">B</option>
                         <option value="C">C</option>
                         <option value="D">D</option>
+                        <option value="E">E</option>
                     </select>
                 </div>
             </div>
@@ -187,9 +188,9 @@ error_reporting(0);
                                     $absent_days[$id] = 0;
                                 }
                                 foreach ($ids as $id) {
-                                    if($month_number < 10){
+                                    if ($month_number < 10) {
                                         $query2 = mysqli_query($link, "SELECT COUNT(AM) AS AM FROM `attendance_daily` WHERE Id_No = '$id' AND AM = 'A' AND Date LIKE '%-0" . $month_number . "-%'");
-                                    } else{
+                                    } else {
                                         $query2 = mysqli_query($link, "SELECT COUNT(AM) AS AM FROM `attendance_daily` WHERE Id_No = '$id' AND AM = 'A' AND Date LIKE '%-" . $month_number . "-%'");
                                     }
 
@@ -201,9 +202,9 @@ error_reporting(0);
                                         }
                                     }
 
-                                    if($month_number < 10){
+                                    if ($month_number < 10) {
                                         $query3 = mysqli_query($link, "SELECT COUNT(PM) AS PM FROM `attendance_daily` WHERE Id_No = '$id' AND PM = 'A' AND Date LIKE '%-0" . $month_number . "-%'");
-                                    } else{
+                                    } else {
                                         $query3 = mysqli_query($link, "SELECT COUNT(PM) AS PM FROM `attendance_daily` WHERE Id_No = '$id' AND PM = 'A' AND Date LIKE '%-" . $month_number . "-%'");
                                     }
                                     if (mysqli_num_rows($query3) == 0) {

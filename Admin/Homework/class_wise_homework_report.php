@@ -114,6 +114,7 @@ if (!$_SESSION['Admin_Id_No']) {
             <option value="B">B</option>
             <option value="C">C</option>
             <option value="D">D</option>
+            <option value="E">E</option>
           </select>
         </div>
       </div>
@@ -235,7 +236,7 @@ if (!$_SESSION['Admin_Id_No']) {
                       <td>' . $details['Name'] . '</td>
                       <td>' . $details['Mobile'] . '</td>
                       ';
-                  foreach($subjects as $subject){
+                  foreach ($subjects as $subject) {
                     echo '<td style="white-space:nowrap;">' . $details['Subjects'][$subject] . '</td>';
                   }
                   echo '</tr>

@@ -297,6 +297,7 @@ if (isset($_POST["update"])) {
               <option value="B">B</option>
               <option value="C">C</option>
               <option value="D">D</option>
+              <option value="E">E</option>
             </select>
           </div>
           <div class="input-box">

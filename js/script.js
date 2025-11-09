@@ -11,7 +11,7 @@ let sidebarBtn = document.querySelector(".bx-menu");
 sidebarBtn.addEventListener("click", () => {
   sidebar.classList.toggle("close");
 });
- 
+
 //Update User Image
 async function saveImg() {
   let formData = new FormData();

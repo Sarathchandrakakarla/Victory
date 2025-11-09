@@ -8,13 +8,13 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Student") {
     try {
         $filename = $_POST['FileName'];
         $filepath = $_POST['FilePath'];
-        
+
         // Check if the directory exists
         $uploadDir = "../Images/" . $filepath;
         if (!file_exists($uploadDir)) {
             throw new Exception("Path does not exist");
         }
-        
+
         // Check if file was uploaded and move it to the target directory
         if (isset($_FILES['File']) && move_uploaded_file($_FILES['File']['tmp_name'], $uploadDir . "/" . $filename)) {
             echo json_encode(["success" => true, "message" => "Image Uploaded Successfully"]);
@@ -24,8 +24,7 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Student") {
     } catch (Exception $err) {
         echo json_encode(["success" => false, "message" => $err->getMessage()]);
     }
-}
-else if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
+} else if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
     try {
         $filename = $_POST['FileName'];
         $filepath = "../Images/" . $_POST['FilePath'] . "/" . $filename;
@@ -44,9 +43,9 @@ else if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
         $filepath = $_POST['FilePath'];
 
         // Check if the directory exists
-        $uploadDir = "../Files/Homework/" . $filepath.'/';
-        if (!file_exists("../Files/Homework/".explode('/',$filepath)[0])) {         //Class Folder Exists
-            mkdir("../Files/Homework/".explode('/',$filepath)[0]);
+        $uploadDir = "../Files/Homework/" . $filepath . '/';
+        if (!file_exists("../Files/Homework/" . explode('/', $filepath)[0])) {         //Class Folder Exists
+            mkdir("../Files/Homework/" . explode('/', $filepath)[0]);
             //throw new Exception("Path does not exist");
         }
         if (!file_exists($uploadDir)) {         //Class/Date Folder Exists
@@ -103,7 +102,7 @@ else if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
 
             // Loop through the filtered Subject .jpg files and rename them
             $counter = 1;
-            $flag=true;
+            $flag = true;
             foreach ($sub_files as $file) {
                 $file_info = pathinfo($file);  // Get file extension
                 $ext = $file_info['extension'];
@@ -116,9 +115,9 @@ else if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
                 $new_path = $folderpath . "/" . $new_filename;
 
                 if (rename($old_path, $new_path)) {
-                    $flag=true;
-                } else{
-                    $flag=false;
+                    $flag = true;
+                } else {
+                    $flag = false;
                 }
 
                 $counter++;  // Increment counter for next file
@@ -161,4 +160,3 @@ else if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
 } else {
     echo json_encode(["success" => false, "message" => "Invalid Request"]);
 }
-?>

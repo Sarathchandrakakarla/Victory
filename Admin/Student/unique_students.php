@@ -200,7 +200,7 @@ error_reporting(0);
               for ($i = 1; $i <= 10; $i++) {
                 array_push($classes, $i . ' CLASS');
               }
-              $sections = ['A', 'B', 'C', 'D'];
+              $sections = ['A', 'B', 'C', 'D', 'E'];
               $all_ids = [];
               $unique_ids = [];
               $sibling_ids = [];
@@ -267,9 +267,9 @@ error_reporting(0);
                 } else if ($type == "Combined") {
                   $current_ids = array_unique(array_merge($unique_ids, $sibling_ids));
                   //Sorting By Class and Section
-                  $current_ids = mysqli_query($link, "SELECT Id_No FROM `student_master_data` WHERE Id_No IN ('" . implode("','", $current_ids) . "') ORDER BY FIELD(Stu_Class, 'PreKG', 'LKG', 'UKG', '1 CLASS', '2 CLASS', '3 CLASS', '4 CLASS', '5 CLASS', '6 CLASS', '7 CLASS', '8 CLASS', '9 CLASS', '10 CLASS'),FIELD(Stu_Section, 'A', 'B', 'C', 'D')");
+                  $current_ids = mysqli_query($link, "SELECT Id_No FROM `student_master_data` WHERE Id_No IN ('" . implode("','", $current_ids) . "') ORDER BY FIELD(Stu_Class, 'PreKG', 'LKG', 'UKG', '1 CLASS', '2 CLASS', '3 CLASS', '4 CLASS', '5 CLASS', '6 CLASS', '7 CLASS', '8 CLASS', '9 CLASS', '10 CLASS'),FIELD(Stu_Section, 'A', 'B', 'C', 'D','E')");
                   $sorted_ids = [];
-                  while($sort_row = mysqli_fetch_assoc($current_ids)){
+                  while ($sort_row = mysqli_fetch_assoc($current_ids)) {
                     $sorted_ids[] = $sort_row['Id_No'];
                   }
                   $print_ids = $sorted_ids;

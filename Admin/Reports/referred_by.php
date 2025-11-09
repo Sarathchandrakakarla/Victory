@@ -33,7 +33,7 @@ error_reporting(0);
     }
 
     .table-container {
-        margin-left:5%;
+        margin-left: 5%;
         max-width: 1300px;
         max-height: 500px;
         overflow-x: scroll;

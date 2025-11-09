@@ -270,8 +270,6 @@ include "link.php";
     var d = new Date();
     document.getElementById("year").innerHTML = d.getFullYear();
   </script>
-
-  <script></script>
 </body>
 
 </html>

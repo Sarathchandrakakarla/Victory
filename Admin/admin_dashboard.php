@@ -107,8 +107,9 @@ if (!$_SESSION['Admin_Id_No']) {
             font-size: 1em;
         }
     }
+
     @media screen and (min-width:1300px) {
-        #vic_heading{
+        #vic_heading {
             margin-left: 400px;
         }
     }

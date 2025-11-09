@@ -517,6 +517,11 @@ if (isset($_POST['add'])) {
                                 } else {
                                   echo "";
                                 } ?>>D</option>
+              <option value="E" <?php if (isset($section) && $section == "E") {
+                                  echo "selected";
+                                } else {
+                                  echo "";
+                                } ?>>E</option>
             </select>
           </div>
           <div class="input-box">

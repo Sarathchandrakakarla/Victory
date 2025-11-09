@@ -111,7 +111,7 @@ if (!$_SESSION['Id_No']) {
                             }
                         }
                     }
-                } else{
+                } else {
                     echo "<script>document.getElementById('alert-container').hidden = '';</script>";
                 }
                 ?>

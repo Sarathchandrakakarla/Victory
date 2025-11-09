@@ -114,10 +114,11 @@ error_reporting(0);
                 <div class="col-sm-3">
                     <select class="form-select" name="Section" id="sec">
                         <option value="selectsection" selected disabled>--Select Section--</option>
-                        <option>A</option>
-                        <option>B</option>
-                        <option>C</option>
-                        <option>D</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
                     </select>
                 </div>
             </div>

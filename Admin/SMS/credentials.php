@@ -98,6 +98,7 @@ error_reporting(0);
                         <option value="B">B</option>
                         <option value="C">C</option>
                         <option value="D">D</option>
+                        <option value="E">E</option>
                     </select>
                 </div>
             </div>
@@ -162,7 +163,7 @@ error_reporting(0);
                                     $classes[$mobile_row['Id_No']] = $mobile_row['Stu_Class'] . ' ' . $mobile_row['Stu_Section'];
                                 }
                             }
-                            $sql = mysqli_query($link, "SELECT c.Id_No AS Id_No,c.Stu_Name AS Stu_Name,c.Stu_Password AS Password FROM student c JOIN student_master_data s ON s.Id_No = c.Id_No WHERE s.Id_No IN ('" . implode("','", array_keys($mobiles)) . "') ORDER BY FIELD(s.Stu_Class,'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'),FIELD(s.Stu_Section,'A','B','C','D')");
+                            $sql = mysqli_query($link, "SELECT c.Id_No AS Id_No,c.Stu_Name AS Stu_Name,c.Stu_Password AS Password FROM student c JOIN student_master_data s ON s.Id_No = c.Id_No WHERE s.Id_No IN ('" . implode("','", array_keys($mobiles)) . "') ORDER BY FIELD(s.Stu_Class,'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'),FIELD(s.Stu_Section,'A','B','C','D','E')");
                             if (mysqli_num_rows($sql) == 0 && $class && $section) {
                                 echo "<script>alert('Class or Section Not Available!')</script>";
                             } else {

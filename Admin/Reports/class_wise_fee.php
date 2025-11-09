@@ -141,6 +141,7 @@ error_reporting(0);
                         <option value="B">B</option>
                         <option value="C">C</option>
                         <option value="D">D</option>
+                        <option value="E">E</option>
                     </select>
                 </div>
             </div>
@@ -564,7 +565,7 @@ error_reporting(0);
                                         for ($j = 1; $j <= 10; $j++) {
                                             $classes[] = $j . " CLASS";
                                         }
-                                        $sections = ['A', 'B', 'C', 'D'];
+                                        $sections = ['A', 'B', 'C', 'D', 'E'];
                                         $db_ids = [];
                                         foreach ($classes as $class) {
                                             foreach ($sections as $section) {
@@ -666,7 +667,7 @@ error_reporting(0);
                                     for ($j = 1; $j <= 10; $j++) {
                                         $classes[] = $j . " CLASS";
                                     }
-                                    $sections = ['A', 'B', 'C', 'D'];
+                                    $sections = ['A', 'B', 'C', 'D', 'E'];
                                     $id_classes = [];
                                     echo "<script>
                                         document.getElementById('type_txt_label').innerHTML = '" . $type . "';</script>";

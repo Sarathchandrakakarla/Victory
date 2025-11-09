@@ -23,15 +23,16 @@ foreach ($birthdays as $birthday) {
     } else if (str_contains($mobile, " ")) {
         $mobile = explode(' ', $mobile)[0];
     }
-    sendMessage($name,$mobile,$link);
+    sendMessage($name, $mobile, $link);
 }
 
 // Function to send the birthday message
-function sendMessage($name,$mobile,$link) {
+function sendMessage($name, $mobile, $link)
+{
     // Add your code here to send the birthday message
     // This could be an email, a notification, or any other method you prefer
     // For simplicity, we'll just print the message to the console
     echo "Happy birthday, $name!\n";
-    mysqli_query($link,"INSERT INTO `birthday` VALUES('','$name','$mobile')");
+    mysqli_query($link, "INSERT INTO `birthday` VALUES('','$name','$mobile')");
 }
 mysqli_close($link);

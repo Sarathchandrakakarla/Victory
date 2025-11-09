@@ -73,7 +73,7 @@ if (isset($_POST['show'])) {
       $_SESSION['Previous_School'] = $previous;
       $_SESSION['Van_Route'] = $van;
       $_SESSION['Referred_By'] = $refer;
-      $_SESSION['Siblings'] = $siblings; 
+      $_SESSION['Siblings'] = $siblings;
       echo "<script>window.open('show_student_details.php','_blank')</script>";
       //header('Location: show_student_details.php');
     } else {
@@ -116,7 +116,7 @@ if (isset($_POST['update'])) {
       $van = $row['Van_Route'];
       $refer = $row['Referred_By'];
       $siblings = $row['Siblings'];
-      $siblings_status = ($siblings != "" || $siblings != NULL) ? 'Yes':'No';
+      $siblings_status = ($siblings != "" || $siblings != NULL) ? 'Yes' : 'No';
       $_SESSION['Stu_Id_No'] = $stu_id;
       $_SESSION['Stu_Adm_No'] = $stu_adm;
       $_SESSION['First_Name'] = $firstname;

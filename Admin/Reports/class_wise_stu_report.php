@@ -98,6 +98,7 @@ error_reporting(0);
             <option value="B">B</option>
             <option value="C">C</option>
             <option value="D">D</option>
+            <option value="E">E</option>
           </select>
         </div>
       </div>
@@ -107,7 +108,7 @@ error_reporting(0);
         <div class="col-lg-4">
           <button class="btn btn-primary" type="submit" name="show">Show</button>
           <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-          <button class="btn btn-success" onclick="printDiv();return false;">Print</button> 
+          <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
           <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
         </div>
       </div>

@@ -201,7 +201,7 @@ error_reporting(0);
 
   <!-- Scripts -->
 
-  <!-- Print Table --> 
+  <!-- Print Table -->
   <script type="text/javascript">
     function printDiv() {
       window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'>VICTORY HIGH SCHOOL</h2>";

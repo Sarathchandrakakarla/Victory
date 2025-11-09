@@ -122,7 +122,7 @@ if (!$_SESSION['Admin_Id_No']) {
                 <div class="col-lg-2">
                     <i class="bx bx-file"></i>
                     <p>
-                        <input type="file"class="btn btn-warning" class="file" name="excel" required>
+                        <input type="file" class="btn btn-warning" class="file" name="excel" required>
                     </p>
                 </div>
             </div>
@@ -181,7 +181,7 @@ if (!$_SESSION['Admin_Id_No']) {
             echo
             "
 			<script>
-			alert('Attendance Uploaded Successfully for ".$date."!');
+			alert('Attendance Uploaded Successfully for " . $date . "!');
 			document.location.href = '';
 			</script>
 			";
@@ -189,7 +189,7 @@ if (!$_SESSION['Admin_Id_No']) {
             echo
             "
 			<script>
-			alert('Attendance Upload Failed for ".$date."!');
+			alert('Attendance Upload Failed for " . $date . "!');
 			document.location.href = '';
 			</script>
 			";

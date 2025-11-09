@@ -202,15 +202,38 @@ error_reporting(0);
         function numberToWords($num)
         {
             $ones = array(
-                0 => "zero", 1 => "one", 2 => "two", 3 => "three", 4 => "four",
-                5 => "five", 6 => "six", 7 => "seven", 8 => "eight", 9 => "nine",
-                10 => "ten", 11 => "eleven", 12 => "twelve", 13 => "thirteen",
-                14 => "fourteen", 15 => "fifteen", 16 => "sixteen", 17 => "seventeen",
-                18 => "eighteen", 19 => "nineteen"
+                0 => "zero",
+                1 => "one",
+                2 => "two",
+                3 => "three",
+                4 => "four",
+                5 => "five",
+                6 => "six",
+                7 => "seven",
+                8 => "eight",
+                9 => "nine",
+                10 => "ten",
+                11 => "eleven",
+                12 => "twelve",
+                13 => "thirteen",
+                14 => "fourteen",
+                15 => "fifteen",
+                16 => "sixteen",
+                17 => "seventeen",
+                18 => "eighteen",
+                19 => "nineteen"
             );
             $tens = array(
-                0 => "zero", 1 => "ten", 2 => "twenty", 3 => "thirty", 4 => "forty",
-                5 => "fifty", 6 => "sixty", 7 => "seventy", 8 => "eighty", 9 => "ninety"
+                0 => "zero",
+                1 => "ten",
+                2 => "twenty",
+                3 => "thirty",
+                4 => "forty",
+                5 => "fifty",
+                6 => "sixty",
+                7 => "seventy",
+                8 => "eighty",
+                9 => "ninety"
             );
 
             if ($num < 20) {
@@ -225,9 +248,18 @@ error_reporting(0);
         function DateToWords($date)
         {
             $months = array(
-                1 => "January", 2 => "February", 3 => "March", 4 => "April",
-                5 => "May", 6 => "June", 7 => "July", 8 => "August",
-                9 => "September", 10 => "October", 11 => "November", 12 => "December"
+                1 => "January",
+                2 => "February",
+                3 => "March",
+                4 => "April",
+                5 => "May",
+                6 => "June",
+                7 => "July",
+                8 => "August",
+                9 => "September",
+                10 => "October",
+                11 => "November",
+                12 => "December"
             );
 
             $daySuffix = function ($day) {
@@ -311,7 +343,7 @@ error_reporting(0);
                         </tr>
                         <tr>
                             <td style='padding-top:50px;'>
-                                Date: ".date('d-m-Y')."<br/>
+                                Date: " . date('d-m-Y') . "<br/>
                                 Place: Kodur.
                                 <span style='padding-left:400px;'>Signature of the Headmaster</span>
                             </td>

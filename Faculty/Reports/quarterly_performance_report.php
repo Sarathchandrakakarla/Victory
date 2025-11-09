@@ -130,6 +130,7 @@ error_reporting(0);
                         <option value="B">B</option>
                         <option value="C">C</option>
                         <option value="D">D</option>
+                        <option value="E">E</option>
                     </select>
                 </div>
             </div>
@@ -305,7 +306,7 @@ error_reporting(0);
                                 </script>";
                                     $query1 .= " WHERE smd.Stu_Class = '" . $class . "' AND smd.Stu_Section = '" . $section . "'";
                                 }
-                                $query1 .= " ORDER BY FIELD(smd.Stu_Class,'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'),FIELD(smd.Stu_Section,'A','B','C','D')";
+                                $query1 .= " ORDER BY FIELD(smd.Stu_Class,'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'),FIELD(smd.Stu_Section,'A','B','C','D','E')";
                             } else if ($report_by == "Individual") {
                                 if ($_POST['Id_No']) {
                                     $id = $_POST['Id_No'];
@@ -415,7 +416,7 @@ error_reporting(0);
 
             // Queries
             // Step 1: Fetch all students
-            $query1 = mysqli_query($link, "SELECT Id_No, First_Name, Stu_Class, Stu_Section FROM `student_master_data` WHERE Stu_Class LIKE '% CLASS' OR Stu_Class IN ('PreKG','LKG','UKG') ORDER BY FIELD(Stu_Class,'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'),FIELD(Stu_Section,'A','B','C','D')");
+            $query1 = mysqli_query($link, "SELECT Id_No, First_Name, Stu_Class, Stu_Section FROM `student_master_data` WHERE Stu_Class LIKE '% CLASS' OR Stu_Class IN ('PreKG','LKG','UKG') ORDER BY FIELD(Stu_Class,'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'),FIELD(Stu_Section,'A','B','C','D','E')");
 
             $ids = [];
             while ($row1 = mysqli_fetch_assoc($query1)) {
@@ -423,7 +424,7 @@ error_reporting(0);
             }
 
             // Step 2: Fetch all Id_No from student_performance
-            $presentQuery = mysqli_query($link, "SELECT smd.Id_No, smd.First_Name, smd.Stu_Class, smd.Stu_Section, sp.Reading, sp.Writing, sp.Learning, sp.Handwriting, sp.Response, sp.Overall, sp.Grade, CASE WHEN sp.Id_No IS NULL THEN 'Missing' ELSE 'Present' END AS Status FROM student_master_data smd LEFT JOIN student_performance sp ON smd.Id_No = sp.Id_No WHERE smd.Stu_Class LIKE '% CLASS' OR smd.Stu_Class IN ('PreKG','LKG','UKG') ORDER BY FIELD(smd.Stu_Class, 'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'), FIELD(smd.Stu_Section, 'A','B','C','D')");
+            $presentQuery = mysqli_query($link, "SELECT smd.Id_No, smd.First_Name, smd.Stu_Class, smd.Stu_Section, sp.Reading, sp.Writing, sp.Learning, sp.Handwriting, sp.Response, sp.Overall, sp.Grade, CASE WHEN sp.Id_No IS NULL THEN 'Missing' ELSE 'Present' END AS Status FROM student_master_data smd LEFT JOIN student_performance sp ON smd.Id_No = sp.Id_No WHERE smd.Stu_Class LIKE '% CLASS' OR smd.Stu_Class IN ('PreKG','LKG','UKG') ORDER BY FIELD(smd.Stu_Class, 'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'), FIELD(smd.Stu_Section, 'A','B','C','D','E')");
 
 
             $presentIds = [];

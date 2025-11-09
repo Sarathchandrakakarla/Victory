@@ -1,12 +1,12 @@
 <?php
-    include_once('../../link.php');
-    session_start();
-    if (!$_SESSION['Admin_Id_No']) {
-        echo "<script>alert('Admin Id Not Rendered');
+include_once('../../link.php');
+session_start();
+if (!$_SESSION['Admin_Id_No']) {
+    echo "<script>alert('Admin Id Not Rendered');
     location.replace('../admin_login.php');</script>";
-    }
-    error_reporting(0);
-    ?>
+}
+error_reporting(0);
+?>
 
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -115,10 +115,11 @@
                 <div class="col-sm-3">
                     <select class="form-select" name="Section" id="sec">
                         <option value="selectsection" selected disabled>--Select Section--</option>
-                        <option>A</option>
-                        <option>B</option>
-                        <option>C</option>
-                        <option>D</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
                     </select>
                 </div>
             </div>

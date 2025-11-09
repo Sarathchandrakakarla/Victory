@@ -46,6 +46,7 @@ error_reporting(0);
     cursor: pointer;
     font-size: 30px;
   }
+
   .modify {
     cursor: pointer;
     font-size: 30px;
@@ -261,46 +262,43 @@ error_reporting(0);
         <tr>
           <?php
           if (isset($_POST['add'])) {
-            if($_POST['Class']){
-                $class = $_POST['Class'];
-                echo "<script>document.getElementById('class').value='$class'</script>";
-                if($_POST['Exam']){
-                    $exam = $_POST['Exam'];
-                    echo "<script>document.getElementById('exam').value='$exam'</script>";
-                    if($_POST['Max_Marks']){
-                        $max = $_POST['Max_Marks'];
-                        echo "<script>document.getElementById('max').value='$max'</script>";
-                        
-                        if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM class_wise_examination WHERE Class = '$class' AND EXAM = '$exam'")) >= 1) {
-                            echo "<script>alert('Class and Examination is Already Added');</script>";
-                        } else {
-                            mysqli_query($link, "INSERT INTO class_wise_examination VALUES('','$class','$exam','$max')");
-                            $sql = "SELECT * FROM `class_wise_examination` WHERE Class='$class'";
-                            $result = mysqli_query($link, $sql);
-                            echo "<script>alert('Examination Added Successfully');</script>";
-                            $i = 1;
-                            while ($row = mysqli_fetch_assoc($result)) {
-                                echo '<tr>
+            if ($_POST['Class']) {
+              $class = $_POST['Class'];
+              echo "<script>document.getElementById('class').value='$class'</script>";
+              if ($_POST['Exam']) {
+                $exam = $_POST['Exam'];
+                echo "<script>document.getElementById('exam').value='$exam'</script>";
+                if ($_POST['Max_Marks']) {
+                  $max = $_POST['Max_Marks'];
+                  echo "<script>document.getElementById('max').value='$max'</script>";
+
+                  if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM class_wise_examination WHERE Class = '$class' AND EXAM = '$exam'")) >= 1) {
+                    echo "<script>alert('Class and Examination is Already Added');</script>";
+                  } else {
+                    mysqli_query($link, "INSERT INTO class_wise_examination VALUES('','$class','$exam','$max')");
+                    $sql = "SELECT * FROM `class_wise_examination` WHERE Class='$class'";
+                    $result = mysqli_query($link, $sql);
+                    echo "<script>alert('Examination Added Successfully');</script>";
+                    $i = 1;
+                    while ($row = mysqli_fetch_assoc($result)) {
+                      echo '<tr>
                                 <td>' . $i . '</td>
                                 <td>' . $row['Class'] . '</td>
                                 <td>' . $row['Exam'] . '</td>
                                 <td>' . $row['Max_Marks'] . '</td>
                                 <td><i class="bx bx-trash delete"></i></td>
                                 </tr>';
-                                $i++;
-                            }
-                        }
+                      $i++;
                     }
-                    else{
-                        echo "<script>alert('Please Enter Max Marks!');</script>";
-                    }
+                  }
+                } else {
+                  echo "<script>alert('Please Enter Max Marks!');</script>";
                 }
-                else{
-                    echo "<script>alert('Please Select Exam!');</script>";
-                }
-            }
-            else{
-                echo "<script>alert('Please Select Class!');</script>";
+              } else {
+                echo "<script>alert('Please Select Exam!');</script>";
+              }
+            } else {
+              echo "<script>alert('Please Select Class!');</script>";
             }
           }
 
@@ -339,27 +337,27 @@ error_reporting(0);
               echo "<script>alert('Please Select Class!!');</script>";
             }
           }
-          
-          if(isset($_POST['show'])){
-              if($_POST['Class']){
-                  $class = $_POST['Class'];
-                  echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
-                  $sql = "SELECT * FROM `class_wise_examination` WHERE Class = '$class'";
-                  $result = mysqli_query($link, $sql);
-                  $i = 1;
-                  while ($row = mysqli_fetch_assoc($result)) {
-                    echo '<tr>
+
+          if (isset($_POST['show'])) {
+            if ($_POST['Class']) {
+              $class = $_POST['Class'];
+              echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
+              $sql = "SELECT * FROM `class_wise_examination` WHERE Class = '$class'";
+              $result = mysqli_query($link, $sql);
+              $i = 1;
+              while ($row = mysqli_fetch_assoc($result)) {
+                echo '<tr>
                         <td>' . $i . '</td>
                         <td>' . $row['Class'] . '</td>
                         <td id="' . $i . ' exam">' . $row['Exam'] . '</td>
                         <td id="' . $i . ' max">' . $row['Max_Marks'] . '</td>
                         <td><i class="bx bx-trash delete"></i><i class="bx bx-edit modify"></i></i></td>
                         </tr>';
-                    $i++;
-                  }
-              } else{
-                  echo "<script>alert('Please Select Class!!');</script>";
+                $i++;
               }
+            } else {
+              echo "<script>alert('Please Select Class!!');</script>";
+            }
           }
           ?>
         </tr>
@@ -401,7 +399,7 @@ error_reporting(0);
       button.classList.toggle('open');
     }
   </script>
-  
+
   <!-- Modify Row -->
   <script type="text/javascript">
     $(".modify").click(function() {

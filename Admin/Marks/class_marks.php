@@ -98,6 +98,7 @@ error_reporting(0);
                         <option value="B">B</option>
                         <option value="C">C</option>
                         <option value="D">D</option>
+                        <option value="E">E</option>
                     </select>
                 </div>
             </div>
@@ -439,6 +440,7 @@ error_reporting(0);
             })
         }
     </script>
+    
     <script>
         // JavaScript code to handle down arrow key navigation
         document.addEventListener("keydown", function(event) {

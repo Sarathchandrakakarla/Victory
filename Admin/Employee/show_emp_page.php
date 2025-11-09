@@ -129,7 +129,7 @@ if (isset($_POST['delete'])) {
 
   echo "<script>if(!confirm('Confirm To Delete Employee Data from Employee Database?')){
     location.replace('');
-}</script>";
+  }</script>";
   $sql_search = "SELECT * FROM employee_master_data WHERE Emp_Id = '$id'";
   $result = mysqli_query($link, $sql_search);
   if (mysqli_num_rows($result) == 0) {

@@ -222,21 +222,21 @@ if (isset($_POST['reset'])) {
             text: ''
         },
         success: function(data) {
-            if(data.includes('<a href')){
+            if (data.includes('<a href')) {
                 let ele = document.createElement('div');
                 ele.innerHTML = data
                 let url = $(ele).children()[0].href;
                 let link_text = $(ele).children()[0].innerHTML;
-                if(!data.includes('download')){
+                if (!data.includes('download')) {
                     document.getElementById('link').checked = true;
                     document.getElementById('content').value = url + ',' + link_text;
-                } else{
+                } else {
                     document.getElementById('file').checked = true;
                     inp_row.hidden = 'hidden';
                     file_row.hidden = '';
                     document.getElementById('file_text').value = link_text;
                 }
-            } else{
+            } else {
                 document.getElementById('content').value = data;
             }
         }

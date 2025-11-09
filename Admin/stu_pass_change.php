@@ -148,9 +148,9 @@ if (!$_SESSION['Admin_Id_No']) {
             type = document.getElementById('user_type').value;
             if (type == "Student") {
                 var password = 'VHST';
-            } else if(type == "Faculty"){
+            } else if (type == "Faculty") {
                 var password = 'VICEM';
-            } else{
+            } else {
                 return false
             }
             pass = document.getElementById('password');

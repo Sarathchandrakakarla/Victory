@@ -32,20 +32,20 @@ if (isset($_POST['Send'])) {
     if (mysqli_num_rows($sql) == 0) {
         echo "<script>alert('UserName Not Found in Master Data!!')</script>";
     } else {
-    if (mysqli_num_rows($sql1) == 0) {
-        echo "<script>alert('UserName Not Found in Login Table!!')</script>";
-    } else {
-        while ($row = mysqli_fetch_assoc($sql)) {
-            if (str_contains($row['Mobile'], ',')) {
-                $mobile = explode(',', $row['Mobile'], 2)[0];
-            } else {
-                $mobile = $row['Mobile'];
-                $otp = generateOTP();
-                $_SESSION['OTP'] = $otp;
-                $text = "The OTP to reset your login pass word into Victory schools portal is :" . $otp . "-Victory schools,Kodur.";
-                $text = urlencode($text);
-                echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707167897089994658&format=JSON" style="display:none;" class="sms_link">' . $mobile . '</a>';
-                echo "
+        if (mysqli_num_rows($sql1) == 0) {
+            echo "<script>alert('UserName Not Found in Login Table!!')</script>";
+        } else {
+            while ($row = mysqli_fetch_assoc($sql)) {
+                if (str_contains($row['Mobile'], ',')) {
+                    $mobile = explode(',', $row['Mobile'], 2)[0];
+                } else {
+                    $mobile = $row['Mobile'];
+                    $otp = generateOTP();
+                    $_SESSION['OTP'] = $otp;
+                    $text = "The OTP to reset your login pass word into Victory schools portal is :" . $otp . "-Victory schools,Kodur.";
+                    $text = urlencode($text);
+                    echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707167897089994658&format=JSON" style="display:none;" class="sms_link">' . $mobile . '</a>';
+                    echo "
                 <script>
                 async function send(url) {
                     response = await fetch(url);
@@ -53,9 +53,9 @@ if (isset($_POST['Send'])) {
                 send(document.querySelector('.sms_link').href);
                 </script>
                 ";
-                $send_status = true;
+                    $send_status = true;
+                }
             }
-        }
         }
     }
 }

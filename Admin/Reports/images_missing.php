@@ -122,7 +122,7 @@ error_reporting(0);
             for ($i = 1; $i <= 10; $i++) {
               $classes[] = $i . " CLASS";
             }
-            $sections = ['A', 'B', 'C', 'D'];
+            $sections = ['A', 'B', 'C', 'D', 'E'];
             $i = 1;
             foreach ($classes as $class) {
               foreach ($sections as $section) {

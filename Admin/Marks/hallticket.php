@@ -180,13 +180,13 @@ error_reporting(0);
                         $exam = $_POST['Exam'];
                         $query1 = mysqli_query($link, "SELECT Adm_No,First_Name,Father_Name,Stu_Class,Stu_Section,DOB FROM `student_master_data` WHERE Id_No = '$id'");
                         while ($row1 = mysqli_fetch_assoc($query1)) {
-                            $details[$id] = array($row1['Adm_No'], $row1['First_Name'], substr($row1['Father_Name'],0,20),$row1['DOB']);
+                            $details[$id] = array($row1['Adm_No'], $row1['First_Name'], substr($row1['Father_Name'], 0, 20), $row1['DOB']);
                             $class = $row1['Stu_Class'];
                             $section = $row1['Stu_Section'];
                         }
-                        
+
                         //Table Creation
-                            echo '
+                        echo '
                             <div class="full-container" style="padding-top:1cm;">
                                 <table style="margin-left: 5cm;">
                                     <tr style="line-height: 30px;">
@@ -268,7 +268,7 @@ error_reporting(0);
                             foreach ($ids as $id) {
                                 $query2 = mysqli_query($link, "SELECT Adm_No,First_Name,Father_Name,DOB FROM `student_master_data` WHERE Id_No = '$id'");
                                 while ($row2 = mysqli_fetch_assoc($query2)) {
-                                    $details[$id] = array($row2['Adm_No'], $row2['First_Name'], substr($row2['Father_Name'],0,20),$row2['DOB']);
+                                    $details[$id] = array($row2['Adm_No'], $row2['First_Name'], substr($row2['Father_Name'], 0, 20), $row2['DOB']);
                                 }
                             }
 

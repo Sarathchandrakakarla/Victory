@@ -508,14 +508,14 @@ error_reporting(0);
                     },
                     success: function(data) {
                         $('#exam').html(data);
-                    } 
+                    }
                 })
             }
         }
     </script>
 
     <!-- Print Table -->
-    <script type="text/javascript"> 
+    <script type="text/javascript">
         function printDiv() {
             window.frames["print_frame"].document.body.innerHTML = "<div class='container' style='display:flex;margin-left:30px;'><img src='/Victory/Images/Victory Logo.png' alt='...' width='70px' style='margin-bottom:20px;'><h2 style='margin-left:150px;'>Student Marks Details Report</h2>";
             window.frames["print_frame"].document.body.innerHTML += "<div class = 'container'><table><tr><th>Id No:</th><td><?php echo $id; ?></td></tr></table></div>";
