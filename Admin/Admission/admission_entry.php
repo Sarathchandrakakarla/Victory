@@ -1,11 +1,12 @@
 <?php
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 45);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -186,7 +187,12 @@ error_reporting(0);
                     </div>
                 </div>
                 <div class="button">
-                    <input type="submit" name="add" value="Insert" />
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert student admission data"
+                        <?php } ?>>
+                        <input type="submit" name="add" value="Insert" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
                     <input type="reset" value="Clear" />
                 </div>
             </form>
@@ -215,6 +221,11 @@ error_reporting(0);
         return $date;
     }
     if (isset($_POST["add"])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to insert student admission data');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
 
         //Arrays
         $ids = array();

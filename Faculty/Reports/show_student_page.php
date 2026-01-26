@@ -1,12 +1,12 @@
 <?php
-session_start();
-if (!$_SESSION['Id_No']) {
-  echo "<script>
-  alert('Faculty Id Not Rendered');
-  location.replace('../faculty_login.php');
-  </script>
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 111);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 <?php
@@ -22,6 +22,11 @@ function validate($data)
 //For Show
 if (isset($_POST['show'])) {
   if ($_POST['show_id']) {
+    if (!can('view', MENU_ID)) {
+      echo "<script>alert('You don\'t have permission to view student data');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+      exit;
+    }
     $id = validate($_POST['show_id']);
 
     $sql = "SELECT * FROM student_master_data WHERE Id_No = '$id'";
@@ -38,6 +43,8 @@ if (isset($_POST['show'])) {
       $gender = $row['Gender'];
       $mobile = $row['Mobile'];
       $aadhar = $row['Aadhar'];
+      $mother_aadhar = $row['Mother_Aadhar'];
+      $father_aadhar = $row['Father_Aadhar'];
       $class = $row['Stu_Class'];
       $section = $row['Stu_Section'];
       $religion = $row['Religion'];
@@ -61,6 +68,8 @@ if (isset($_POST['show'])) {
       $_SESSION['Gender'] = $gender;
       $_SESSION['Mobile'] = $mobile;
       $_SESSION['Aadhar'] = $aadhar;
+      $_SESSION['Mother_Aadhar'] = $mother_aadhar;
+      $_SESSION['Father_Aadhar'] = $father_aadhar;
       $_SESSION['Stu_Class'] = $class;
       $_SESSION['Stu_Section'] = $section;
       $_SESSION['Religion'] = $religion;
@@ -130,6 +139,16 @@ if (isset($_POST['show'])) {
       display: block;
     }
   }
+
+  /* Tooltip wrapper MUST be a real box */
+  .btn-wrapper {
+    display: inline-block;
+  }
+
+  /* Cursor only when disabled */
+  .btn-wrapper button:disabled {
+    cursor: not-allowed;
+  }
 </style>
 
 <body class="bg-light">
@@ -147,7 +166,12 @@ if (isset($_POST['show'])) {
                                                                                   echo "";
                                                                                 } ?>" placeholder="Student Id No." oninput="this.value = this.value.toUpperCase()" required>
           <div class="buttons mt-3">
-            <button class="btn btn-warning" type="submit" name="show">Show</button>
+            <div class="btn-wrapper"
+              <?php if (!can('view', MENU_ID)) { ?>
+              title="You don't have permission to view student data"
+              <?php } ?>>
+              <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+            </div>
           </div>
         </form>
       </div>

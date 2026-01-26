@@ -1,17 +1,22 @@
 <?php
-include '../../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 59);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 <?php
 
 if (isset($_POST['Ok'])) {
+    if (!can('view', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to view student fee details');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     if ($_POST['Type']) {
         $type = $_POST['Type'];
         $date = $_POST['DOP'];
@@ -68,6 +73,11 @@ function format_date($date)
 }
 
 if (isset($_POST['add'])) {
+    if (!can('create', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to insert student fee payment details');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     if ($_POST['Type']) {
         $type = $_POST['Type'];
         $date = $_POST['DOP'];
@@ -378,6 +388,17 @@ if (isset($_POST['add'])) {
         display: none;
     }
 
+    /* 🔒 Disabled state */
+    form .button input:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        background: linear-gradient(135deg, #b5b5b5, #8e8e8e);
+    }
+
+    .btn-wrapper {
+        display: contents;
+    }
+
     @media screen and (min-width:600px) {
         #ok {
             margin-top: 30px;
@@ -451,7 +472,12 @@ if (isset($_POST['add'])) {
                     </div>
                     <div class="input-box">
                         <span class="details"></span>
-                        <button class="btn btn-primary" id="ok" name="Ok">OK</button>
+                        <div class="btn-wrapper"
+                            <?php if (!can('view', MENU_ID)) { ?>
+                            title="You don't have permission to view student fee details"
+                            <?php } ?>>
+                            <button class="btn btn-primary" id="ok" name="Ok" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>OK</button>
+                        </div>
                     </div>
                     <div class="input-box">
                         <span class="details">Full Name</span>
@@ -514,7 +540,12 @@ if (isset($_POST['add'])) {
                     </div>
                 </div>
                 <div class="button">
-                    <input type="submit" name="add" value="Insert" />
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert student fee payment details"
+                        <?php } ?>>
+                        <input type="submit" name="add" value="Insert" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
                 </div>
             </form>
         </div>

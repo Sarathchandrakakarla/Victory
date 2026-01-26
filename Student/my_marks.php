@@ -1,13 +1,12 @@
 <?php
-include '../link.php';
-session_start();
-if (!$_SESSION['Id_No']) {
-  echo "<script>
-  alert('Student Id Not Rendered');
-  location.replace('student_login.php');
-  </script>
-  </script>";
-}
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
+
+define('MENU_ID', 133);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 <!DOCTYPE html>
@@ -80,16 +79,30 @@ error_reporting(0);
     <div class="container">
       <div class="row justify-content-center mt-4">
         <div class="col-lg-3">
-          <button class="btn btn-primary" type="submit" name="show">Show</button>
+          <div class="btn-wrapper"
+            <?php if (!can('view', MENU_ID)) { ?>
+            title="You don't have permission to view your marks! Please Contact School Office"
+            <?php } ?>>
+            <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+          </div>
           <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-          <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
+          <div class="btn-wrapper"
+            <?php if (!can('print', MENU_ID)) { ?>
+            title="You don't have permission to print your marks! Please Contact School Office"
+            <?php } ?>>
+            <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+          </div>
         </div>
       </div>
     </div>
   </form>
   <?php
   if (isset($_POST['show'])) {
-
+    if (!can('view', MENU_ID)) {
+      echo "<script>alert('You don\'t have permission to view your marks! Please Contact School Office');
+        location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+      exit;
+    }
     $id = $_SESSION['Id_No'];
     $class = $_SESSION['Stu_Class'];
     $examtype = $_POST['Exam_Type'];

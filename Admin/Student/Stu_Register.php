@@ -1,12 +1,12 @@
 <?php
-include '../../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 3);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -117,6 +117,14 @@ error_reporting(0);
                         <span class="details">Aadhar Number
                             <input type="text" placeholder="Enter Aadhar No." id="aadhar" maxlength="12" name="Aadhar" />
                     </div>
+                    <div class="input-box">
+                        <span class="details">Mother Aadhar Number
+                            <input type="text" placeholder="Enter Mother Aadhar No." id="mother_aadhar" maxlength="12" name="Mother_Aadhar" />
+                    </div>
+                    <div class="input-box">
+                        <span class="details">Father Aadhar Number
+                            <input type="text" placeholder="Enter Father Aadhar No." id="father_aadhar" maxlength="12" name="Father_Aadhar" />
+                    </div>
                 </div>
                 <div class="title">Student Address Details</div>
                 <div class="user-details">
@@ -184,9 +192,6 @@ error_reporting(0);
                             }
                             ?>
                         </select>
-                        <!--
-            <input type="text" placeholder="Enter Van Route" id="van_route" name="Van_Route" />
-            -->
                     </div>
                     <div class="input-box">
                         <span class="details">Referred By</span>
@@ -194,7 +199,12 @@ error_reporting(0);
                     </div>
                 </div>
                 <div class="button">
-                    <input type="submit" name="add" value="Insert" />
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert student data"
+                        <?php } ?>>
+                        <input type="submit" name="add" value="Insert" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
                     <input type="reset" value="Clear" />
                 </div>
             </form>
@@ -210,6 +220,11 @@ error_reporting(0);
         return $data;
     }
     if (isset($_POST["add"])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to insert student data');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $id = validate($_POST['Id_No']);
         $admno = validate($_POST['Adm_No']);
         $firstname = validate($_POST['First_Name']);
@@ -219,6 +234,8 @@ error_reporting(0);
         $dob = validate($_POST['DOB']);
         $mobile = validate($_POST['Mobile']);
         $aadhar = validate($_POST['Aadhar']);
+        $mother_aadhar = validate($_POST['Mother_Aadhar']);
+        $father_aadhar = validate($_POST['Father_Aadhar']);
         $caste = validate($_POST['Caste']);
         $houseno = validate($_POST['House_No']);
         $area = validate($_POST['Area']);
@@ -235,10 +252,10 @@ error_reporting(0);
         echo "<script>document.getElementById('father_name').value = '" . $fathername . "'</script>";
         echo "<script>document.getElementById('mother_name').value = '" . $mothername . "'</script>";
         echo "<script>document.getElementById('dob').value = '" . $dob . "'</script>";
-        echo "<script>document.getElementById('gender').value = '" . $gender . "'</script>";
         echo "<script>document.getElementById('mobile').value = '" . $mobile . "'</script>";
         echo "<script>document.getElementById('aadhar').value = '" . $aadhar . "'</script>";
-        echo "<script>document.getElementById('religion').value = '" . $religion . "'</script>";
+        echo "<script>document.getElementById('mother_aadhar').value = '" . $mother_aadhar . "'</script>";
+        echo "<script>document.getElementById('father_aadhar').value = '" . $father_aadhar . "'</script>";
         echo "<script>document.getElementById('caste').value = '" . $caste . "'</script>";
         echo "<script>document.getElementById('house_no').value = '" . $houseno . "'</script>";
         echo "<script>document.getElementById('area').value = '" . $area . "'</script>";
@@ -292,11 +309,11 @@ error_reporting(0);
                             } else {
                                 if ($route == "NULL") {
                                     $sql = mysqli_query($link, "INSERT INTO `student_master_data` VALUES('', '$id','$admno', '$firstname', '$surname', '$fathername', '$mothername',
-            '$dob', '$gender', '$mobile', '$aadhar','$class','$section', '$religion', '$caste', '$category', '$houseno', '$area','$village',
+            '$dob', '$gender', '$mobile', '$aadhar', '$mother_aadhar', '$father_aadhar','$class','$section', '$religion', '$caste', '$category', '$houseno', '$area','$village',
              '$doj','$previous_school',NULL,'$referred_by',NULL)");
                                 } else {
                                     $sql = mysqli_query($link, "INSERT INTO `student_master_data` VALUES('', '$id','$admno', '$firstname', '$surname', '$fathername', '$mothername',
-            '$dob', '$gender', '$mobile', '$aadhar','$class','$section', '$religion', '$caste', '$category', '$houseno', '$area','$village',
+            '$dob', '$gender', '$mobile', '$aadhar', '$mother_aadhar', '$father_aadhar','$class','$section', '$religion', '$caste', '$category', '$houseno', '$area','$village',
              '$doj','$previous_school','$route','$referred_by',NULL)");
                                 }
                                 if ($sql) {

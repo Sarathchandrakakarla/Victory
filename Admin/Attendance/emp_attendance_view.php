@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 39);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -110,7 +112,12 @@ error_reporting(0);
             <div class="container">
                 <div class="row justify-content-center mt-4">
                     <div class="col-lg-2">
-                        <button class="btn btn-primary" type="submit" name="show">Show</button>
+                        <div class="btn-wrapper"
+                            <?php if (!can('view', MENU_ID)) { ?>
+                            title="You don't have permission to view this report"
+                            <?php } ?>>
+                            <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                        </div>
                         <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                     </div>
                 </div>
@@ -156,10 +163,15 @@ error_reporting(0);
                             return $date;
                         }
                         if (isset($_POST['show'])) {
+                            if (!can('view', MENU_ID)) {
+                                echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                                exit;
+                            }
                             $date = $_POST['Date'];
                             $type = $_POST['att_type'];
                             echo "<script>document.getElementById('date').value = '" . $date . "';
-              document.getElementById('" . strtolower($type) . "').checked = true</script>";
+                            document.getElementById('" . strtolower($type) . "').checked = true</script>";
                             $report = ["Not Submitted" => 0, "Present" => 0, "Absent" => 0, "Leave" => 0];
 
                             //Queries

@@ -1,16 +1,23 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 9);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
 <?php
 
 if (isset($_POST['add'])) {
+    if (!can('create', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to insert into this report');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     if ($_POST['Route']) {
         $route = $_POST['Route'];
 
@@ -127,6 +134,11 @@ if (isset($_POST['add'])) {
         font-size: 20px;
         color: red;
     }
+
+    .disabled-icon {
+        color: grey;
+        cursor: not-allowed;
+    }
 </style>
 
 <body class="bg-light">
@@ -140,7 +152,12 @@ if (isset($_POST['add'])) {
                     <label for=""><b>Add New Route</b></label>
                 </div>
                 <div class="col-lg-1">
-                    <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;"> <i class="bx bx-plus" id="plus-icon"></i> </button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert into this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>> <i class="bx bx-plus" id="plus-icon"></i> </button>
+                    </div>
                 </div>
                 <div class="col-lg-3">
                     <input type="text" class="form-control" id="inp" name="Route" placeholder="Enter Route Name" value="<?php if (isset($route)) {
@@ -150,17 +167,37 @@ if (isset($_POST['add'])) {
                                                                                                                         } ?>" style="opacity: 0;">
                 </div>
                 <div class="col-lg-1">
-                    <button class="btn btn-warning" name="add" id="add-btn" style="opacity: 0;">Insert</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert into this report"
+                        <?php } ?>>
+                        <button class="btn btn-warning" name="add" id="add-btn" style="opacity: 0;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Insert</button>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="container">
             <div class="row justify-content-center mt-5">
                 <div class="col-lg-4">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -194,15 +231,30 @@ if (isset($_POST['add'])) {
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $sql = "SELECT * FROM `van_route` ORDER BY Van_Route";
                         $result = mysqli_query($link, $sql);
                         $i = 1;
                         while ($row = mysqli_fetch_assoc($result)) {
                             echo '<tr>
-                <td style="padding:5px;">' . $i . '</td>
-                <td style="padding:5px;">' . $row['Van_Route'] . '</td>
-                <td style="padding:5px;"><i class="bx bx-trash delete"></i></td>
-                </tr>';
+                            <td style="padding:5px;">' . $i . '</td>
+                            <td style="padding:5px;">' . $row['Van_Route'] . '</td>
+                            <td style="padding:5px;">';
+
+                            $canDelete = can('delete', MENU_ID);
+
+                            echo '<div class="btn-wrapper" ' .
+                                (!$canDelete ? 'title="You don\'t have permission to delete"' : '') . '>';
+
+                            echo '<i class="bx bx-trash delete ' . (!$canDelete ? 'disabled-icon' : '') . '"
+                            data-allowed="' . ($canDelete ? '1' : '0') . '"></i>';
+
+                            echo '</div></td></tr>';
+
                             $i++;
                         }
                     }
@@ -251,6 +303,9 @@ if (isset($_POST['add'])) {
     <!-- Delete Row -->
     <script type="text/javascript">
         $(".delete").click(function() {
+            if ($(this).data('allowed') !== 1) {
+                return false;
+            }
             route = $(this).parent().siblings().eq(1).text();
             if (!confirm('Confirm to delete Route: ' + route + '?')) {
                 return;

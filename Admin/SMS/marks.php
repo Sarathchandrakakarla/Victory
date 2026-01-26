@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 79);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -71,6 +73,17 @@ error_reporting(0);
             display: block;
         }
     }
+
+    .tooltip-wrapper {
+        cursor: not-allowed;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .disabled {
+        opacity: 0.5;
+    }
 </style>
 
 <body class="bg-light">
@@ -120,7 +133,12 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-2">
-                    <button class="btn btn-primary" type="submit" name="Show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable();send_alert_container.hidden = 'hidden';">Clear</button>
                 </div>
             </div>
@@ -167,11 +185,31 @@ error_reporting(0);
                     <th>Name</th>
                     <th>Class</th>
                     <th>File Link</th>
-                    <th>Action <span style="margin:5px;"></span><input type="checkbox" id="select_all" onclick="toggle(this)"><label for="select_all">Select All</label></th>
+                    <th>
+                        <?php if (can('create', MENU_ID)) { ?>
+                            <input type="checkbox" class="form-check-input" id="select_all" onclick="toggle(this)">
+                            <label for="select_all">Select All</label>
+                        <?php } else { ?>
+                            <input type="checkbox"
+                                id="select_all"
+                                class="form-check-input"
+                                disabled
+                                class="disabled"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="You don't have permission to select all and send SMS">
+                            <label for="select_all">Select All</label>
+                        <?php } ?>
+                    </th>
                 </thead>
                 <tbody id="tbody">
                     <?php
                     if (isset($_POST['Show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         if ($_POST['Class']) {
                             $class = $_POST['Class'];
                             echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
@@ -288,13 +326,13 @@ error_reporting(0);
                                             imagejpeg($image, '../../Files/Message Files/Report.jpg');
                                             imagedestroy($image);
                                             $html = "
-                                        <!DOCTYPE html>
-                                        <html>
-                                            <head></head>
-                                            <body>
-                                                <img src='../../Files/Message Files/Report.jpg' style='width:98%;'/>
-                                            </body>
-                                        </html>";
+                                            <!DOCTYPE html>
+                                            <html>
+                                                <head></head>
+                                                <body>
+                                                    <img src='../../Files/Message Files/Report.jpg' style='width:98%;'/>
+                                                </body>
+                                            </html>";
                                             require 'vendor/autoload.php';
                                             try {
                                                 $html2pdf = new Html2Pdf($orientation = 'L', $format = 'C5');
@@ -317,14 +355,23 @@ error_reporting(0);
                                         $i = 1;
                                         foreach ($details as $id => $data) {
                                             echo '
-                                        <tr>
-                                            <td>' . $i . '</td>
-                                            <td>' . $id . '</td>
-                                            <td>' . $data['Name'] . '</td>
-                                            <td>' . $class . ' ' . $section . '</td>
-                                            <td><a href="../../Files/' . $class . " " . $section . '/' . $exam . '/' . $id . '.pdf" target="_blank">Download File</a></td>
-                                            <td><input type="checkbox" class="student" id="student" name="student[]" value="' . $id . ',' . $class . ',' . $section . ',' . $exam . ',' . $data['Mobile'] . '">' . $data['Mobile'] . '</td>
-                                        </tr>
+                                            <tr>
+                                                <td>' . $i . '</td>
+                                                <td>' . $id . '</td>
+                                                <td>' . $data['Name'] . '</td>
+                                                <td>' . $class . ' ' . $section . '</td>
+                                                <td><a href="../../Files/' . $class . " " . $section . '/' . $exam . '/' . $id . '.pdf" target="_blank">Download File</a></td>
+                                                <td>';
+                                            if (can("create", MENU_ID)) {
+                                                echo '<input type="checkbox" class="form-check-input student" id="student" name="student[]" value="' . $id . ',' . $class . ',' . $section . ',' . $exam . ',' . $data['Mobile'] . '">' . $data['Mobile'] . '';
+                                            } else {
+                                                echo '<span class="tooltip-wrapper" data-bs-toggle="tooltip" data-bs-placement="top" title="You don\'t have permission to select and send SMS">
+                                                    <input type="checkbox" class="form-check-input student disabled" disabled> 
+                                                </span>';
+                                            }
+
+                                            echo '</td>
+                                            </tr>
                                             ';
                                             $i++;
                                         }
@@ -344,7 +391,12 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-1">
-                    <button class="btn btn-success" type="submit" name="Send" onclick="if(!confirm('Confirm to Send Marks Messages?'))return false; else return true;">Send</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to send SMS"
+                        <?php } ?>>
+                        <button class="btn btn-success" type="submit" name="Send" onclick="if(!confirm('Confirm to Send Marks Messages?'))return false; else return true;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Send</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -352,6 +404,11 @@ error_reporting(0);
 
     <?php
     if (isset($_POST['Send'])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to Send SMS');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         if (isset($_POST['student'])) {
             $students = $_POST['student'];
             $ch = curl_init("https://wapi.wbbox.in/v2/wamessage/send");

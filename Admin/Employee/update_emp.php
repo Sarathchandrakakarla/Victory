@@ -1,18 +1,25 @@
 <?php
-include '../../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-  echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 4);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 if (!$_SESSION['Emp_Id']) {
   echo "<script>
   alert('Employee Id Not Rendered');
   location.replace('show_emp_page.php');
   </script>";
 }
+
+if (!can('update', MENU_ID)) {
+  echo "<script>alert('You don\'t have permission to update employee data');
+    location.replace('/Victory/Admin/Student/show_emp_page.php')</script>";
+  exit;
+}
+error_reporting(0);
 ?>
 
 
@@ -34,6 +41,11 @@ function format_date($date)
   return $date;
 }
 if (isset($_POST["update"])) {
+  if (!can('update', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to update employee data');
+      location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+    exit;
+  }
   $id = validate($_POST['Id_No']);
   $firstname = validate($_POST['First_Name']);
   $surname = validate($_POST['Sur_Name']);
@@ -232,6 +244,12 @@ if (isset($_POST["update"])) {
           </div>
         </div>
         <div class="button">
+          <div class="btn-wrapper"
+            <?php if (!can('update', MENU_ID)) { ?>
+            title="You don't have permission to update student data"
+            <?php } ?>>
+            <input type="submit" name="update" value="Update" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?> />
+          </div>
           <input type="submit" name="update" value="Update" />
           <input type="reset" value="Reset" />
         </div>

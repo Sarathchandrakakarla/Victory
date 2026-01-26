@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-  echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 34);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -110,7 +112,12 @@ error_reporting(0);
       <div class="container">
         <div class="row justify-content-center mt-4">
           <div class="col-lg-2">
-            <button class="btn btn-primary" type="submit" name="show">Show</button>
+            <div class="btn-wrapper"
+              <?php if (!can('view', MENU_ID)) { ?>
+              title="You don't have permission to view this report"
+              <?php } ?>>
+              <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+            </div>
             <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
           </div>
         </div>
@@ -139,6 +146,11 @@ error_reporting(0);
               return $date;
             }
             if (isset($_POST['show'])) {
+              if (!can('view', MENU_ID)) {
+                echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                exit;
+              }
               $date = $_POST['Date'];
               $type = $_POST['att_type'];
               $_SESSION['Date'] = $date;
@@ -163,32 +175,47 @@ error_reporting(0);
                     array_push($ids, $row1['Emp_Id']);
                     $names[$row1['Emp_Id']] = $row1['Emp_First_Name'];
                   }
+                  $canCreate = can('create', MENU_ID);
 
                   $i = 1;
                   foreach ($ids as $id) {
                     echo '
-                  <td>' . $i . '</td>
-                  <td>' . $id . '</td>
-                  <td>' . $names[$id] . '</td>
-                  <td>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="att[' . $i . ']" checked id="n[' . $id . ']" value="N">
-                    <label class="form-check-label" for="n[' . $id . ']">Not Punched</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="att[' . $i . ']" id="p[' . $id . ']" value="P">
-                    <label class="form-check-label" for="p[' . $id . ']">Present</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="att[' . $i . ']" id="a[' . $id . ']" value="A">
-                    <label class="form-check-label" for="a[' . $id . ']">Absent</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="att[' . $i . ']" id="l[' . $id . ']" value="L">
-                    <label class="form-check-label" for="l[' . $id . ']">Leave</label>
-                  </div>
-                  </td>
-                  ';
+                    <td>' . $i . '</td>
+                    <td>' . $id . '</td>
+                    <td>' . $names[$id] . '</td>
+                    <td>';
+
+                    $opts = [
+                      'N' => 'Not Punched',
+                      'P' => 'Present',
+                      'A' => 'Absent',
+                      'L' => 'Leave'
+                    ];
+
+                    foreach ($opts as $val => $label) {
+                      $checked = ($val === 'N') ? 'checked' : '';
+
+                      echo '
+                        <div class="form-check form-check-inline ' . (!$canCreate ? 'disabled-wrapper' : '') . '"
+                            ' . (!$canCreate ? 'title="You don\'t have permission to mark attendance"' : '') . '>
+
+                            <input class="form-check-input"
+                                  type="radio"
+                                  name="att[' . $i . ']"
+                                  id="' . strtolower($val) . '_' . $id . '"
+                                  value="' . $val . '"
+                                  ' . $checked . '
+                                  ' . (!$canCreate ? 'disabled' : '') . '>
+
+                            <label class="form-check-label"
+                                  for="' . strtolower($val) . '_' . $id . '">
+                                ' . $label . '
+                            </label>
+                        </div>';
+                    }
+
+                    echo '
+                    </td>';
                     echo '</tr>';
                     $i++;
                   }
@@ -220,6 +247,11 @@ error_reporting(0);
     </div>
     <?php
     if (isset($_POST['add'])) {
+      if (!can('create', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to insert into this report');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+      }
       $date = $_SESSION['Date'];
       $type = $_SESSION['Type'];
       echo "<script>
@@ -333,7 +365,12 @@ error_reporting(0);
     <div class="container">
       <div class="row justify-content-center mt-4">
         <div class="col-lg-3">
-          <button class="btn btn-primary" type="submit" name="add" onclick="if(!confirm('Confirm to Upload Employee Attendance on <?php echo $date . ' ' . $type; ?>?'))return false; else return true;">Upload Attendance</button>
+          <div class="btn-wrapper"
+            <?php if (!can('create', MENU_ID)) { ?>
+            title="You don't have permission to insert into this report"
+            <?php } ?>>
+            <button class="btn btn-primary" type="submit" name="add" onclick="if(!confirm('Confirm to Upload Employee Attendance on <?php echo $date . ' ' . $type; ?>?'))return false; else return true;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Upload Attendance</button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 78);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -68,6 +70,17 @@ error_reporting(0);
         #sign-out {
             display: block;
         }
+    }
+
+    .tooltip-wrapper {
+        cursor: not-allowed;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .disabled {
+        opacity: 0.5;
     }
 </style>
 
@@ -172,9 +185,19 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" name="send" id="send" onclick="return false;">Send</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to send SMS"
+                        <?php } ?>>
+                        <button class="btn btn-success" name="send" id="send" onclick="return false;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Send</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -215,7 +238,22 @@ error_reporting(0);
                 <th id="label2" hidden>Class</th>
                 <th>Balance</th>
                 <th>SMS Link</th>
-                <th>Action <span style="margin:5px;"></span><input type="checkbox" id="select_all" onclick="toggle(this)">Select All</th>
+                <th>
+                    <?php if (can('create', MENU_ID)) { ?>
+                        <input type="checkbox" class="form-check-input" id="select_all" onclick="toggle(this)">
+                        <label for="select_all">Select All</label>
+                    <?php } else { ?>
+                        <input type="checkbox"
+                            id="select_all"
+                            class="form-check-input"
+                            disabled
+                            class="disabled"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="You don't have permission to select all and send SMS">
+                        <label for="select_all">Select All</label>
+                    <?php } ?>
+                </th>
             </thead>
             <tbody id="tbody">
                 <tr>
@@ -230,6 +268,11 @@ error_reporting(0);
                         return $date;
                     }
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         //Arrays
                         $ids = array();
                         $names = array();
@@ -333,16 +376,32 @@ error_reporting(0);
                                                 <td>' . $route . '</td>
                                                 <td style="white-space:nowrap;">' . $classes[$id] . '</td>
                                                 <td>' . $balances[$id] . '</td>
-                                                <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
-                                                <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $mobiles[$id] . '"></td>
+                                                <td>';
+                                                if (can('create', MENU_ID)) {
+                                                    echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
+                                                } else {
+                                                    echo '<a href="javascript:void(0)"
+                                                    class="text-secondary disabled"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="You don\'t have permission to send SMS">
+                                                    ' . $mobiles[$id] . '
+                                                </a>';
+                                                }
+                                                echo '</td>
+                                                <td>';
+                                                if (can("create", MENU_ID)) {
+                                                    echo '<input type="checkbox" class="form-check-input student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '">';
+                                                } else {
+                                                    echo '<span class="tooltip-wrapper" data-bs-toggle="tooltip" data-bs-placement="top" title="You don\'t have permission to select and send SMS">
+                                                            <input type="checkbox" class="form-check-input student disabled" disabled> 
+                                                        </span>';
+                                                }
+
+                                                echo '</td>
                                                 </tr>
                                                 ';
                                                 $i++;
-                                                /*
-                                                echo '<a
-                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                        </a>';
-                                        */
                                             }
                                         }
                                     }
@@ -410,16 +469,31 @@ error_reporting(0);
                                                 <td>' . $names[$id] . '</td>
                                                 <td>' . $classes[$id] . '</td>
                                                 <td>' . $balances[$id] . '</td>
-                                                <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
-                                            <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
+                                                <td>';
+                                                if (can('create', MENU_ID)) {
+                                                    echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
+                                                } else {
+                                                    echo '<a href="javascript:void(0)"
+                                                    class="text-secondary disabled"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="You don\'t have permission to send SMS">
+                                                    ' . $mobiles[$id] . '
+                                                </a>';
+                                                }
+                                                echo '</td>
+                                                <td>';
+                                                if (can("create", MENU_ID)) {
+                                                    echo '<input type="checkbox" class="form-check-input student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '">';
+                                                } else {
+                                                    echo '<span class="tooltip-wrapper" data-bs-toggle="tooltip" data-bs-placement="top" title="You don\'t have permission to select and send SMS">
+                                                            <input type="checkbox" class="form-check-input student disabled" disabled> 
+                                                        </span>';
+                                                }
+                                                echo '</td>
                                                 </tr>
                                                 ';
                                                 $i++;
-                                                /*
-                                                echo '<a
-                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                        </a>';
-                                        */
                                             }
                                         }
                                         echo "<script>document.getElementById('alert-container').style.display = 'block';</script>";
@@ -434,12 +508,12 @@ error_reporting(0);
                                 </script>";
                                 if ($sms_type == "All_Students") {
                                     echo "<script>
-                                document.getElementById('class_row').hidden = 'hidden';
-                                document.getElementById('route_row').hidden = 'hidden';
-                                document.getElementById('label').hidden = '';
-                                document.getElementById('label').innerHTML = 'Class';
-                                document.getElementById('label2').hidden = 'hiddden';
-                                </script>";
+                                    document.getElementById('class_row').hidden = 'hidden';
+                                    document.getElementById('route_row').hidden = 'hidden';
+                                    document.getElementById('label').hidden = '';
+                                    document.getElementById('label').innerHTML = 'Class';
+                                    document.getElementById('label2').hidden = 'hiddden';
+                                    </script>";
                                     $classes = ['PreKG', 'LKG', 'UKG'];
                                     for ($j = 1; $j <= 10; $j++) {
                                         $classes[] = $j . " CLASS";
@@ -504,22 +578,37 @@ error_reporting(0);
                                                     $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $class . " " . $section . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
                                                     $mobiles[$id] = rtrim($mobiles[$id]);
                                                     echo '
-                                                <tr>
-                                                <td>' . $i . '</td>
-                                                <td>' . $id . '</td>
-                                                <td>' . $names[$id] . '</td>
-                                                <td>' . $class . ' ' . $section . '</td>
-                                                <td>' . $balances[$id] . '</td>
-                                                <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
-                                            <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
-                                                </tr>
-                                                ';
+                                                    <tr>
+                                                    <td>' . $i . '</td>
+                                                    <td>' . $id . '</td>
+                                                    <td>' . $names[$id] . '</td>
+                                                    <td>' . $class . ' ' . $section . '</td>
+                                                    <td>' . $balances[$id] . '</td>
+                                                    <td>';
+                                                    if (can('create', MENU_ID)) {
+                                                        echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
+                                                    } else {
+                                                        echo '<a href="javascript:void(0)"
+                                                            class="text-secondary disabled"
+                                                            data-bs-toggle="tooltip"
+                                                            data-bs-placement="top"
+                                                            title="You don\'t have permission to send SMS">
+                                                            ' . $mobiles[$id] . '
+                                                            </a>';
+                                                    }
+                                                    echo '</td>
+                                                    <td>';
+                                                    if (can("create", MENU_ID)) {
+                                                        echo '<input type="checkbox" class="form-check-input student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '">';
+                                                    } else {
+                                                        echo '<span class="tooltip-wrapper" data-bs-toggle="tooltip" data-bs-placement="top" title="You don\'t have permission to select and send SMS">
+                                                                <input type="checkbox" class="form-check-input student disabled" disabled> 
+                                                            </span>';
+                                                    }
+                                                    echo '</td>
+                                                    </tr>
+                                                    ';
                                                     $i++;
-                                                    /*
-                                                echo '<a
-                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                        </a>';
-                                        */
                                                 }
                                             }
                                         }
@@ -584,21 +673,36 @@ error_reporting(0);
                                                     $text = "Dear sir/Madam,There is a balance of amount Rs" . $balances[$id] . "towards " . $type . " of your child " . $names[$id] . " studying " . $class . " " . $section . " .Kindly pay before date " . format_date($date) . " .Principal,Victory highschool,kodur.";
                                                     $mobiles[$id] = rtrim($mobiles[$id]);
                                                     echo '
-                                                <tr>
-                                                <td>' . $i . '</td>
-                                                <td>' . $id . '</td>
-                                                <td>' . $names[$id] . '</td>
-                                                <td>' . $balances[$id] . '</td>
-                                                <td><a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a></td>
-                                            <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '"></td>
-                                                </tr>
-                                                ';
+                                                    <tr>
+                                                    <td>' . $i . '</td>
+                                                    <td>' . $id . '</td>
+                                                    <td>' . $names[$id] . '</td>
+                                                    <td>' . $balances[$id] . '</td>
+                                                    <td>';
+                                                    if (can('create', MENU_ID)) {
+                                                        echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
+                                                    } else {
+                                                        echo '<a href="javascript:void(0)"
+                                                            class="text-secondary disabled"
+                                                            data-bs-toggle="tooltip"
+                                                            data-bs-placement="top"
+                                                            title="You don\'t have permission to send SMS">
+                                                            ' . $mobiles[$id] . '
+                                                            </a>';
+                                                    }
+                                                    echo '</td>
+                                                    <td>';
+                                                    if (can("create", MENU_ID)) {
+                                                        echo '<input type="checkbox" class="form-check-input student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '">';
+                                                    } else {
+                                                        echo '<span class="tooltip-wrapper" data-bs-toggle="tooltip" data-bs-placement="top" title="You don\'t have permission to select and send SMS">
+                                                                <input type="checkbox" class="form-check-input student disabled" disabled> 
+                                                            </span>';
+                                                    }
+                                                    echo '</td>
+                                                    </tr>
+                                                    ';
                                                     $i++;
-                                                    /*
-                                                echo '<a
-                                            href="https://api.smslane.com/api/v2/SendSMS?SenderId=VICKDR&Message=' . $text . '&MobileNumbers=' . $mobiles[$id] . '&ApiKey=RamaVic%401970&ClientId=kakarlavic%40gmail.com" class="sms_link">' . $mobiles[$id] . '
-                                        </a>';
-                                        */
                                                 }
                                             }
                                             echo "<script>document.getElementById('alert-container').style.display = 'block';</script>";
@@ -622,6 +726,12 @@ error_reporting(0);
 
 
     <!-- Scripts -->
+
+    <!-- Global Const Variables for can_update,can_allocate -->
+    <script>
+        const CAN_SEND = <?= can('create', MENU_ID) ? 'true' : 'false' ?>;
+    </script>
+
     <!-- Change Labels -->
     <script type="text/javascript">
         let route_row = document.getElementById('route_row');
@@ -709,6 +819,10 @@ error_reporting(0);
             fetchResponse = fetch(url)
         }
         $('#send').on('click', () => {
+            if (!CAN_SEND) {
+                alert("You do not have permission to Send SMS");
+                return;
+            }
             absentees = []
             $(".student:checked").each(function() {
                 if (!all_students.checked) {

@@ -1,11 +1,21 @@
 <?php
-include '../../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 4);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+if (!can('view', MENU_ID)) {
   echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>
+  alert('You don\'t have permission to view student data');
+  window.close();
+  </script>";
+}
+if (!$_SESSION['Stu_Id_No']) {
+  echo "<script>
+  alert('Student Id Not Rendered');
+  location.replace('/Victory/Admin/Student/show_student_page.php');
   </script>";
 }
 error_reporting(0);
@@ -151,6 +161,14 @@ error_reporting(0);
         </tr>
         <tr>
           <th class="bg-secondary text-light">Aadhar Number</th>
+          <td colspan="5"><?php echo $_SESSION['Aadhar']; ?></td>
+        </tr>
+        <tr>
+          <th class="bg-secondary text-light">Mother Aadhar Number</th>
+          <td colspan="5"><?php echo $_SESSION['Aadhar']; ?></td>
+        </tr>
+        <tr>
+          <th class="bg-secondary text-light">Father Aadhar Number</th>
           <td colspan="5"><?php echo $_SESSION['Aadhar']; ?></td>
         </tr>
         <tr>

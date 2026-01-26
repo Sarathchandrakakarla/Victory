@@ -1,13 +1,18 @@
 <?php
-include '../link.php';
-session_start();
-if (!$_SESSION['Id_No']) {
-    echo "<script>
-  alert('Faculty Id Not Rendered');
-  location.replace('faculty_login.php');
-  </script>
-  </script>";
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 121);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+if (!can('view', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to view this report');
+        location.replace('/Victory/Faculty/faculty_dashboard.php')</script>";
+    exit;
 }
+
 error_reporting(0);
 ?>
 
@@ -67,8 +72,18 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-success" onclick="printDiv();return false;"><i class="bx bx-printer"></i>Print</button>
-                    <button class="btn btn-primary" name="Refresh"><i class="bx bx-refresh"></i>Refresh</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>><i class="bx bx-printer"></i>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" name="Refresh" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>><i class="bx bx-refresh"></i>Refresh</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -108,8 +123,8 @@ error_reporting(0);
                 foreach (array_keys($final_classes) as $class) {
                     foreach ($final_classes[$class] as $section) {
                         echo "
-                <tr>
-                    <td style='text-align:center;border-left: 2px solid black;border-right: 2px solid black;border-bottom: 2px solid black;'>" . $class . " " . $section . "</td>";
+                        <tr>
+                            <td style='text-align:center;border-left: 2px solid black;border-right: 2px solid black;border-bottom: 2px solid black;'>" . $class . " " . $section . "</td>";
                         $time_table_sql = mysqli_query($link, "SELECT * FROM `time_table` WHERE Class = '$class' AND Section = '$section'");
                         if ($time_table_sql) {
                             if (mysqli_num_rows($time_table_sql) == 0) {
@@ -200,6 +215,11 @@ error_reporting(0);
                 <?php
 
                 if (isset($_POST['Refresh'])) {
+                    if (!can('view', MENU_ID)) {
+                        echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                        exit;
+                    }       
                     $date = date('d-m-Y');
                     date_default_timezone_set("Asia/Kolkata");
                     $am_pm = strtoupper(date('a', $timestamp));

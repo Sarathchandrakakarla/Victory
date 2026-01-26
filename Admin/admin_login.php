@@ -11,23 +11,72 @@ if (isset($_POST['Login'])) {
     }
     $uname = validate($_POST['UserName']);
     $pass = validate($_POST['Password']);
-    $sql = "SELECT * FROM admin WHERE Admin_Id_No = '$uname'";
+    $sql = "SELECT a.Admin_Id_No, a.Admin_Hash, a.Role,r.Role_Name, r.Active_Flag
+            FROM admin a
+            JOIN roles r ON r.Role_Id = a.Role
+            WHERE a.Admin_Id_No = '$uname'";
     $result = mysqli_query($link, $sql);
     if (mysqli_num_rows($result) == 1) {
         $row = mysqli_fetch_assoc($result);
         $adm_id = $row['Admin_Id_No'];
         $adm_hash = $row['Admin_Hash'];
-        if (password_verify($pass, $adm_hash)) {
-            $_SESSION['Admin_Id_No'] = $adm_id;
-            $_SESSION['Role'] = $row['Role'];
-            header('Location: admin_dashboard.php');
-            exit;
-        } else {
+        if (!password_verify($pass, $row['Admin_Hash'])) {
             echo "<script>alert('Incorrect Password');
-                    </script>";
+            location.replace('/Victory/Admin/admin_login.php')
+            </script>";
+            exit;
         }
+
+        // 🔒 Role inactive → BLOCK LOGIN
+        if ((int)$row['Active_Flag'] !== 1) {
+            echo "<script>
+                alert('Your Role is Inactive. Contact Office Admin');
+                window.location.href = 'admin_login.php';
+            </script>";
+            exit;
+        }
+
+        // ✅ Secure session
+        session_regenerate_id(true);
+
+        $_SESSION['Admin_Id_No'] = $row['Admin_Id_No'];
+        $_SESSION['Role_Name'] = $row['Role_Name'];
+
+        // 🔐 Load RBAC permissions
+        $_SESSION['RBAC'] = [];
+
+        $roleId = (int)$row['Role'];
+
+        $permQuery = mysqli_query(
+            $link,
+            "SELECT menu_id,
+                    can_view, can_create, can_update,
+                    can_delete, can_print, can_export,
+                    can_custom1, can_custom2, can_custom3, can_custom4
+             FROM role_menu_map
+             WHERE Role_Id = $roleId"
+        );
+
+        while ($p = mysqli_fetch_assoc($permQuery)) {
+            $_SESSION['RBAC'][(int)$p['menu_id']] = [
+                'view'    => (int)$p['can_view'],
+                'create'  => (int)$p['can_create'],
+                'update'  => (int)$p['can_update'],
+                'delete'  => (int)$p['can_delete'],
+                'print'   => (int)$p['can_print'],
+                'export'  => (int)$p['can_export'],
+                'custom1' => (int)$p['can_custom1'],
+                'custom2' => (int)$p['can_custom2'],
+                'custom3' => (int)$p['can_custom3'],
+                'custom4' => (int)$p['can_custom4'],
+            ];
+        }
+
+        header('Location: admin_dashboard.php');
+        exit;
     } else {
         echo "<script>alert('Incorrect Username');
+                    location.replace('/Victory/Admin/admin_login.php')
                     </script>";
     }
 }

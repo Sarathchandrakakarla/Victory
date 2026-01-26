@@ -1,5 +1,6 @@
 <?php
 include '../../link.php';
+
 if (isset($_POST['route'])) {
     $route = $_POST['route'];
     $sql = mysqli_query($link, "SELECT Fee FROM `actual_fee` WHERE Route = '$route' AND Type = 'Vehicle Fee'");
@@ -14,7 +15,12 @@ if (isset($_POST['route'])) {
         }
     }
 }
+
 if (isset($_POST['Fee_Type'])) {
+    if (!can('delete', 64)) {
+        echo "permission";
+        exit;
+    }
     $fee_type = $_POST['Fee_Type'];
     $id_no = $_POST['Id_No'];
     $amount = $_POST['Amount'];

@@ -95,3 +95,40 @@ form .row input::placeholder {
 form .button input:hover {
   background: #12876f;
 }
+
+/* ===== RBAC Button Wrapper (stable & safe) ===== */
+
+/* Wrapper must behave like row content */
+.row.button .btn-wrapper {
+  display: block;
+  width: 100%;
+}
+
+/* Button must stay full width (prevents shrinking) */
+.row.button .btn-wrapper > .btn {
+  width: 100%;
+  background: #16a085;
+  color: white;
+  font-size: 18px;
+  height: 45px;
+}
+
+/* Disabled wrapper cursor */
+.row.button .btn-wrapper.rbac-disabled {
+  cursor: not-allowed;
+}
+
+/* Disabled button appearance */
+.row.button .btn-wrapper.rbac-disabled > .btn {
+  background: #bfbfbf !important;
+  border-color: #bfbfbf !important;
+  color: #eee !important;
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Disable hover effect */
+.row.button .btn-wrapper.rbac-disabled > .btn:hover {
+  background: #bfbfbf !important;
+}

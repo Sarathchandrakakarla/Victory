@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 76);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -69,6 +71,17 @@ error_reporting(0);
             display: block;
         }
     }
+
+    .tooltip-wrapper {
+        cursor: not-allowed;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .disabled {
+        opacity: 0.5;
+    }
 </style>
 
 <body class="bg-light">
@@ -102,9 +115,19 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" name="send" id="send" onclick="return false;">Send</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to send SMS"
+                        <?php } ?>>
+                        <button class="btn btn-success" name="send" id="send" onclick="return false;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Send</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -124,7 +147,30 @@ error_reporting(0);
                 <th>Name</th>
                 <th>Class</th>
                 <th>SMS Link</th>
-                <th>Action <span style="margin:5px;"></span><input type="checkbox" id="select_all" onclick="toggle(this)">Select All</th>
+                <th>
+                    <?php if (can('create', MENU_ID)) { ?>
+                        <input type="checkbox"
+                            class="form-check-input"
+                            id="select_all"
+                            onclick="toggle(this)">
+                        <label for="select_all">Select All</label>
+
+                    <?php } else { ?>
+                        <span class="tooltip-wrapper"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="You don't have permission to select all and send SMS">
+
+                            <input type="checkbox"
+                                class="form-check-input disabled"
+                                id="select_all"
+                                disabled>
+
+                            <label for="select_all">Select All</label>
+                        </span>
+
+                    <?php } ?>
+                </th>
             </thead>
             <tbody id="tbody">
                 <tr>
@@ -139,6 +185,11 @@ error_reporting(0);
                         return $date;
                     }
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $date = $_POST['Date'];
                         $att_by = $_POST['att_by'];
 
@@ -201,12 +252,32 @@ error_reporting(0);
                                         <td>' . $id . '</td>
                                         <td>' . $details[$id][0] . '</td>
                                         <td>' . $details[$id][2] . '</td>
-                                        <td>
-                                        <a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $details[$id][1] . '&message=' . $text . '&route=TRANS&TemplateID=1707162010221207287&format=JSON" class="sms_link">' . $details[$id][1] . '</a>
-                                        </td>
-                                        <td><input type="checkbox" class="student" id="student" name="student[' . $id . ']" value="' . $details[$id][1] . '">
-                                        </td>
-                                        </tr>';
+                                        <td>';
+                                        if (can('create', MENU_ID)) {
+                                            echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $details[$id][1] . '&message=' . $text . '&route=TRANS&TemplateID=1707162010221207287&format=JSON" class="sms_link">' . $details[$id][1] . '</a>';
+                                        } else {
+                                            echo '<a href="javascript:void(0)"
+                                                    class="text-secondary disabled"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="You don\'t have permission to send SMS">
+                                                    ' . $details[$id][1] . '
+                                                </a>';
+                                        }
+                                        echo '</td>
+                                            <td>';
+
+                                        if (can("create", MENU_ID)) {
+                                            echo '<input type="checkbox" class="form-check-input student" name="student[' . $id . ']" value="' . $details[$id][1] . '">';
+                                        } else {
+                                            echo '<span class="tooltip-wrapper" data-bs-toggle="tooltip" data-bs-placement="top" title="You don\'t have permission to select and send SMS">
+                                                    <input type="checkbox" class="form-check-input student disabled" disabled> 
+                                                </span>';
+                                        }
+
+                                        echo '</td>
+                                            </tr>';
+
                                         $i++;
                                     }
                                 }
@@ -225,6 +296,11 @@ error_reporting(0);
 
 
     <!-- Scripts -->
+
+    <!-- Global Const Variable for can_send -->
+    <script>
+        const CAN_SEND = <?= can('create', MENU_ID) ? 'true' : 'false' ?>;
+    </script>
 
     <!-- Checkbox Select All -->
     <script type="text/javascript">
@@ -270,6 +346,10 @@ error_reporting(0);
             response = await fetch(url);
         }
         $('#send').on('click', () => {
+            if (!CAN_SEND) {
+                alert("You do not have permission to Send SMS");
+                return;
+            }
             absentees = []
             $(".student:checked").each(function() {
                 absentees.push($(this).parent().siblings().eq(4).children().attr('href'));

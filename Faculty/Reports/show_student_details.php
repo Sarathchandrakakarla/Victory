@@ -1,12 +1,24 @@
 <?php
-session_start();
-if (!$_SESSION['Id_No']) {
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 111);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+if (!can('view', MENU_ID)) {
   echo "<script>
-  alert('Faculty Id Not Rendered');
-  location.replace('../faculty_login.php');
-  </script>
+  alert('You don\'t have permission to view student data');
+  location.replace('/Victory/Faculty/Reports/show_student_page.php');
   </script>";
 }
+if (!$_SESSION['Stu_Id_No']) {
+  echo "<script>
+  alert('Student Id Not Rendered');
+  location.replace('/Victory/Faculty/Reports/show_student_page.php');
+  </script>";
+}
+error_reporting(0);
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -105,6 +117,14 @@ if (!$_SESSION['Id_No']) {
         </tr>
         <tr>
           <th class="bg-secondary text-light">Aadhar Number</th>
+          <td colspan="5"><?php echo $_SESSION['Aadhar']; ?></td>
+        </tr>
+        <tr>
+          <th class="bg-secondary text-light">Mother Aadhar Number</th>
+          <td colspan="5"><?php echo $_SESSION['Aadhar']; ?></td>
+        </tr>
+        <tr>
+          <th class="bg-secondary text-light">Father Aadhar Number</th>
           <td colspan="5"><?php echo $_SESSION['Aadhar']; ?></td>
         </tr>
         <tr>

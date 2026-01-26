@@ -2,6 +2,10 @@
 include '../../link.php';
 
 if (isset($_POST['Date']) && isset($_POST['Type'])) {
+    if (!can('view', 69)) {
+        echo "permission";
+        exit;
+    }
     $date = $_POST['Date'];
     $type = $_POST['Type'];
     $d = explode('-', $date);
@@ -274,7 +278,12 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
         */
     }
 }
+
 if (isset($_POST['AC_No'])) {
+    if (!can('view', 70)) {
+        echo "permission";
+        exit;
+    }
     $ac = $_POST['AC_No'];
     $query1 = mysqli_query($link, "SELECT * FROM `debiter_master_data` WHERE AC_No = '$ac'");
     if (mysqli_num_rows($query1) == 0) {
@@ -292,7 +301,12 @@ if (isset($_POST['AC_No'])) {
         echo $txt;
     }
 }
+
 if (isset($_POST['Type'])) {
+    if (!can('delete', MENU_ID)) {
+        echo "permission";
+        exit;
+    }
     $type = $_POST['Type'];
     if ($type == "expenses") {
         $ac_no = $_POST['ac_No'];

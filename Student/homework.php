@@ -1,13 +1,13 @@
 <?php
-include '../link.php';
-session_start();
-if (!$_SESSION['Id_No']) {
-    echo "<script>
-  alert('Student Id Not Rendered');
-  location.replace('student_login.php');
-  </script>
-  </script>";
-}
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
+
+define('MENU_ID', 135);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -72,6 +72,12 @@ if (!$_SESSION['Id_No']) {
             </div>
             <div class="row justify-content-center mt-3">
                 <div class="col-lg-2">
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view your homeworks! Please Contact School Office"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-primary" name="Show" type="submit">Show</button>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                 </div>
@@ -99,6 +105,11 @@ if (!$_SESSION['Id_No']) {
                 }
                 echo "<script>date.value = '" . date('Y-m-d') . "';</script>";
                 if (isset($_POST['Show'])) {
+                    if (!can('view', MENU_ID)) {
+                        echo "<script>alert('You don\'t have permission to view your homeworks! Please Contact School Office');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                        exit;
+                    }
                     $date = $_POST['Date'];
                     echo "<script>date.value = '" . $date . "';</script>";
                     $date = format_date($date);

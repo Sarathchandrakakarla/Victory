@@ -1,13 +1,12 @@
 <?php
-include '../../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('admin_login.php');
-  </script>
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 85);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 <!DOCTYPE html>
@@ -104,28 +103,44 @@ error_reporting(0);
                 </div>
             </div>
         </div>
+        <?php $canCreate = can('create', MENU_ID); ?>
         <div class="container img-container">
             <div class="row img-row justify-content-center mt-5">
                 <div class="col-lg-2">
-                    <i class="bx bx-file"></i>
-                    <p>
-                        <input type="file" class="btn btn-warning" class="file" name="excel" required>
-                    </p>
+                    <div class="btn-wrapper <?= !$canCreate ? 'disabled-wrapper' : '' ?>"
+                        <?= !$canCreate ? 'title="You don\'t have permission to upload files"' : '' ?>>
+                        <i class="bx bx-file"></i>
+                        <p>
+                            <input type="file"
+                                class="btn btn-warning"
+                                name="excel"
+                                <?= !$canCreate ? 'disabled' : '' ?>
+                                <?= $canCreate ? 'required' : '' ?>>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="container btn-container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-2">
-                    <button class="btn btn-primary upload" type="submit" name="upload">
-                        <i class="bx bx-upload"></i>
-                        Upload</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert into this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary upload" type="submit" name="upload" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>><i class="bx bx-upload"></i>Upload</button>
+                    </div>
                 </div>
             </div>
         </div>
     </form>
     <?php
     if (isset($_POST['upload'])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to upload students credentials data');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         //Excel Reader
         $fileName = $_FILES["excel"]["name"];
         $fileExtension = explode('.', $fileName);

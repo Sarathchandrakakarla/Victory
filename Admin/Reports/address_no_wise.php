@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 8);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 <!DOCTYPE html>
@@ -94,16 +96,41 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-5">
-                    <button class="btn btn-primary" type="submit" name="add">Insert</button>
-                    <button class="btn btn-primary" type="submit" onclick="if(!confirm('Confirm to Delete All Previous Records?')){return false;}else{return true;}" name="delete_all">Delete All</button>
-                    <button class="btn btn-primary" type="submit" name="show">Show Previous</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert into this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="add" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Insert</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('delete', MENU_ID)) { ?>
+                        title="You don't have permission to delete this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" onclick="if(!confirm('Confirm to Delete All Previous Records?')){return false;}else{return true;}" name="delete_all" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>>Delete All</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show Previous</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                 </div>
             </div>
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -138,6 +165,11 @@ error_reporting(0);
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $photo = $_POST['Photo'];
                         if ($photo == 'With_Photo') {
                             echo "<script>
@@ -157,27 +189,33 @@ error_reporting(0);
                         } else {
                             while ($main_row = mysqli_fetch_assoc($main_query)) {
                                 echo '<tr>
-                    <td>' . $i . '</td>
-                    <td>' . $main_row['Id_No'] . '</td>
-                    <td>' . $main_row['First_Name'] . '</td>
-                    <td>' . $main_row['Sur_Name'] . '</td>
-                    <td>' . $main_row['Father_Name'] . '</td>
-                    <td>' . $main_row['Gender'] . '</td>
-                    <td>' . $main_row['Class'] . ' ' . $main_row['Section'] . '</td>
-                    <td>' . $main_row['House_No'] . '</td>
-                    <td>' . $main_row['Area'] . '</td>
-                    <td>' . $main_row['Village'] . '</td>
-                    <td>' . $main_row['Mobile'] . '</td>';
+                                        <td>' . $i . '</td>
+                                        <td>' . $main_row['Id_No'] . '</td>
+                                        <td>' . $main_row['First_Name'] . '</td>
+                                        <td>' . $main_row['Sur_Name'] . '</td>
+                                        <td>' . $main_row['Father_Name'] . '</td>
+                                        <td>' . $main_row['Gender'] . '</td>
+                                        <td>' . $main_row['Class'] . ' ' . $main_row['Section'] . '</td>
+                                        <td>' . $main_row['House_No'] . '</td>
+                                        <td>' . $main_row['Area'] . '</td>
+                                        <td>' . $main_row['Village'] . '</td>
+                                        <td>' . $main_row['Mobile'] . '</td>';
                                 if ($photo == 'With_Photo') {
                                     echo '<td><img src="../../Images/stu_img/' . $main_row['Id_No'] . '.jpg"  class="rounded" width="100px" height="100px"/></td>';
                                 }
                                 echo '<td><i class="bx bx-trash delete"></i></td>
-                    </tr>';
+                                    </tr>';
                                 $i++;
                             }
                         }
                     }
+
                     if (isset($_POST['add'])) {
+                        if (!can('create', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to insert into this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $photo = $_POST['Photo'];
                         if ($photo == 'With_Photo') {
                             echo "<script>
@@ -255,6 +293,11 @@ error_reporting(0);
     <?php
 
     if (isset($_POST['delete_all'])) {
+        if (!can('delete', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to delete this report');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $sql = mysqli_query($link, "TRUNCATE TABLE `address_temp`");
         if ($sql) {
             echo "<script>alert('Previous Records Deleted Successfully!!')</script>";
@@ -313,6 +356,7 @@ error_reporting(0);
             }
         });
     </script>
+    
     <!-- delete row -->
     <script type="text/javascript">
         $(".delete").click(function() {

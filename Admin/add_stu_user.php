@@ -1,15 +1,14 @@
 <?php
-include '../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('admin_login.php');
-  </script>
-  </script>";
-}
-?>
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
 
+define('MENU_ID', 97);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -109,13 +108,49 @@ if (!$_SESSION['Admin_Id_No']) {
                     <input type="password" placeholder="Confirm Password" id="c_password" name="C_Password" required>
                 </div>
                 <div class="row button">
-                    <button type="submit" class="btn" style="background: #16a085;color:white;" name="Add" id="add" onclick="if(!confirm('Confirm to Add New User?')){return false;}else{return true;}">Add User</button>
+                    <div class="btn-wrapper <?php echo !can('create', MENU_ID) ? 'rbac-disabled' : ''; ?>"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to add admin user"
+                        <?php } ?>>
+                        <button type="submit"
+                            class="btn"
+                            name="Add"
+                            id="add"
+                            onclick="return confirm('Confirm to Add New Admin?')"
+                            <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>
+                            Add User
+                        </button>
+                    </div>
                 </div>
                 <div class="row button">
-                    <button type="submit" class="btn" style="background: #16a085;color:white;" name="Update" id="update" onclick="if(!confirm('Confirm to Update User?')){return false;}else{return true;}">Update User</button>
+                    <div class="btn-wrapper <?php echo !can('update', MENU_ID) ? 'rbac-disabled' : ''; ?>"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update admin user"
+                        <?php } ?>>
+                        <button type="submit"
+                            class="btn"
+                            name="Update"
+                            id="update"
+                            onclick="return confirm('Confirm to Update Admin User?')"
+                            <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>
+                            Update User
+                        </button>
+                    </div>
                 </div>
                 <div class="row button">
-                    <button type="submit" class="btn" style="background: #16a085;color:white;" name="Delete" id="delete" onclick="if(!confirm('Confirm to Delete User?')){return false;}else{return true;}">Delete User</button>
+                    <div class="btn-wrapper <?php echo !can('delete', MENU_ID) ? 'rbac-disabled' : ''; ?>"
+                        <?php if (!can('delete', MENU_ID)) { ?>
+                        title="You don't have permission to delete admin user"
+                        <?php } ?>>
+                        <button type="submit"
+                            class="btn"
+                            name="Delete"
+                            id="delete"
+                            onclick="return confirm('Confirm to Delete Admin User?')"
+                            <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>>
+                            Delete User
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -129,6 +164,11 @@ if (!$_SESSION['Admin_Id_No']) {
         return $data;
     }
     if (isset($_POST['Add'])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to insert student/faculty user');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $uid = validate($_POST['Username']);
         $name = validate($_POST['Full_Name']);
         $password = validate($_POST['Password']);
@@ -220,6 +260,11 @@ if (!$_SESSION['Admin_Id_No']) {
     }
 
     if (isset($_POST['Update'])) {
+        if (!can('update', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to update student/faculty user');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $uid = validate($_POST['Username']);
         $name = validate($_POST['Full_Name']);
         $password = validate($_POST['Password']);
@@ -317,6 +362,11 @@ if (!$_SESSION['Admin_Id_No']) {
     }
 
     if (isset($_POST['Delete'])) {
+        if (!can('delete', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to delete student/faculty user');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $type = strtolower($_POST['User']);
         $uid = validate($_POST['Username']);
 

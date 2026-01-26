@@ -1,11 +1,13 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
-//error_reporting(0);
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 29);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 
 <!DOCTYPE html>
@@ -116,6 +118,11 @@ if (!$_SESSION['Admin_Id_No']) {
                 <tr>
                     <?php
                     if (isset($_GET['Action']) && $_GET['Action'] == "show") {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $date = $_GET['Date'];
                         $class = $_GET['Class'];
                         $section = $_GET['Section'];

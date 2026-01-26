@@ -98,7 +98,7 @@ if (isset($_POST['Video_Id'])) {
     }
 }
 
-if ($_POST['Group']) {
+if (isset($_POST['Group'])) {
     $group = $_POST['Group'];
     $s = "DELETE FROM `topics` WHERE Topic = '$group'";
     $res = mysqli_query($link, $s);

@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 83);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -126,7 +128,12 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" name="show">Download</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Download</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                 </div>
             </div>
@@ -141,6 +148,11 @@ error_reporting(0);
     </div>
     <?php
     if (isset($_POST['show'])) {
+        if (!can('view', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to view this report');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $final_flag = false;
         $file_name = "phone_numbers";
         echo "<script>document.getElementById('" . strtolower($_POST['data_type']) . "').checked=true;</script>";
@@ -248,23 +260,6 @@ error_reporting(0);
                         section_row.hidden = 'hidden';
                     }
                     break;
-            }
-        });
-    </script>
-
-    <!-- Checkbox Select All -->
-    <script type="text/javascript">
-        function toggle(source) {
-            checkboxes = document.getElementsByClassName('student');
-            for (var i = 0, n = checkboxes.length; i < n; i++) {
-                checkboxes[i].checked = source.checked;
-            }
-        }
-        $('.student').on('click', function() {
-            if ($('.student').not(':checked').length == 0) {
-                document.getElementById('select_all').checked = true;
-            } else {
-                document.getElementById('select_all').checked = false;
             }
         });
     </script>

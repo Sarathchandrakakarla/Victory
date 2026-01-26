@@ -112,9 +112,20 @@ form .button input {
   background: linear-gradient(135deg, #71b7e6, #9b59b6);
 }
 
-form .button input:hover {
-  /* transform: scale(0.99); */
+/* Hover ONLY when enabled */
+form .button input:not(:disabled):hover {
   background: linear-gradient(-135deg, #71b7e6, #9b59b6);
+}
+
+/* 🔒 Disabled state */
+form .button input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: linear-gradient(135deg, #b5b5b5, #8e8e8e);
+}
+
+.btn-wrapper {
+  display: contents;
 }
 
 @media (max-width: 584px) {

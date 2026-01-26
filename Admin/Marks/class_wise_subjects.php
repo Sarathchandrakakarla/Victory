@@ -1,10 +1,13 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 17);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -97,6 +100,12 @@ if (!$_SESSION['Admin_Id_No']) {
             display: block;
         }
     }
+
+    .disabled-icon {
+        color: grey !important;
+        cursor: not-allowed !important;
+        pointer-events: none;
+    }
 </style>
 
 <body class="bg-light">
@@ -113,14 +122,24 @@ if (!$_SESSION['Admin_Id_No']) {
                     <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;"> <i class="bx bx-plus" id="plus-icon"></i> </button>
                 </div>
                 <div class="col-lg-3">
-                    <input type="text" class="form-control" id="new_sub" name="New_Subject" placeholder="Enter Subject Name" value="<?php if (isset($exam)) {
-                                                                                                                                        echo $exam;
-                                                                                                                                    } else {
-                                                                                                                                        echo '';
-                                                                                                                                    } ?>" style="opacity: 0;">
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert into this report"
+                        <?php } ?>>
+                        <input type="text" class="form-control" id="new_sub" name="New_Subject" placeholder="Enter Subject Name" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?> value="<?php if (isset($exam)) {
+                                                                                                                                                                                                        echo $exam;
+                                                                                                                                                                                                    } else {
+                                                                                                                                                                                                        echo '';
+                                                                                                                                                                                                    } ?>" style="opacity: 0;">
+                    </div>
                 </div>
                 <div class="col-lg-1">
-                    <button class="btn btn-warning" type="submit" name="insert" id="add-btn" onclick="return false;" style="opacity: 0;">Insert</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert into this report"
+                        <?php } ?>>
+                        <button class="btn btn-warning" type="submit" name="insert" id="add-btn" onclick="return false;" style="opacity: 0;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Insert</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -188,9 +207,19 @@ if (!$_SESSION['Admin_Id_No']) {
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" id="add" onclick="insert();return false;" name="add">ADD</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert into this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="button" id="add" onclick="insert_row();return false;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?> name="add">ADD</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -217,6 +246,11 @@ if (!$_SESSION['Admin_Id_No']) {
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         if ($_POST['Class']) {
                             $class = $_POST['Class'];
                             if ($_POST['Exam']) {
@@ -226,6 +260,9 @@ if (!$_SESSION['Admin_Id_No']) {
                                     echo "<script>$('#table-head').append('<th>Action</th>')</script>";
                                     $i = 1;
                                     while ($row = mysqli_fetch_assoc($sql)) {
+                                        $canDelete = can('delete', MENU_ID);
+                                        $canUpdate = can('update', MENU_ID);
+
                                         echo '
                                         <tr>
                                             <td>' . $i . '</td>
@@ -233,8 +270,23 @@ if (!$_SESSION['Admin_Id_No']) {
                                             <td>' . $row['Exam'] . '</td>
                                             <td>' . $row['Subjects'] . '</td>
                                             <td>' . $row['Max_Marks'] . '</td>
-                                            <td><i class="bx bx-trash delete"></i><i class="bx bx-edit modify"></i></td>
-                                        </tr>';
+                                            <td>';
+
+                                        // DELETE ICON
+                                        echo '<span class="btn-wrapper" style="cursor:' . (!$canDelete ? 'not-allowed' : 'pointer') . '" ' .
+                                            (!$canDelete ? 'title="You don\'t have permission to delete"' : '') . '>
+                                            <i class="bx bx-trash delete ' . (!$canDelete ? 'disabled-icon' : '') . '"
+                                                data-allowed="' . ($canDelete ? '1' : '0') . '"></i>
+                                            </span>';
+
+                                        // MODIFY ICON
+                                        echo '<span class="btn-wrapper ms-2" style="cursor:' . (!$canUpdate ? 'not-allowed' : 'pointer') . '" ' .
+                                            (!$canUpdate ? 'title="You don\'t have permission to modify"' : '') . '>
+                                            <i class="bx bx-edit modify ' . (!$canUpdate ? 'disabled-icon' : '') . '"
+                                            data-allowed="' . ($canUpdate ? '1' : '0') . '"></i>
+                                        </span>';
+
+                                        echo '</td></tr>';
                                         $i++;
                                     }
                                 }
@@ -272,7 +324,8 @@ if (!$_SESSION['Admin_Id_No']) {
     </script>
     <!-- Insert Row -->
     <script type="text/javascript">
-        function insert() {
+        function insert_row() {
+            event.preventDefault()
             if ($('#class').val() == null) {
                 alert('Please Select Class!');
             } else {
@@ -310,6 +363,9 @@ if (!$_SESSION['Admin_Id_No']) {
                                         alert("Class and Examination and Subject is Already Added!")
                                     } else if (data == "failed") {
                                         alert("Subject Insertion Failed!")
+                                    } else if (data == "permission") {
+                                        alert('You don\'t have permission to insert into this report');
+                                        location.replace('/Victory/Admin/Marks/class_wise_subjects.php');
                                     } else {
                                         alert("Subject Added Successfully!")
                                         document.getElementById('tbody').innerHTML = data;
@@ -322,12 +378,18 @@ if (!$_SESSION['Admin_Id_No']) {
             }
         }
         $('#add-btn').on('click', function() {
-            insert();
+            if ($(this).hasClass('disabled-icon')) {
+                return false;
+            }
+            insert_row()
         });
     </script>
     <!-- Modify Row -->
     <script type="text/javascript">
         $(".modify").click(function() {
+            if ($(this).hasClass('disabled-icon')) {
+                return false;
+            }
             cls = $(this).parent().siblings().eq(1).text();
             exm = $(this).parent().siblings().eq(2).text();
             sub = $(this).parent().siblings().eq(3).text();
@@ -384,6 +446,9 @@ if (!$_SESSION['Admin_Id_No']) {
     <!-- Delete Row -->
     <script type="text/javascript">
         $(".delete").click(function() {
+            if ($(this).hasClass('disabled-icon')) {
+                return false;
+            }
             cls = $(this).parent().siblings().eq(1).text();
             exm = $(this).parent().siblings().eq(2).text();
             sub = $(this).parent().siblings().eq(3).text();

@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Id_No']) {
-  echo "<script>alert('Faculty Id Not Rendered');
-    location.replace('../faculty_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 112);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -104,12 +106,28 @@ error_reporting(0);
     <div class="container">
       <div class="row justify-content-center mt-4">
         <div class="col-lg-4">
-          <button class="btn btn-primary" type="submit" name="show">Show</button>
+          <div class="btn-wrapper"
+            <?php if (!can('view', MENU_ID)) { ?>
+            title="You don't have permission to view this report"
+            <?php } ?>>
+            <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+          </div>
           <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-          <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-          <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+          <div class="btn-wrapper"
+            <?php if (!can('print', MENU_ID)) { ?>
+            title="You don't have permission to print this report"
+            <?php } ?>>
+            <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+          </div>
+          <div class="btn-wrapper"
+            <?php if (!can('export', MENU_ID)) { ?>
+            title="You don't have permission to export this report"
+            <?php } ?>>
+            <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+          </div>
         </div>
       </div>
+    </div>
     </div>
   </form>
   <div class="container">
@@ -145,6 +163,11 @@ error_reporting(0);
         <tr>
           <?php
           if (isset($_POST['show'])) {
+            if (!can('view', MENU_ID)) {
+              echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+              exit;
+            }
             if ($_POST['Class']) {
               $class = $_POST['Class'];
               echo "<script>document.getElementById('class').value = '" . $class . "'</script>";

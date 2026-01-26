@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 18);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 <!DOCTYPE html>
@@ -114,7 +116,12 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" name="ok">OK</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="ok" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>OK</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                 </div>
             </div>
@@ -141,6 +148,11 @@ error_reporting(0);
                     <th>Section</th>
                     <?php
                     if (isset($_POST['ok'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         if ($_POST['Class']) {
                             $class = $_POST['Class'];
                             echo "<script>document.getElementById('class').value='$class'</script>";
@@ -177,12 +189,12 @@ error_reporting(0);
                                         $k = 1;
                                         while ($row = mysqli_fetch_assoc($result)) {
                                             echo '<tr>
-                                        <td>' . $k . '</td>
-                                        <td>' . $row['Id_No'] . '</td>
-                                        <td>' . $row['First_Name'] . '</td>
-                                        <td>' . $exam . '</td>
-                                        <td>' . $row['Stu_Class'] . '</td>
-                                        <td>' . $row['Stu_Section'] . '</td>';
+                                            <td>' . $k . '</td>
+                                            <td>' . $row['Id_No'] . '</td>
+                                            <td>' . $row['First_Name'] . '</td>
+                                            <td>' . $exam . '</td>
+                                            <td>' . $row['Stu_Class'] . '</td>
+                                            <td>' . $row['Stu_Section'] . '</td>';
                                             $result1 = mysqli_query($link, "SELECT * FROM `class_wise_subjects` WHERE Class = '$class' AND Exam = '$exam'");
                                             $j = 0;
                                             $sub_count = 1;
@@ -190,7 +202,7 @@ error_reporting(0);
                                                 $res = mysqli_query($link, "SELECT * FROM `stu_marks` WHERE Id_No = '" . $row['Id_No'] . "' AND Exam = '" . $exam . "'");
                                                 $row2 = mysqli_fetch_assoc($res);
                                                 echo '
-                                            <td><input type="text" class="form-control mark" value="' . $row2["sub" . $sub_count] . '" name="mark[]" onfocus="this.select();" id="markinp" style="width:50px;"></td>';
+                                            <td><input type="text" class="form-control mark" value="' . $row2["sub" . $sub_count] . '" name="mark[]" onfocus="this.select();" id="markinp" style="width:50px;" ' . (!can('create', MENU_ID) ? 'disabled' : '') . '></td>';
                                                 $sub_count++;
                                                 $j++;
                                             }
@@ -216,13 +228,23 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" name="add" onclick="if(!confirm('Confirm to Upload Marks?'))return false; else return true;">Upload Marks</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert into this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="add" onclick="if(!confirm('Confirm to Upload Marks?'))return false; else return true;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Upload Marks</button>
+                    </div>
                 </div>
             </div>
         </div>
     </form>
     <?php
     if (isset($_POST['add'])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to insert into this report');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         //Varibles
         $cls = $_SESSION['exm_Class'];
         $sec = $_SESSION['exm_Section'];
@@ -440,7 +462,7 @@ error_reporting(0);
             })
         }
     </script>
-    
+
     <script>
         // JavaScript code to handle down arrow key navigation
         document.addEventListener("keydown", function(event) {

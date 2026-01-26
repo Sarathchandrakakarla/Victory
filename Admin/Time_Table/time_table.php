@@ -1,12 +1,18 @@
 <?php
-include '../../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>";
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 42);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+if (!can('view', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to view this report');
+        location.replace('/Victory/Admin/admin_dashboard.php')</script>";
+    exit;
 }
+
 error_reporting(0);
 ?>
 
@@ -73,9 +79,24 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-4">
-                    <button class="btn btn-success" onclick="printDiv();return false;"><i class="bx bx-printer"></i>Print</button>
-                    <button class="btn btn-primary" name="Refresh"><i class="bx bx-refresh"></i>Refresh</button>
-                    <button class="btn btn-primary" name="Reset"><i class="bx bx-reset"></i>Reset Time Table</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>><i class="bx bx-printer"></i>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" name="Refresh" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>><i class="bx bx-refresh"></i>Refresh</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('delete', MENU_ID)) { ?>
+                        title="You don't have permission to reset this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" name="Reset" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>><i class="bx bx-reset"></i>Reset Time Table</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -84,11 +105,26 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary edit" onclick="edit();return false;"><i class="bx bx-edit"></i>Edit</button>
-                    <button class="btn btn-primary save" name="Save" onclick="return false;" disabled><i class="bx bx-save"></i>Save</button>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#emplist">
-                        Employee List
-                    </button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update time table"
+                        <?php } ?>>
+                        <button class="btn btn-primary edit" onclick="edit(<?= !can('update', MENU_ID) ? 'false' : 'true' ?>);return false;" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>><i class="bx bx-edit"></i>Edit</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update time table"
+                        <?php } ?>>
+                        <button class="btn btn-primary save <?= !can('update', MENU_ID) ? 'save-disabled' : '' ?>" name="Save" onclick="return false;" disabled><i class="bx bx-save"></i>Save</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', 53)) { ?>
+                        title="You don't have permission to view employee list"
+                        <?php } ?>>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#emplist" <?php echo !can('view', 53) ? 'disabled' : ''; ?>>
+                            Employee List
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -127,8 +163,8 @@ error_reporting(0);
                     foreach (array_keys($final_classes) as $class) {
                         foreach ($final_classes[$class] as $section) {
                             echo "
-                <tr>
-                    <td style='text-align:center;border-left: 2px solid black;border-right: 2px solid black;border-bottom: 2px solid black;'>" . $class . " " . $section . "</td>";
+                            <tr>
+                            <td style='text-align:center;border-left: 2px solid black;border-right: 2px solid black;border-bottom: 2px solid black;'>" . $class . " " . $section . "</td>";
                             $time_table_sql = mysqli_query($link, "SELECT * FROM `time_table` WHERE Class = '$class' AND Section = '$section'");
                             if ($time_table_sql) {
                                 if (mysqli_num_rows($time_table_sql) == 0) {
@@ -245,6 +281,11 @@ error_reporting(0);
                     <?php
 
                     if (isset($_POST['Refresh'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $date = date('d-m-Y');
                         date_default_timezone_set("Asia/Kolkata");
                         $am_pm = strtoupper(date('a', $timestamp));
@@ -270,6 +311,11 @@ error_reporting(0);
 
                     <?php
                     if (isset($_POST['Reset'])) {
+                        if (!can('delete', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to reset this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $reset_query = mysqli_query($link, "TRUNCATE TABLE `time_table_temp`");
                         if ($reset_query) {
                             echo "<script>alert('Time Table Reset Succesful! Refresh to get Updated Data! ')</script>";
@@ -300,17 +346,25 @@ error_reporting(0);
                         </thead>
                         <tbody>
                             <?php
-                            $query4 = mysqli_query($link, "SELECT * FROM `employee_master_data` WHERE Status = 'Working' ORDER BY Emp_Id");
-                            $i = 1;
-                            while ($row4 = mysqli_fetch_assoc($query4)) {
-                                echo "
+                            if (can('view', 53)) {
+                                $query4 = mysqli_query($link, "SELECT * FROM `employee_master_data` WHERE Status = 'Working' ORDER BY Emp_Id");
+                                $i = 1;
+                                while ($row4 = mysqli_fetch_assoc($query4)) {
+                                    echo "
                                 <tr>
                                     <td class='border border-dark'>" . $i . "</td>
                                     <td class='border border-dark'>" . $row4['Emp_Id'] . "</td>
                                     <td class='border border-dark'>" . $row4['Emp_First_Name'] . "</td>
                                 </tr>
                                 ";
-                                $i++;
+                                    $i++;
+                                }
+                            } else {
+                                echo "
+                                <tr>
+                                    <td class='border border-dark text-center' colspan='3'>You don't have permission to view employee list</td>
+                                </tr>
+                                ";
                             }
                             ?>
                         </tbody>
@@ -392,6 +446,7 @@ error_reporting(0);
                 }
 
                 $i = 1;
+                $can_allocate = can('custom1', MENU_ID);
                 foreach (array_keys($leisure_faculties) as $id) {
                     $query2 = mysqli_query($link, "SELECT Emp_First_Name FROM `employee_master_data` WHERE Emp_Id = '$id'");
                     if (mysqli_num_rows($query2) > 0) {
@@ -405,7 +460,7 @@ error_reporting(0);
                                 <td>' . $row2['Emp_First_Name'] . '</td>
                                 <td>' . $period . '</td>
                                 <td>
-                                    <input type="checkbox" id="allocate_' . $id . '_' . $period . '" onclick = "disp_class(this)" />
+                                    <input type="checkbox" id="allocate_' . $id . '_' . $period . '"  onclick = "disp_class(this)" ' . (!$can_allocate ? 'disabled' : '') . ' />
                                     <label for="allocate_' . $id . '_' . $period . '">Allocate</label>
                                 </td>
                             </tr>
@@ -437,7 +492,7 @@ error_reporting(0);
                                 <td>' . $row3['Emp_First_Name'] . '</td>
                                 <td>Any</td>
                                 <td>
-                                    <input type="checkbox" class="any" id="allocate_' . $id . '_' . $period . '" onclick = "disp_class(this)" />
+                                    <input type="checkbox" class="any" id="allocate_' . $id . '_' . $period . '" onclick = "disp_class(this)" ' . (!$can_allocate ? 'disabled' : '') . '/>
                                     <label for="allocate_' . $id . '_' . $period . '">Allocate</label>
                                 </td>
                             </tr>
@@ -455,9 +510,30 @@ error_reporting(0);
 
     <!-- Scripts -->
 
+    <!-- Global Const Variables for can_update,can_allocate -->
+    <script>
+        const CAN_UPDATE_MAIN = <?= can('update', MENU_ID) ? 'true' : 'false' ?>;
+        const CAN_ALLOCATE = <?= can('custom1', MENU_ID) ? 'true' : 'false' ?>;
+    </script>
+
     <!-- Display Classes -->
     <script type="text/javascript">
         function disp_class(ele) {
+            // 🚨 RBAC HARD STOP
+            if (!CAN_ALLOCATE) {
+                ele.checked = false;
+
+                // Prevent duplicate alerts
+                if (!ele.dataset.blocked) {
+                    alert("You do not have permission to allocate faculty.");
+                    ele.dataset.blocked = "1";
+                }
+
+                return false;
+            }
+
+            // Clear block flag when allowed
+            delete ele.dataset.blocked;
             if (ele.checked) {
                 let absent_classes = []
                 let absent_sections = []
@@ -503,103 +579,178 @@ error_reporting(0);
     <!-- Allocate -->
     <script type="text/javascript">
         function allocate(ele) {
-            cls = $(ele).parent().children().eq(2).val()
-            if (cls == null) {
-                alert("Please Select Class!")
-            } else {
-                sec = $(ele).parent().children().eq(3).val()
-                if (sec == null) {
-                    alert("Please Select Section!")
-                } else {
-                    period = $(ele).parent().siblings().eq(3).text()
-                    if (period == "Any") {
-                        period = $(ele).parent().children().eq(4).val()
-                    }
-                    fac_id = $(ele).parent().siblings().eq(1).text()
-                    period_num = period.charAt(period.length - 1);
-                    if (!document.getElementById(cls + '_' + sec + '_period_' + period_num).classList.contains('absent')) {
-                        alert('Given Period is Already Allocated!')
-                    } else {
-                        $.ajax({
-                            type: 'post',
-                            url: 'temp1.php',
-                            data: {
-                                Class: cls,
-                                Section: sec,
-                                Period: period,
-                                Faculty: fac_id
-                            },
-                            success: function(data) {
-                                console.log(data)
-                                if (data == "success") {
-                                    alert('Faculty Allocated Successfully!Please Refresh to get Latest Data')
-                                } else if (data == "failure") {
-                                    alert('Faculty Allocation Failed!')
-                                } else {
-                                    alert('Internal Error!')
-                                }
-                            }
-                        })
-                    }
+
+            if (!CAN_ALLOCATE) {
+                alert("You do not have permission to allocate faculty.");
+                return;
+            }
+
+            let cls = $(ele).parent().children().eq(2).val();
+            if (!cls) {
+                alert("Please Select Class!");
+                return;
+            }
+
+            let sec = $(ele).parent().children().eq(3).val();
+            if (!sec) {
+                alert("Please Select Section!");
+                return;
+            }
+
+            let period = $(ele).parent().siblings().eq(3).text().trim();
+
+            if (period === "Any") {
+                period = $(ele).parent().children().eq(4).val();
+                if (!period) {
+                    alert("Please Select Period!");
+                    return;
                 }
             }
+
+            let fac_id = $(ele).parent().siblings().eq(1).text().trim();
+            let period_num = period.replace('Period', '');
+
+            let cellId = `${cls}_${sec}_period_${period_num}`;
+            let cell = document.getElementById(cellId);
+
+            if (!cell) {
+                alert("Invalid period selection!");
+                return;
+            }
+
+            if (!cell.classList.contains('absent')) {
+                alert('Given Period is Already Allocated!');
+                return;
+            }
+
+            // ✅ UI UPDATE (CRITICAL)
+            cell.innerHTML = fac_id;
+            cell.classList.remove('absent');
+            cell.classList.add('allocated');
+            cell.style.backgroundColor = 'blue';
+            cell.style.color = 'black';
+            cell.style.fontWeight = 'bold';
+
+            alert('Faculty allocated temporarily. Click Save to persist changes.');
         }
     </script>
 
     <!-- Edit -->
     <script type="text/javascript">
-        function edit() {
-            var periodList = document.querySelectorAll('.period');
-            periodList.forEach((period) => {
-                $(period).attr('contenteditable', 'true');
-            });
-            $('.save').prop('disabled', false);
+        function edit(canUpdate) {
+            if (canUpdate) {
+                var periodList = document.querySelectorAll('.period');
+                periodList.forEach((period) => {
+                    $(period).attr('contenteditable', 'true');
+                });
+                $('.save').prop('disabled', !canUpdate);
+            }
         }
     </script>
 
     <!-- Save -->
     <script type="text/javascript">
         $('.save').on('click', () => {
-            classes = ['PreKG', 'LKG', 'UKG'];
-            for (i = 1; i <= 10; i++) {
-                classes.push(i + ' CLASS')
+
+            if ($('.save').hasClass('save-disabled')) {
+                alert("You don't have permission to update time table");
+                return;
             }
-            sections = ['A', 'B', 'C', 'D'];
-            text = ""
-            allocated_text = ""
+
+            let classes = ['PreKG', 'LKG', 'UKG'];
+            for (let i = 1; i <= 10; i++) {
+                classes.push(i + ' CLASS');
+            }
+
+            let sections = ['A', 'B', 'C', 'D'];
+            let text = "";
+            let allocated_text = "";
+
             classes.forEach((cls) => {
                 sections.forEach((section) => {
-                    for (period = 1; period <= 8; period++) {
-                        let elm = document.getElementById(cls + '_' + section + '_period_' + period)
-                        if (JSON.stringify(elm) == "null") {
-                            continue
+                    for (let period = 1; period <= 8; period++) {
+
+                        let elm = document.getElementById(`${cls}_${section}_period_${period}`);
+                        if (!elm) continue;
+
+                        let value = elm.innerHTML.replace(/&nbsp;/g, '').trim();
+                        if (value === "") continue;
+
+                        if (elm.classList.contains('allocated')) {
+                            if (CAN_ALLOCATE) {
+                                allocated_text += `${cls}_${section}_period_${period}=${value}&`;
+                            }
                         } else {
-                            if (elm.classList.contains('allocated')) {
-                                allocated_text += cls + '_' + section + '_period_' + period + '=' + document.getElementById(cls + '_' + section + '_period_' + period).innerHTML + '&'
-                            } else {
-                                text += cls + '_' + section + '_period_' + period + '=' + document.getElementById(cls + '_' + section + '_period_' + period).innerHTML + '&'
+                            if (CAN_UPDATE_MAIN) {
+                                text += `${cls}_${section}_period_${period}=${value}&`;
                             }
                         }
                     }
                 });
             });
+            let payload = {};
+
+            if (CAN_UPDATE_MAIN && text !== "") {
+                payload.Time_Table = text;
+            }
+
+            if (CAN_ALLOCATE && allocated_text !== "") {
+                payload.Allocated = allocated_text;
+            }
+
+            if (Object.keys(payload).length === 0) {
+                alert("You don't have permission to save any changes.");
+                return;
+            }
+
+
             $.ajax({
                 type: 'post',
                 url: 'temp.php',
-                data: {
-                    Time_Table: text,
-                    Allocated: allocated_text
-                },
+                data: payload,
                 success: function(data) {
-                    console.log(data)
-                    if (data == "success") {
-                        alert('Time Table Updated Successfully!')
-                    } else if (data == "failure") {
-                        alert('Time Table Updation Failed!')
-                    } else {
-                        alert('Internal Error!')
+                    console.log(data);
+
+                    // Normalize response
+                    let parts = data.split(',').filter(v => v.trim() !== '');
+
+                    // 🔐 Permission handling
+                    // 🔐 Permission handling (separate)
+                    if (parts.includes('permission_update') && parts.includes('permission_allocate')) {
+                        alert("You don't have permission to update the timetable or allocate faculty.");
+                        return;
                     }
+
+                    if (parts.includes('permission_update')) {
+                        alert("You don't have permission to update the timetable.");
+                        return;
+                    }
+
+                    if (parts.includes('permission_allocate')) {
+                        alert("You don't have permission to allocate faculty.");
+                        return;
+                    }
+
+                    // ❌ Operation failure (SQL / logic)
+                    if (parts.includes('failure')) {
+                        alert('Time Table Updation Failed!');
+                        return;
+                    }
+
+                    // ✅ Success handling
+                    if (parts.includes('success')) {
+                        if (parts.length > 1) {
+                            alert('Time Table and Allocations Updated Successfully!');
+                        } else {
+                            alert('Time Table Updated Successfully!');
+                        }
+                        return;
+                    }
+
+                    // 🟡 Fallback
+                    alert('Internal Error!');
                 }
+
             });
         });
     </script>

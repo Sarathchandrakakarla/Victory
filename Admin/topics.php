@@ -1,18 +1,23 @@
 <?php
-include '../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('/Victory/Admin/admin_login.php');
-  </script>
-  </script>";
-}
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
+
+define('MENU_ID', 99);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 
 <?php
 
 if (isset($_POST['add'])) {
+    if (!can('create', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to insert into this report');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     if ($_POST['Group']) {
         $group = $_POST['Group'];
         $group = str_replace(' ', '_', $group);
@@ -126,6 +131,15 @@ if (isset($_POST['add'])) {
         font-size: 20px;
         color: red;
     }
+
+    div[title],
+    div[title] * {
+        cursor: not-allowed !important;
+    }
+
+    .text-secondary {
+        opacity: 0.6;
+    }
 </style>
 
 <body class="bg-light">
@@ -139,7 +153,12 @@ if (isset($_POST['add'])) {
                     <label for=""><b>Add New Group</b></label>
                 </div>
                 <div class="col-lg-1">
-                    <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;"> <i class="bx bx-plus" id="plus-icon"></i> </button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert youtube videos"
+                        <?php } ?>>
+                        <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>> <i class="bx bx-plus" id="plus-icon"></i> </button>
+                    </div>
                 </div>
                 <div class="col-lg-3">
                     <input type="text" class="form-control" id="inp" name="Group" placeholder="Enter Group Name" value="<?php if (isset($group)) {
@@ -149,14 +168,24 @@ if (isset($_POST['add'])) {
                                                                                                                         } ?>" style="opacity: 0;">
                 </div>
                 <div class="col-lg-1">
-                    <button class="btn btn-warning" name="add" id="add-btn" style="opacity: 0;">Insert</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert youtube videos"
+                        <?php } ?>>
+                        <button class="btn btn-warning" name="add" id="add-btn" style="opacity: 0;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Insert</button>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="container">
             <div class="row justify-content-center mt-3">
                 <div class="col-lg-2">
-                    <button type="submit" name="show" class="btn btn-primary">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                 </div>
             </div>
@@ -177,6 +206,11 @@ if (isset($_POST['add'])) {
             <tbody id="tbody">
                 <?php
                 if (isset($_POST['show'])) {
+                    if (!can('view', MENU_ID)) {
+                        echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                        exit;
+                    }
                     $query1 = mysqli_query($link, "SELECT * FROM `topics`");
                     if (mysqli_num_rows($query1) == 0) {
                         echo '
@@ -190,10 +224,15 @@ if (isset($_POST['add'])) {
                             echo '
                             <tr>
                                 <td>' . $i . '</td>
-                                <td>' . $row1['Topic'] . '</td>
-                                <td><i class="bx bx-trash delete"></i></td>
-                            </tr>
-                            ';
+                                <td>' . htmlspecialchars($row1['Topic']) . '</td>
+                                <td>
+                                    <div ' . (!can('delete', MENU_ID) ? 'title="You don\'t have permission to delete this topic"' : '') . '>
+                                        <i class="bx bx-trash delete ' . (!can('delete', MENU_ID) ? 'text-secondary' : '') . '"
+                                        ' . (!can('delete', MENU_ID) ? 'style="pointer-events:none;"' : 'onclick="deleteTopic(this)"') . '>
+                                        </i>
+                                    </div>
+                                </td>
+                            </tr>';
                             $i++;
                         }
                     }
@@ -205,8 +244,12 @@ if (isset($_POST['add'])) {
 
     <!-- Scripts -->
 
-    <!-- Revealing Text Box -->
+    <!-- Global Const Variables for can_delete -->
+    <script>
+        const CAN_DELETE = <?= can('delete', MENU_ID) ? 'true' : 'false' ?>;
+    </script>
 
+    <!-- Revealing Text Box -->
     <script type="text/javascript">
         function reveal() {
             button = document.getElementById('plus-icon');
@@ -239,7 +282,12 @@ if (isset($_POST['add'])) {
 
     <!-- Delete Row -->
     <script type="text/javascript">
-        $(".delete").click(function() {
+        $(".delete").click(function(e) {
+            if (!CAN_DELETE) {
+                e.preventDefault();
+                alert("You do not have permission to delete video");
+                return;
+            }
             group = $(this).parent().siblings().eq(1).text();
             if (!confirm('Confirm to delete Group: ' + group + '?')) {
                 return;

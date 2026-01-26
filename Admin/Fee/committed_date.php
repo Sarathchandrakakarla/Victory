@@ -1,12 +1,12 @@
 <?php
-include '../../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 60);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -34,6 +34,11 @@ function reset_date($date)
 }
 
 if (isset($_POST['Ok'])) {
+    if (!can('view', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to view student details');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     if ($_POST['Id_No']) {
         $id = trim($_POST['Id_No']);
         $date = $_POST['Date'];
@@ -55,6 +60,11 @@ if (isset($_POST['Ok'])) {
 }
 
 if (isset($_POST['add'])) {
+    if (!can('create', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to insert commitment dates');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     $date = $_POST['Date'];
     $doc = date('d-m-Y');
     if ($_POST['Id_No']) {
@@ -98,6 +108,11 @@ if (isset($_POST['add'])) {
 }
 
 if (isset($_POST['update'])) {
+    if (!can('update', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to update commitment dates');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     $doc = $_POST['DOC'];
     $date = $_POST['Date'];
     $doc = format_date($doc);
@@ -124,6 +139,11 @@ if (isset($_POST['update'])) {
 }
 
 if (isset($_POST['delete'])) {
+    if (!can('delete', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to delete commitment dates');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     $doc = $_POST['DOC'];
     $date = $_POST['Date'];
     $doc = format_date($doc);
@@ -353,6 +373,22 @@ if (isset($_POST['delete'])) {
         font-size: large;
         padding: 5px;
     }
+
+    /* 🔒 Disabled state */
+    form .button input:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        background: linear-gradient(135deg, #b5b5b5, #8e8e8e);
+    }
+
+    .btn-wrapper {
+        display: contents;
+    }
+
+    .disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 </style>
 
 <body>
@@ -402,7 +438,12 @@ if (isset($_POST['delete'])) {
                     </div>
                     <div class="input-box">
                         <span class="details"></span>
-                        <button class="btn btn-primary" id="ok" name="Ok">OK</button>
+                        <div class="btn-wrapper"
+                            <?php if (!can('view', MENU_ID)) { ?>
+                            title="You don't have permission to view student details"
+                            <?php } ?>>
+                            <button class="btn btn-primary" id="ok" name="Ok" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>OK</button>
+                        </div>
                     </div>
                     <div class="input-box">
                         <span class="details">Student Name</span>
@@ -463,10 +504,30 @@ if (isset($_POST['delete'])) {
                     </div>
                 </div>
                 <div class="button">
-                    <input type="submit" name="add" value="Insert" />
-                    <input type="submit" name="view" value="View" />
-                    <input type="submit" name="update" value="Update" />
-                    <input type="submit" name="delete" value="Delete" onclick="if(!confirm('Confirm to Delete Student Committed Date?')){return false;}else{return true;}" />
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert committed dates"
+                        <?php } ?>>
+                        <input type="submit" name="add" value="Insert" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view committed dates"
+                        <?php } ?>>
+                        <input type="submit" name="view" value="View" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update committed dates"
+                        <?php } ?>>
+                        <input type="submit" name="update" value="Update" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('delete', MENU_ID)) { ?>
+                        title="You don't have permission to delete committed dates"
+                        <?php } ?>>
+                        <input type="submit" name="delete" value="Delete" onclick="if(!confirm('Confirm to Delete Student Committed Date?')){return false;}else{return true;}" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
                     <input type="reset" name="clear" value="Clear" onclick="clearFun()" />
                 </div>
             </form>
@@ -476,7 +537,12 @@ if (isset($_POST['delete'])) {
     <div class="container">
         <div class="row justify-content-center mt-4">
             <div class="col-lg-3">
-                <button class="btn btn-success" id="ok" onclick="printDiv();return false;">Print</button>
+                <div class="btn-wrapper"
+                    <?php if (!can('print', MENU_ID)) { ?>
+                    title="You don't have permission to print committed dates"
+                    <?php } ?>>
+                    <button class="btn btn-success" id="ok" onclick="printDiv();return false;" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                </div>
             </div>
         </div>
     </div>
@@ -501,6 +567,11 @@ if (isset($_POST['delete'])) {
                 <?php
 
                 if (isset($_POST['view'])) {
+                    if (!can('view', MENU_ID)) {
+                        echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                        exit;
+                    }
                     $view_by = $_POST['View_By'];
 
                     if ($view_by == "Id_Wise") {
@@ -541,8 +612,18 @@ if (isset($_POST['delete'])) {
                                         echo '<td></td>';
                                         echo "<script>document.getElementById('route_head').hidden = 'hidden';</script>";
                                     }
-                                    echo '<td><i class="bx bx-edit text-primary modify"></i></td>
-                                    </tr>';
+                                    echo '<td>';
+
+                                    if (can("update", MENU_ID)) {
+                                        echo '<i class="bx bx-edit text-primary modify"
+                                            onclick="getDetails(\'' . $row['Id_No'] . '\')"></i>';
+                                    } else {
+                                        echo '<i class="bx bx-edit text-secondary modify disabled"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="You don\'t have permission to edit committed dates"></i>';
+                                    }
+                                    echo '</td></tr>';
                                     $i++;
                                 }
                             }
@@ -591,8 +672,18 @@ if (isset($_POST['delete'])) {
                                             echo '<td></td>';
                                             echo "<script>document.getElementById('route_head').hidden = 'hidden';</script>";
                                         }
-                                        echo '<td><i class="bx bx-edit text-primary modify"></i></td>
-                                        </tr>';
+                                        echo '<td>';
+
+                                        if (can("update", MENU_ID)) {
+                                            echo '<i class="bx bx-edit text-primary modify"
+                                            onclick="getDetails(\'' . $row['Id_No'] . '\')"></i>';
+                                        } else {
+                                            echo '<i class="bx bx-edit text-secondary modify disabled"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="You don\'t have permission to edit committed dates"></i>';
+                                        }
+                                        echo '</td></tr>';
                                     }
                                     $i++;
                                 }

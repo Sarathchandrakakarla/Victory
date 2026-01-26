@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Id_No']) {
-    echo "<script>alert('Faculty Id Not Rendered');
-    location.replace('../faculty_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 119);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -116,9 +118,19 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -132,6 +144,11 @@ error_reporting(0);
     </div>
     <?php
     if (isset($_POST['show'])) {
+        if (!can('view', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $id = $_POST['Id'];
         echo "<script>document.getElementById('id').value = '" . $id . "'</script>";
         $examtype = $_POST['Exam_Type'];
@@ -154,15 +171,15 @@ error_reporting(0);
                 echo "<script>alert('Student Passedout/Drop')</script>";
             } else {
                 echo '<div class="container">
-              <table class="table" border="1">
-                <thead id="thead">
-                  <th>' . $id . '</th>
-                  <th>' . $name . '</th>
-                  <th>' . $class . '</th>
-                  <th>' . $section . '</th>
-                </thead>
-              </table>
-            </div>';
+                    <table class="table" border="1">
+                        <thead id="thead">
+                        <th>' . $id . '</th>
+                        <th>' . $name . '</th>
+                        <th>' . $class . '</th>
+                        <th>' . $section . '</th>
+                        </thead>
+                    </table>
+                    </div>';
                 //If Exam Type is Single Exam
                 if ($examtype == "Single_Exam") {
                     if ($_POST['Exam']) {
@@ -192,36 +209,36 @@ error_reporting(0);
                             array_push($marks, $tot);
                         }
                         echo '<div class="container table-container" id="table-container">
-            <table class="table table-hover" border="1">
-              <tbody id="tbody">
-              <tr>';
+                            <table class="table table-hover" border="1">
+                            <tbody id="tbody">
+                            <tr>';
                         echo '<td class="bg-secondary text-light" colspan="2" style="width:1000px;text-align:center;"><b>' . $exam . '</b></td></tr>';
                         $c = 0;
                         $tot_max = 0;
                         foreach ($subs as $sub) {
                             if ($marks[$c] != 'A') {
                                 echo '<tr>
-          <tr>
-          <th style="height:30px;">' . $sub . '</th>
-          <td style="text-align:center">' . $marks[$c] . '/' . $sub_max[$sub] . '</td>
-          </tr>
-          </tr>';
+                                <tr>
+                                <th style="height:30px;">' . $sub . '</th>
+                                <td style="text-align:center">' . $marks[$c] . '/' . $sub_max[$sub] . '</td>
+                                </tr>
+                                </tr>';
                             } else {
                                 echo '<tr>
-          <tr>
-          <th style="height:30px;">' . $sub . '</th>
-          <td style="text-align:center">' . $marks[$c] . '</td>
-          </tr>
-          </tr>';
+                                    <tr>
+                                    <th style="height:30px;">' . $sub . '</th>
+                                    <td style="text-align:center">' . $marks[$c] . '</td>
+                                    </tr>
+                                    </tr>';
                             }
                             $c++;
                         }
                         echo '<tr>
-        <tr>
-        <th style="height:30px;">Total</th>
-        <td style="text-align:center">' . $marks[$c] . '/' . $max_tot . '</td>
-        </tr>
-        </tr>';
+                            <tr>
+                            <th style="height:30px;">Total</th>
+                            <td style="text-align:center">' . $marks[$c] . '/' . $max_tot . '</td>
+                            </tr>
+                            </tr>';
                         if ($mark_type == "Normal") {
                             $percentage = round(((int)$marks[$c] / (int)$max_tot) * 100, 2);
                             if ($percentage >= 80 && $percentage <= 100) {
@@ -240,17 +257,17 @@ error_reporting(0);
                                 $grade = "";
                             }
                             echo '<tr>
-          <tr>
-            <th style="height:30px;">Percentage</th>
-            <td style="text-align:center">' . $percentage . '</td>
-          </tr>
-          </tr>
-          <tr>
-          <tr>
-            <th style="height:30px;">Grade</th>
-            <td style="text-align:center">' . $grade . '</td>
-          </tr>
-          </tr>';
+                            <tr>
+                                <th style="height:30px;">Percentage</th>
+                                <td style="text-align:center">' . $percentage . '</td>
+                            </tr>
+                            </tr>
+                            <tr>
+                            <tr>
+                                <th style="height:30px;">Grade</th>
+                                <td style="text-align:center">' . $grade . '</td>
+                            </tr>
+                            </tr>';
                         } else {
                             $grades = array();
 
@@ -301,17 +318,17 @@ error_reporting(0);
                                 $grade = "E1";
                             }
                             echo '<tr>
-              <tr>
-                <th style="height:30px;">Grade</th>
-                <td style="text-align:center">' . $grade . '</td>
-              </tr>
-              </tr>
-              <tr>
-              <tr>
-                <th style="height:30px;">GPA</th>
-                <td style="text-align:center">' . $avg . '</td>
-              </tr>
-              </tr>';
+                            <tr>
+                                <th style="height:30px;">Grade</th>
+                                <td style="text-align:center">' . $grade . '</td>
+                            </tr>
+                            </tr>
+                            <tr>
+                            <tr>
+                                <th style="height:30px;">GPA</th>
+                                <td style="text-align:center">' . $avg . '</td>
+                            </tr>
+                            </tr>';
                         }
                     } else {
                         echo "<script>alert('Please Select Exam!')</script>";
@@ -355,9 +372,9 @@ error_reporting(0);
                     }
 
                     echo '<div class="container table-container" id="table-container">
-            <table class="table table-hover" border="1">
-              <tbody id="tbody">
-              <tr>';
+                        <table class="table table-hover" border="1">
+                        <tbody id="tbody">
+                        <tr>';
 
                     foreach ($exams as $exam) {
                         foreach (array_keys($full_marks) as $exm) {
@@ -365,28 +382,28 @@ error_reporting(0);
                                 if ($sub_count[$exam] != 0) {
                                     echo '<td class="bg-secondary text-light" colspan="2" style="width:1000px;text-align:center;"><b>' . $exam . '</b></td>';
                                     echo '</tr>
-                      <tr>';
+                                    <tr>';
                                     $tot = 0;
                                     $max_tot = 0;
                                     foreach ($subs[$exam] as $sub) {
                                         if ($full_marks[$exam][$sub] != 'A') {
                                             echo '<tr>
-                            <th style="height:30px;">' . $sub . '</th>
-                            <td style="padding-left:10px;">' . $full_marks[$exam][$sub] . '/' . $max[$exam][$sub] . '</td>
-                          </tr>';
+                                                    <th style="height:30px;">' . $sub . '</th>
+                                                    <td style="padding-left:10px;">' . $full_marks[$exam][$sub] . '/' . $max[$exam][$sub] . '</td>
+                                                </tr>';
                                         } else {
                                             echo '<tr>
-                            <th style="height:30px;">' . $sub . '</th>
-                            <td style="padding-left:20px;">' . $full_marks[$exam][$sub] . '</td>
-                          </tr>';
+                                                <th style="height:30px;">' . $sub . '</th>
+                                                <td style="padding-left:20px;">' . $full_marks[$exam][$sub] . '</td>
+                                            </tr>';
                                         }
                                         $tot += (int)$full_marks[$exam][$sub];
                                         $max_tot += $max[$exam][$sub];
                                     }
                                     echo '<tr>
-                      <th>Total</th>
-                      <td style="padding-left:10px;">' . $tot . '/' . $max_tot . '</td>
-                      </tr>';
+                                        <th>Total</th>
+                                        <td style="padding-left:10px;">' . $tot . '/' . $max_tot . '</td>
+                                        </tr>';
                                     if ($mark_type == "Normal") {
                                         $percentage = round(((int)$tot / $max_tot) * 100, 2);
                                         if ($percentage >= 80 && $percentage <= 100) {
@@ -405,13 +422,13 @@ error_reporting(0);
                                             $grade = "";
                                         }
                                         echo '<tr>
-                      <th>Percentage</th>
-                      <td style="padding-left:10px;">' . $percentage . '</td>
-                      </tr>
-                      <tr>
-                      <th>Grade</th>
-                      <td style="padding-left:10px;">' . $grade . '</td>
-                      </tr>';
+                                            <th>Percentage</th>
+                                            <td style="padding-left:10px;">' . $percentage . '</td>
+                                            </tr>
+                                            <tr>
+                                            <th>Grade</th>
+                                            <td style="padding-left:10px;">' . $grade . '</td>
+                                            </tr>';
                                     } else {
                                         $grades = array();
 
@@ -463,14 +480,14 @@ error_reporting(0);
                                             }
                                         }
                                         echo '<tr>
-                    <th style="height:30px;">Grade</th>
-                    <td style="padding-left:10px;">' . $grade . '</td>
-                </tr>
-                <tr>
-                <tr>
-                    <th style="height:30px;">GPA</th>
-                    <td style="padding-left:10px;">' . $avg . '</td>
-                </tr>';
+                                                <th style="height:30px;">Grade</th>
+                                                <td style="padding-left:10px;">' . $grade . '</td>
+                                            </tr>
+                                            <tr>
+                                            <tr>
+                                                <th style="height:30px;">GPA</th>
+                                                <td style="padding-left:10px;">' . $avg . '</td>
+                                            </tr>';
                                     }
 
                                     echo '</tr>';

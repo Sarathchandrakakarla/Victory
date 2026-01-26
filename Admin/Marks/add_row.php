@@ -1,6 +1,16 @@
 <?php
 include '../../link.php';
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 17);
+
+requireMenuAccess(MENU_ID);
+
 if (isset($_POST['page'])) {
+    if (!can('create', MENU_ID)) {
+        echo "permission";
+        exit;
+    }
     $page = $_POST['page'];
     if ($page == "sub") {
         $class = $_POST['Class'];

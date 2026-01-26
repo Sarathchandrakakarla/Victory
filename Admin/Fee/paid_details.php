@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 64);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -80,6 +82,11 @@ error_reporting(0);
         color: red;
         cursor: pointer;
     }
+
+    .disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 </style>
 
 <body class="bg-light">
@@ -112,8 +119,18 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                 </div>
             </div>
@@ -128,6 +145,11 @@ error_reporting(0);
     </div>
     <?php
     if (isset($_POST['show'])) {
+        if (!can('view', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to view this report');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         if ($_POST['Type']) {
             $type = $_POST['Type'];
             if ($_POST['Id_No']) {
@@ -186,59 +208,58 @@ error_reporting(0);
                 }
                 echo '
                 <div class="container table-container mt-5">
-        <table class="table table-striped table-bordered" style="width:100%;">
-            <thead class="bg-secondary text-white">
-                <tr>
-                    <th style="border:2px solid black;background-color:#6c757d;color:white;" class="text-center" colspan="4">Personal Details</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Id No.:</b></td>
-                    <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $id . '</td>
-                </tr>
-                <tr>
-                    <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Name:</b></td>
-                    <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $name . '</td>
-                </tr>
-                <tr>
-                    <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Father Name:</b></td>
-                    <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $father_name . '</td>
-                </tr>
-                <tr>
-                    <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Class:</b></td>
-                    <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $class . '</td>
-                </tr>
-                <tr>
-                    <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Type of Fee:</b></td>
-                    <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $type . '</td>
-                </tr>
-                <tr>
-                    <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Total Fee:</b></td>
-                    <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $total . '</td>
-                </tr>
-                <tr>
-                    <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Fee Paid:</b></td>
-                    <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $paid . '</td>
-                </tr>
-                <tr>
-                    <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Fee Balance:</b></td>
-                    <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $balance . '</td>
-                </tr>
-            </tbody>
-            <thead class="bg-secondary text-white">
-                <tr>
-                    <th style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;background-color:#6c757d;color:white;" class="text-center" colspan="4">Fee Details</th>
-                </tr>
-                <tr class="text-center">
-                    <td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;"><b>Bill No.</b></td>
-                    <td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;"><b>Amount</b></td>
-                    <td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;"><b>Date of Payment</b></td>
-                    <td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;" class="action"><b>Action</b></td>
-                </tr>
-            </thead>
-            <tbody class="text-center">
-            ';
+                <table class="table table-striped table-bordered" style="width:100%;">
+                    <thead class="bg-secondary text-white">
+                        <tr>
+                            <th style="border:2px solid black;background-color:#6c757d;color:white;" class="text-center" colspan="4">Personal Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Id No.:</b></td>
+                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $id . '</td>
+                        </tr>
+                        <tr>
+                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Name:</b></td>
+                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $name . '</td>
+                        </tr>
+                        <tr>
+                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Father Name:</b></td>
+                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $father_name . '</td>
+                        </tr>
+                        <tr>
+                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Class:</b></td>
+                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $class . '</td>
+                        </tr>
+                        <tr>
+                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Type of Fee:</b></td>
+                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $type . '</td>
+                        </tr>
+                        <tr>
+                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Total Fee:</b></td>
+                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $total . '</td>
+                        </tr>
+                        <tr>
+                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Fee Paid:</b></td>
+                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $paid . '</td>
+                        </tr>
+                        <tr>
+                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Fee Balance:</b></td>
+                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $balance . '</td>
+                        </tr>
+                    </tbody>
+                    <thead class="bg-secondary text-white">
+                        <tr>
+                            <th style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;background-color:#6c757d;color:white;" class="text-center" colspan="4">Fee Details</th>
+                        </tr>
+                        <tr class="text-center">
+                            <td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;"><b>Bill No.</b></td>
+                            <td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;"><b>Amount</b></td>
+                            <td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;"><b>Date of Payment</b></td>
+                            <td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;" class="action"><b>Action</b></td>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">';
                 if (count($fee_details) == 0) {
                     echo '<td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;" colspan="4">No Payments Yet!</td>';
                 }
@@ -253,13 +274,22 @@ error_reporting(0);
                         }
                         $i = false;
                     }
-                    echo '<td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;" class="action"><i class="bx bx-trash delete" onclick="delete_row(this)"></i></td>';
-                    echo '</tr>';
+                    echo '<td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;" class="action">';
+                    if (can('delete', MENU_ID)) {
+                        echo '<i class="bx bx-trash delete text-danger" onclick="delete_row(this)"></i>';
+                    } else {
+                        echo '<i class="bx bx-trash delete text-secondary disabled"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="You don\'t have permission to delete student fee payments"></i>';
+                    }
+                    echo '</td>
+                    </tr>';
                 }
                 echo '
-            </tbody>
-        </table>
-    </div>
+                        </tbody>
+                    </table>
+                </div>
                 ';
             } else {
                 echo "<script>alert('Please Enter Id No.')</script>";
@@ -295,6 +325,8 @@ error_reporting(0);
                             alert('Payment Deleted Successfully!!');
                         } else if (data == "failure") {
                             alert('Payment Deletion Failed!');
+                        } else if (data == "permission") {
+                            alert('You don\'t have permission to delete student fee payment details');
                         } else {
                             alert('No Collection Found!');
                         }

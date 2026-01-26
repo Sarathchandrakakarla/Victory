@@ -1,15 +1,14 @@
 <?php
-include '../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('admin_login.php');
-  </script>
-  </script>";
-}
-?>
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
 
+define('MENU_ID', 93);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -109,14 +108,53 @@ if (!$_SESSION['Admin_Id_No']) {
                     </select>
                 </div>
                 <div class="row button">
-                    <button type="submit" class="btn" style="background: #16a085;color:white;" onclick="if(!confirm('Confirm to Add New Admin?')){return false;}else{return true;}" name="Add" id="add">Add User</button>
+                    <div class="btn-wrapper <?php echo !can('create', MENU_ID) ? 'rbac-disabled' : ''; ?>"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to add admin user"
+                        <?php } ?>>
+                        <button type="submit"
+                            class="btn"
+                            name="Add"
+                            id="add"
+                            onclick="return confirm('Confirm to Add New Admin?')"
+                            <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>
+                            Add User
+                        </button>
+                    </div>
                 </div>
+
                 <div class="row button">
-                    <button type="submit" class="btn" style="background: #16a085;color:white;" onclick="if(!confirm('Confirm to Update Admin User?')){return false;}else{return true;}" name="Update" id="update">Update User</button>
+                    <div class="btn-wrapper <?php echo !can('update', MENU_ID) ? 'rbac-disabled' : ''; ?>"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update admin user"
+                        <?php } ?>>
+                        <button type="submit"
+                            class="btn"
+                            name="Update"
+                            id="update"
+                            onclick="return confirm('Confirm to Update Admin User?')"
+                            <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>
+                            Update User
+                        </button>
+                    </div>
                 </div>
+
                 <div class="row button">
-                    <button type="submit" class="btn" style="background: #16a085;color:white;" onclick="if(!confirm('Confirm to Delete Admin User?')){return false;}else{return true;}" name="Delete" id="delete">Delete User</button>
+                    <div class="btn-wrapper <?php echo !can('delete', MENU_ID) ? 'rbac-disabled' : ''; ?>"
+                        <?php if (!can('delete', MENU_ID)) { ?>
+                        title="You don't have permission to delete admin user"
+                        <?php } ?>>
+                        <button type="submit"
+                            class="btn"
+                            name="Delete"
+                            id="delete"
+                            onclick="return confirm('Confirm to Delete Admin User?')"
+                            <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>>
+                            Delete User
+                        </button>
+                    </div>
                 </div>
+
             </form>
         </div>
     </div>
@@ -129,62 +167,68 @@ if (!$_SESSION['Admin_Id_No']) {
         return $data;
     }
     if (isset($_POST['Add'])) {
-        if ($_SESSION['Role'] != "Super_Admin") {
-            echo "<script>alert('Only Super Admin can Add New User!!')</script>";
-        } else {
-            $uid = validate($_POST['UserName']);
-            $name = validate($_POST['Full_Name']);
-            $mobile = validate($_POST['Mobile']);
-            $password = validate($_POST['Password']);
-            $c_password = validate($_POST['C_Password']);
-            $pass_hash = password_hash($password, PASSWORD_DEFAULT);
-            echo "<script>document.getElementById('username').value = '" . $uid . "';
-        document.getElementById('full_name').value = '" . $name . "';
-        document.getElementById('mobile').value = '" . $mobile . "';
-        document.getElementById('password').value = '" . $password . "';
-        document.getElementById('c_password').value = '" . $c_password . "';</script>";
-            if ($_POST['Role']) {
-                $role = $_POST['Role'];
-                echo "<script>document.getElementById('role').value = '" . $role . "';</script>";
-                //Check if User Already Exists
-                $check_sql = mysqli_query($link, "SELECT * FROM `admin` WHERE Admin_Id_No = '$uid'");
-                if ($check_sql) {
-                    if (mysqli_num_rows($check_sql) != 0) {
-                        echo "<script>alert('User Already Exists!!')</script>";
-                    } else {
-                        $sql = "INSERT INTO `admin` VALUES('','$uid','$name','$mobile','$password','$pass_hash','$role')";
-                        if (mysqli_query($link, $sql)) {
-                            echo "<script>
-            alert_row = document.getElementById('alert-row');
-            alert = document.getElementById('alert');
-            alert_parent = document.getElementById('alert-parent');
-            alert_row.style.display = 'block';
-            alert_parent.classList.remove('alert-danger');
-            alert_parent.classList.add('alert-success');
-            alert.innerHTML = 'Successfully Added Admin User!!';
-            </script>";
-                        } else {
-                            echo "<script>
-            alert_row = document.getElementById('alert-row');
-            alert = document.getElementById('alert');
-            alert_parent = document.getElementById('alert-parent');
-            alert_row.style.display = 'block';
-            alert_parent.classList.remove('alert-success');
-            alert_parent.classList.add('alert-danger');
-            alert.innerHTML = 'User Insertion Failed due to SQL Error!!';
-            </script>";
-                        }
-                    }
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to insert admin user');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
+        $uid = validate($_POST['UserName']);
+        $name = validate($_POST['Full_Name']);
+        $mobile = validate($_POST['Mobile']);
+        $password = validate($_POST['Password']);
+        $c_password = validate($_POST['C_Password']);
+        $pass_hash = password_hash($password, PASSWORD_DEFAULT);
+        echo "<script>document.getElementById('username').value = '" . $uid . "';
+            document.getElementById('full_name').value = '" . $name . "';
+            document.getElementById('mobile').value = '" . $mobile . "';
+            document.getElementById('password').value = '" . $password . "';
+            document.getElementById('c_password').value = '" . $c_password . "';</script>";
+        if ($_POST['Role']) {
+            $role = $_POST['Role'];
+            echo "<script>document.getElementById('role').value = '" . $role . "';</script>";
+            //Check if User Already Exists
+            $check_sql = mysqli_query($link, "SELECT * FROM `admin` WHERE Admin_Id_No = '$uid'");
+            if ($check_sql) {
+                if (mysqli_num_rows($check_sql) != 0) {
+                    echo "<script>alert('User Already Exists!!')</script>";
                 } else {
-                    echo "<script>alert('User Checking Query Error!!')</script>";
+                    $sql = "INSERT INTO `admin` VALUES('','$uid','$name','$mobile','$password','$pass_hash','$role')";
+                    if (mysqli_query($link, $sql)) {
+                        echo "<script>
+                                alert_row = document.getElementById('alert-row');
+                                alert = document.getElementById('alert');
+                                alert_parent = document.getElementById('alert-parent');
+                                alert_row.style.display = 'block';
+                                alert_parent.classList.remove('alert-danger');
+                                alert_parent.classList.add('alert-success');
+                                alert.innerHTML = 'Successfully Added Admin User!!';
+                            </script>";
+                    } else {
+                        echo "<script>
+                                alert_row = document.getElementById('alert-row');
+                                alert = document.getElementById('alert');
+                                alert_parent = document.getElementById('alert-parent');
+                                alert_row.style.display = 'block';
+                                alert_parent.classList.remove('alert-success');
+                                alert_parent.classList.add('alert-danger');
+                                alert.innerHTML = 'User Insertion Failed due to SQL Error!!';
+                            </script>";
+                    }
                 }
             } else {
-                echo "<script>alert('Please Select Role!!')</script>";
+                echo "<script>alert('User Checking Query Error!!')</script>";
             }
+        } else {
+            echo "<script>alert('Please Select Role!!')</script>";
         }
     }
 
     if (isset($_POST['Update'])) {
+        if (!can('update', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to update admin user');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $id = $_POST['UserName'];
         $name = validate($_POST['Full_Name']);
         $mobile = validate($_POST['Mobile']);
@@ -216,6 +260,11 @@ if (!$_SESSION['Admin_Id_No']) {
     }
 
     if (isset($_POST['Delete'])) {
+        if (!can('delete', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to delete admin user');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $id = $_POST['UserName'];
 
         //Check if User Already Exists

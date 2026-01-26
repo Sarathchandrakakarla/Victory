@@ -1,12 +1,13 @@
 <?php
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('admin_login.php');
-  </script>
-  </script>";
-}
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
+
+define('MENU_ID', 94);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -138,23 +139,32 @@ if (!$_SESSION['Admin_Id_No']) {
                 </div>
             </div>
         </div>
+        <?php $canCreate = can('create', MENU_ID); ?>
         <div class="container img-container">
             <div class="row img-row justify-content-center mt-5">
                 <div class="col-lg-2">
-                    <i class="bx bx-image-add"></i>
-                    <p><button class="btn btn-primary" id="choose">Choose Files
-                            <input type="file" class="file" name="img[]" accept=".jpg,.jpeg" multiple>
-                        </button>
-                    </p>
+                    <div class="btn-wrapper <?= !$canCreate ? 'disabled-wrapper' : '' ?>"
+                        <?= !$canCreate ? 'title="You don\'t have permission to upload images"' : '' ?>>
+                        <i class="bx bx-image-add"></i>
+                        <p>
+                            <button class="btn btn-primary" id="choose" <?= !$canCreate ? 'disabled' : '' ?>>Choose Files
+                                <input type="file" class="file" name="img[]" <?= !$canCreate ? 'disabled' : '' ?>
+                                    <?= $canCreate ? 'required' : '' ?> accept=".jpg,.jpeg" multiple>
+                            </button>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="container btn-container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-2">
-                    <button class="btn btn-primary upload" type="submit" name="upload">
-                        <i class="bx bx-upload"></i>
-                        Upload</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to upload images"
+                        <?php } ?>>
+                        <button class="btn btn-primary upload" type="submit" name="upload" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>><i class="bx bx-upload"></i>Upload</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -162,138 +172,139 @@ if (!$_SESSION['Admin_Id_No']) {
     <?php
 
     if (isset($_POST['upload'])) {
-        if ($_SESSION['Role'] != "Super_Admin") {
-            echo "<script>alert('Only Super Admin can Upload Images!!')</script>";
-        } else {
-            $type = $_POST['img_type'];
-            $new_file_name = array();
-            $flag = false;
-            if ($type == "Home") {
-                foreach ($_FILES['img']['name'] as $img_name) {
-                    array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
-                }
-                $i = 0;
-                foreach ($new_file_name as $new_name) {
-                    $filename = $new_name . ".jpg";
-                    $location = "../Images/slides/" . $filename;
-                    if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
-                        $i++;
-                        $flag = true;
-                    } else {
-                        $flag = false;
-                        break;
-                    }
-                }
-                if ($flag) {
-                    echo '<script>alert("Successfully Uploaded")</script>';
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to upload images');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
+        $type = $_POST['img_type'];
+        $new_file_name = array();
+        $flag = false;
+        if ($type == "Home") {
+            foreach ($_FILES['img']['name'] as $img_name) {
+                array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
+            }
+            $i = 0;
+            foreach ($new_file_name as $new_name) {
+                $filename = $new_name . ".jpg";
+                $location = "../Images/slides/" . $filename;
+                if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
+                    $i++;
+                    $flag = true;
                 } else {
-                    echo '<script>alert("Upload Failed")</script>';
+                    $flag = false;
+                    break;
                 }
-            } else if ($type == "Gallery") {
-                foreach ($_FILES['img']['name'] as $img_name) {
-                    array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
-                }
-                $i = 0;
-                foreach ($new_file_name as $new_name) {
-                    $filename = $new_name . ".jpg";
-                    $location = "../Gallery/Images/" . $filename;
-                    if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
-                        $i++;
-                        $flag = true;
-                    } else {
-                        $flag = false;
-                        break;
-                    }
-                }
-                if ($flag) {
-                    echo '<script>alert("Successfully Uploaded")</script>';
+            }
+            if ($flag) {
+                echo '<script>alert("Successfully Uploaded")</script>';
+            } else {
+                echo '<script>alert("Upload Failed")</script>';
+            }
+        } else if ($type == "Gallery") {
+            foreach ($_FILES['img']['name'] as $img_name) {
+                array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
+            }
+            $i = 0;
+            foreach ($new_file_name as $new_name) {
+                $filename = $new_name . ".jpg";
+                $location = "../Gallery/Images/" . $filename;
+                if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
+                    $i++;
+                    $flag = true;
                 } else {
-                    echo '<script>alert("Upload Failed")</script>';
+                    $flag = false;
+                    break;
                 }
-            } else if ($type == "Student") {
-                foreach ($_FILES['img']['name'] as $img_name) {
-                    array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
-                }
-                $i = 0;
-                foreach ($new_file_name as $new_name) {
-                    $filename = $new_name . ".jpg";
-                    $location = "../Images/stu_img/" . $filename;
-                    if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
-                        $i++;
-                        $flag = true;
-                    } else {
-                        $flag = false;
-                        break;
-                    }
-                }
-                if ($flag) {
-                    echo '<script>alert("Successfully Uploaded")</script>';
+            }
+            if ($flag) {
+                echo '<script>alert("Successfully Uploaded")</script>';
+            } else {
+                echo '<script>alert("Upload Failed")</script>';
+            }
+        } else if ($type == "Student") {
+            foreach ($_FILES['img']['name'] as $img_name) {
+                array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
+            }
+            $i = 0;
+            foreach ($new_file_name as $new_name) {
+                $filename = $new_name . ".jpg";
+                $location = "../Images/stu_img/" . $filename;
+                if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
+                    $i++;
+                    $flag = true;
                 } else {
-                    echo '<script>alert("Upload Failed")</script>';
+                    $flag = false;
+                    break;
                 }
-            } else if ($type == "Employee") {
-                foreach ($_FILES['img']['name'] as $img_name) {
-                    array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
-                }
-                $i = 0;
-                foreach ($new_file_name as $new_name) {
-                    $filename = $new_name . ".jpg";
-                    $location = "../Images/emp_img/" . $filename;
-                    if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
-                        $i++;
-                        $flag = true;
-                    } else {
-                        $flag = false;
-                        break;
-                    }
-                }
-                if ($flag) {
-                    echo '<script>alert("Successfully Uploaded")</script>';
+            }
+            if ($flag) {
+                echo '<script>alert("Successfully Uploaded")</script>';
+            } else {
+                echo '<script>alert("Upload Failed")</script>';
+            }
+        } else if ($type == "Employee") {
+            foreach ($_FILES['img']['name'] as $img_name) {
+                array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
+            }
+            $i = 0;
+            foreach ($new_file_name as $new_name) {
+                $filename = $new_name . ".jpg";
+                $location = "../Images/emp_img/" . $filename;
+                if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
+                    $i++;
+                    $flag = true;
                 } else {
-                    echo '<script>alert("Upload Failed")</script>';
+                    $flag = false;
+                    break;
                 }
-            } else if ($type == "Parent_Male") {
-                foreach ($_FILES['img']['name'] as $img_name) {
-                    array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
-                }
-                $i = 0;
-                foreach ($new_file_name as $new_name) {
-                    $filename = $new_name . ".jpg";
-                    $location = "../Images/parent_img_male/" . $filename;
-                    if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
-                        $i++;
-                        $flag = true;
-                    } else {
-                        $flag = false;
-                        break;
-                    }
-                }
-                if ($flag) {
-                    echo '<script>alert("Successfully Uploaded")</script>';
+            }
+            if ($flag) {
+                echo '<script>alert("Successfully Uploaded")</script>';
+            } else {
+                echo '<script>alert("Upload Failed")</script>';
+            }
+        } else if ($type == "Parent_Male") {
+            foreach ($_FILES['img']['name'] as $img_name) {
+                array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
+            }
+            $i = 0;
+            foreach ($new_file_name as $new_name) {
+                $filename = $new_name . ".jpg";
+                $location = "../Images/parent_img_male/" . $filename;
+                if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
+                    $i++;
+                    $flag = true;
                 } else {
-                    echo '<script>alert("Upload Failed")</script>';
+                    $flag = false;
+                    break;
                 }
-            } else if ($type == "Parent_Female") {
-                foreach ($_FILES['img']['name'] as $img_name) {
-                    array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
-                }
-                $i = 0;
-                foreach ($new_file_name as $new_name) {
-                    $filename = $new_name . ".jpg";
-                    $location = "../Images/parent_img_female/" . $filename;
-                    if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
-                        $i++;
-                        $flag = true;
-                    } else {
-                        $flag = false;
-                        break;
-                    }
-                }
-                if ($flag) {
-                    echo '<script>alert("Successfully Uploaded")</script>';
+            }
+            if ($flag) {
+                echo '<script>alert("Successfully Uploaded")</script>';
+            } else {
+                echo '<script>alert("Upload Failed")</script>';
+            }
+        } else if ($type == "Parent_Female") {
+            foreach ($_FILES['img']['name'] as $img_name) {
+                array_push($new_file_name, substr($img_name, 0, strrpos($img_name, ".")));
+            }
+            $i = 0;
+            foreach ($new_file_name as $new_name) {
+                $filename = $new_name . ".jpg";
+                $location = "../Images/parent_img_female/" . $filename;
+                if (move_uploaded_file($_FILES['img']['tmp_name'][$i], $location)) {
+                    $i++;
+                    $flag = true;
                 } else {
-                    echo '<script>alert("Upload Failed")</script>';
+                    $flag = false;
+                    break;
                 }
+            }
+            if ($flag) {
+                echo '<script>alert("Successfully Uploaded")</script>';
+            } else {
+                echo '<script>alert("Upload Failed")</script>';
             }
         }
     }

@@ -1,13 +1,12 @@
 <?php
-include '../../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 57);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -54,6 +53,17 @@ error_reporting(0);
 
     #fee {
         padding-left: 10px;
+    }
+
+    /* 🔒 Disabled state */
+    form .button input:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        background: linear-gradient(135deg, #b5b5b5, #8e8e8e);
+    }
+
+    .btn-wrapper {
+        display: contents;
     }
 
     @media screen and (max-width:920px) {
@@ -137,11 +147,31 @@ error_reporting(0);
                     </div>
                 </div>
                 <div class="row button">
-                    <input type="submit" class="button1" name="Insert" value="Insert">
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert actual fee"
+                        <?php } ?>>
+                        <input type="submit" class="button1" name="Insert" value="Insert" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>
+                    </div>
                     <input type="reset" class="button1" onclick="document.getElementById('cls_row').hidden='hidden';document.getElementById('route_row').hidden='hidden';$('.wrapper').css('height','550px');" value="Clear">
-                    <input type="submit" class="button1" name="Find" value="Find">
-                    <input type="submit" class="button1" name="Update" value="Update">
-                    <input type="submit" class="button1" name="Delete" value="Delete" onclick="if(!confirm('Confirm to Delete Actual Fee?')){return false;}else{return true;}">
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view actual fee"
+                        <?php } ?>>
+                        <input type="submit" class="button1" name="Find" value="Find" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update actual fee"
+                        <?php } ?>>
+                        <input type="submit" class="button1" name="Update" value="Update" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('delete', MENU_ID)) { ?>
+                        title="You don't have permission to delete actual fee"
+                        <?php } ?>>
+                        <input type="submit" class="button1" name="Delete" value="Delete" onclick="if(!confirm('Confirm to Delete Actual Fee?')){return false;}else{return true;}" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>>
+                    </div>
                 </div>
             </form>
         </div>
@@ -150,6 +180,11 @@ error_reporting(0);
     <?php
 
     if (isset($_POST['Insert'])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to insert actual fee');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         echo "<script>$('.wrapper').css('height','600px');</script>";
         if ($_POST['Fee_Type']) {
             $type = $_POST['Fee_Type'];
@@ -211,6 +246,11 @@ error_reporting(0);
             echo "<script>alert('Please Select Fee Type!')</script>";
         }
     } else if (isset($_POST['Find'])) {
+        if (!can('view', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to view actual fee');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         echo "<script>$('.wrapper').css('height','600px');</script>";
         if (isset($_POST['Fee_Type'])) {
             $type = $_POST['Fee_Type'];
@@ -256,6 +296,11 @@ error_reporting(0);
             echo "<script>alert('Please Select Fee Type!');</script>";
         }
     } else if (isset($_POST['Update'])) {
+        if (!can('update', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to update actual fee');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         echo "<script>$('.wrapper').css('height','600px');</script>";
         if ($_POST['Fee_Type']) {
             $type = $_POST['Fee_Type'];
@@ -315,6 +360,11 @@ error_reporting(0);
             echo "<script>alert('Please Select Fee Type!')</script>";
         }
     } else if (isset($_POST['Delete'])) {
+        if (!can('delete', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to delete actual fee');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         if ($_POST['Fee_Type']) {
             $type = $_POST['Fee_Type'];
             if ($type == "Vehicle Fee") {

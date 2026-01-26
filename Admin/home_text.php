@@ -1,56 +1,42 @@
 <?php
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('/Victory/Admin/admin_login.php');
-  </script>
-  </script>";
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
+
+define('MENU_ID', 95);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+if (!can('view', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to view home page text');
+        location.replace('/Victory/Admin/admin_dashboard.php')</script>";
+    exit;
 }
+
+error_reporting(0);
 ?>
 <?php
 
 if (isset($_POST['update'])) {
-    if ($_SESSION['Role'] != "Super_Admin") {
-        echo "<script>alert('Only Super Admin Can Access This!')</script>";
-    } else {
-        $myfile = fopen("../test.txt", "w");
-        $type = $_POST['text_type'];
-        if ($type == "" || $type == "Link") {
-            if ($_POST['Text']) {
-                $text = $_POST['Text'];
-                if ($type == "") {
-                    $status = fwrite($myfile, $text);
-                } else if ($type == "Link") {
-                    $arr = explode(',', $text);
-                    if ($arr[0] == "" || $arr[1] == "") {
-                        echo "<script>alert('Please Provide Text in Valid Format!!')</script>";
-                    } else {
-                        $link_text = "<a href='" . $arr[0] . "' target='_blank'>" . $arr[1] . "</a>";
-                        $status = fwrite($myfile, $link_text);
-                    }
-                }
-                fclose($myfile);
-                if ($status) {
-                    echo "<script>alert('Text Updated Successfully!')</script>";
+    if (!can('update', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to update home page text');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
+    $myfile = fopen("../test.txt", "w");
+    $type = $_POST['text_type'];
+    if ($type == "" || $type == "Link") {
+        if ($_POST['Text']) {
+            $text = $_POST['Text'];
+            if ($type == "") {
+                $status = fwrite($myfile, $text);
+            } else if ($type == "Link") {
+                $arr = explode(',', $text);
+                if ($arr[0] == "" || $arr[1] == "") {
+                    echo "<script>alert('Please Provide Text in Valid Format!!')</script>";
                 } else {
-                    echo "<script>alert('Text Updation Failed!')</script>";
-                }
-            } else {
-                echo "<script>alert('Please Enter Text!')</script>";
-            }
-        } else {
-            if ($_POST['File_Text']) {
-                $text = $_POST['File_Text'];
-                if ($type == "File") {
-                    $ext = explode('.', $_FILES["File"]["name"])[1];
-                    $location = "home_files/" . 'file.' . $ext;
-                    if (move_uploaded_file($_FILES['File']['tmp_name'], $location)) {
-                        $link_text = "<a href='Admin/" . $location . "' download>" . $text . "</a>";
-                        $status = fwrite($myfile, $link_text);
-                    } else {
-                        echo '<script>alert("Failed to Upload File!!")</script>';
-                    }
+                    $link_text = "<a href='" . $arr[0] . "' target='_blank'>" . $arr[1] . "</a>";
+                    $status = fwrite($myfile, $link_text);
                 }
             }
             fclose($myfile);
@@ -59,19 +45,42 @@ if (isset($_POST['update'])) {
             } else {
                 echo "<script>alert('Text Updation Failed!')</script>";
             }
+        } else {
+            echo "<script>alert('Please Enter Text!')</script>";
+        }
+    } else {
+        if ($_POST['File_Text']) {
+            $text = $_POST['File_Text'];
+            if ($type == "File") {
+                $ext = explode('.', $_FILES["File"]["name"])[1];
+                $location = "home_files/" . 'file.' . $ext;
+                if (move_uploaded_file($_FILES['File']['tmp_name'], $location)) {
+                    $link_text = "<a href='Admin/" . $location . "' download>" . $text . "</a>";
+                    $status = fwrite($myfile, $link_text);
+                } else {
+                    echo '<script>alert("Failed to Upload File!!")</script>';
+                }
+            }
+        }
+        fclose($myfile);
+        if ($status) {
+            echo "<script>alert('Text Updated Successfully!')</script>";
+        } else {
+            echo "<script>alert('Text Updation Failed!')</script>";
         }
     }
 }
 
 if (isset($_POST['reset'])) {
-    if ($_SESSION['Role'] != "Super_Admin") {
-        echo "<script>alert('Only Super Admin Can Access This!')</script>";
-    } else {
-        $myfile = fopen("../test.txt", "w");
-        $reset_status = fwrite($myfile, '');
-        fclose($myfile);
-        echo "<script>alert('Text Reset Successfully!')</script>";
+    if (!can('delete', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to reset home page text');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
     }
+    $myfile = fopen("../test.txt", "w");
+    $reset_status = fwrite($myfile, '');
+    fclose($myfile);
+    echo "<script>alert('Text Reset Successfully!')</script>";
 }
 ?>
 <!DOCTYPE html>
@@ -170,8 +179,18 @@ if (isset($_POST['reset'])) {
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-2">
-                    <button class="btn btn-primary" type="submit" name="update">Update</button>
-                    <button class="btn btn-warning" type="submit" name="reset" onclick="if(!confirm('Confirm to Reset Text?')){return false;}else{return true;}">Reset Text</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update home page text"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="update" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>Update</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('delete', MENU_ID)) { ?>
+                        title="You don't have permission to reset home page text"
+                        <?php } ?>>
+                        <button class="btn btn-warning" type="submit" name="reset" onclick="if(!confirm('Confirm to Reset Text?')){return false;}else{return true;}" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>>Reset Text</button>
+                    </div>
                 </div>
             </div>
         </div>

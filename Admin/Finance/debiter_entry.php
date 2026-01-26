@@ -1,11 +1,12 @@
 <?php
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 70);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -19,6 +20,11 @@ function validate($data)
     return $data;
 }
 if (isset($_POST["add"])) {
+    if (!can('create', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to insert debiter');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     $ac = $_POST['AC_No'];
     $name = $_POST['Name'];
     if ($_POST['Address']) {
@@ -56,7 +62,13 @@ if (isset($_POST["add"])) {
         }
     }
 }
+
 if (isset($_POST["update"])) {
+    if (!can('update', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to update debiter');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     $ac = $_POST['AC_No'];
     $name = $_POST['Name'];
     if ($_POST['Address']) {
@@ -95,7 +107,13 @@ if (isset($_POST["update"])) {
         }
     }
 }
+
 if (isset($_POST["delete"])) {
+    if (!can('delete', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to delete debiter');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     $ac = $_POST['AC_No'];
 
     $query = mysqli_query($link, "SELECT * FROM `debiter_master_data` WHERE AC_No = '$ac'");
@@ -215,21 +233,52 @@ if (isset($_POST["delete"])) {
                     </div>
                 </div>
                 <div class="button">
-                    <input type="submit" name="add" value="Insert" onclick="if(!confirm('Confirm to Insert Debiter Data?')){return false;}else{return true;}" />
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert debiter"
+                        <?php } ?>>
+                        <input type="submit" name="add" value="Insert" onclick="if(!confirm('Confirm to Insert Debiter Data?')){return false;}else{return true;}" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
                     <input type="reset" value="Clear" />
-                    <input type="submit" name="find" value="Find" onclick="find_ac();return false;" />
-                    <input type="submit" name="update" value="Update" onclick="if(!confirm('Confirm to Update Debiter Data?')){return false;}else{return true;}" />
-                    <input type="submit" name="delete" value="Delete" onclick="if(!confirm('Confirm to Delete Debiter Data?')){return false;}else{return true;}" />
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view debiter"
+                        <?php } ?>>
+                        <input type="submit" name="find" value="Find" onclick="find_ac();return false;" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update debiter"
+                        <?php } ?>>
+                        <input type="submit" name="update" value="Update" onclick="if(!confirm('Confirm to Update Debiter Data?')){return false;}else{return true;}" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('delete', MENU_ID)) { ?>
+                        title="You don't have permission to delete debiter"
+                        <?php } ?>>
+                        <input type="submit" name="delete" value="Delete" onclick="if(!confirm('Confirm to Delete Debiter Data?')){return false;}else{return true;}" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
+
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Scripts -->
+     
+    <!-- Global Const Variables for can_update,can_allocate -->
+    <script>
+        const CAN_VIEW = <?= can('view', MENU_ID) ? 'true' : 'false' ?>;
+    </script>
 
     <!-- Get Debiter Details on Find -->
     <script type="text/javascript">
         function find_ac() {
+            if (!CAN_VIEW) {
+                alert("You do not have permission to view debiter details");
+                return;
+            }
+
             ac = document.getElementById('ac_no').value;
             $.ajax({
                 type: 'post',
@@ -240,6 +289,8 @@ if (isset($_POST["delete"])) {
                 success: function(data) {
                     if (data == "0") {
                         alert('Debiter Not Found');
+                    } else if (data == "permission") {
+                        alert('You don\'t have permission to View Debiter Details');
                     } else {
                         arr = data.split(",");
                         $('#ac_no').val(arr[0]);

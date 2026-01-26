@@ -1,12 +1,13 @@
 <?php
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('admin_login.php');
-  </script>
-  </script>";
-}
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
+
+define('MENU_ID', 98);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -91,7 +92,12 @@ if (!$_SESSION['Admin_Id_No']) {
                     </div>
                 </div>
                 <div class="row button">
-                    <input type="submit" name="change">
+                    <div class="btn-wrapper <?php echo !can('update', MENU_ID) ? 'rbac-disabled' : ''; ?>"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update student/faculty password"
+                        <?php } ?>>
+                        <input type="submit" name="change" class="btn" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>
+                    </div>
                 </div>
             </form>
         </div>
@@ -106,6 +112,11 @@ if (!$_SESSION['Admin_Id_No']) {
         return $data;
     }
     if (isset($_POST['change'])) {
+        if (!can('update', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to update student/faculty password');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $id = validate($_POST['UserName']);
         $new = validate($_POST['Password']);
         echo "<script>document.getElementById('username').value = '" . $id . "';

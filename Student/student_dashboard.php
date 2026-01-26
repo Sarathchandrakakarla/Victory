@@ -7,6 +7,7 @@ if (!$_SESSION['Id_No']) {
   </script>
   </script>";
 }
+//print_r($_SESSION['RBAC']);
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">

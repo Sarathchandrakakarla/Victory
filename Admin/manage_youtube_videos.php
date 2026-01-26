@@ -1,13 +1,13 @@
 <?php
 include_once('../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('/Victory/Admin/admin_login.php');
-  </script>
-  </script>";
-}
+include_once('includes/rbac_helper.php');
+
+define('MENU_ID', 96);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 
 <?php
@@ -15,6 +15,11 @@ if (!$_SESSION['Admin_Id_No']) {
 $apiKey = 'AIzaSyDCqN_8pQmJsghZF3Zc4U9dx_N_nS1wuFs';
 
 if (isset($_POST['add'])) {
+    if (!can('create', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to insert youtube videos');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     if ($_POST['Video_Id']) {
         $video_id = $_POST['Video_Id'];
         $apiUrl = "https://www.googleapis.com/youtube/v3/videos?id=$video_id&key=$apiKey&part=snippet,contentDetails,statistics";
@@ -146,6 +151,30 @@ if (isset($_POST['add'])) {
         border-color: transparent;
         color: #fff;
     }
+
+    /* Wrapper controls cursor + tooltip */
+    .btn-wrapper {
+        display: inline-block;
+    }
+
+    /* Disabled state on wrapper */
+    .btn-wrapper.disabled {
+        cursor: not-allowed;
+    }
+
+    /* Icon appearance */
+    .btn-wrapper i {
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    /* Disabled icon */
+    .btn-wrapper.disabled i {
+        opacity: 0.4;
+        color: grey;
+        pointer-events: none;
+        /* blocks click */
+    }
 </style>
 
 <body>
@@ -159,7 +188,12 @@ if (isset($_POST['add'])) {
                     <label for=""><b>Add New Video</b></label>
                 </div>
                 <div class="col-lg-1">
-                    <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;"> <i class="bx bx-plus" id="plus-icon"></i> </button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert youtube videos"
+                        <?php } ?>>
+                        <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>> <i class="bx bx-plus" id="plus-icon"></i> </button>
+                    </div>
                 </div>
                 <div class="col-lg-3">
                     <input type="text" class="form-control" id="inp" name="Video_Id" placeholder="Enter Video Id" value="<?php if (isset($video_id)) {
@@ -169,14 +203,24 @@ if (isset($_POST['add'])) {
                                                                                                                             } ?>" style="opacity: 0;">
                 </div>
                 <div class="col-lg-1">
-                    <button class="btn btn-warning" name="add" id="add-btn" style="opacity: 0;">Insert</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert youtube videos"
+                        <?php } ?>>
+                        <button class="btn btn-warning" name="add" id="add-btn" style="opacity: 0;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Insert</button>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="container">
             <div class="row justify-content-center mt-3">
                 <div class="col-lg-2">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                 </div>
             </div>
@@ -200,28 +244,53 @@ if (isset($_POST['add'])) {
                 </tr>
             </thead>
             <tbody id="tbody">
-                <tr>
-                    <?php
-                    if (isset($_POST['show'])) {
-                        $sql = "SELECT * FROM `youtube`";
-                        $result = mysqli_query($link, $sql);
-                        $i = 1;
-                        while ($row = mysqli_fetch_assoc($result)) {
-                            echo '<tr>
-                <td style="padding:5px;">' . $i . '</td>
-                <td style="padding:5px;">' . $row['Video_Id'] . '</td>
-                <td style="padding:5px;">' . $row['Video_Title'] . '</td>
-                <td style="padding:5px;">
-                <i class="bx bx-edit edit" data-toggle="modal" data-target="#modal" title="Edit Video Title"></i>
-                <i class="bx bx-file-find preview" title="Preview Video"></i>
-                    <i class="bx bx-trash delete" title="Delete Video"></i>
-                </td>
-                </tr>';
-                            $i++;
-                        }
+                <?php
+                if (isset($_POST['show'])) {
+                    if (!can('view', MENU_ID)) {
+                        echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                        exit;
                     }
-                    ?>
-                </tr>
+                    $sql = "SELECT * FROM `youtube`";
+                    $result = mysqli_query($link, $sql);
+                    $i = 1;
+                    while ($row = mysqli_fetch_assoc($result)) {
+                        echo '<tr>
+                                    <td style="padding:5px;">' . $i . '</td>
+                                    <td style="padding:5px;">' . $row['Video_Id'] . '</td>
+                                    <td style="padding:5px;">' . $row['Video_Title'] . '</td>
+                                    <td style="padding:5px;">';
+
+                        /* ===== EDIT VIDEO ===== */
+                        $canEdit = can('update', MENU_ID);
+                        echo '<div class="btn-wrapper ' . (!$canEdit ? 'disabled' : '') . '" ' .
+                            (!$canEdit ? 'title="You don\'t have permissioFn to edit videos"' : '') . '>
+                                <i class="bx bx-edit edit"
+                                data-allowed="' . ($canEdit ? '1' : '0') . '"></i>
+                            </div>';
+
+                        /* ===== PREVIEW VIDEO ===== */
+                        $canView = can('view', MENU_ID);
+                        echo '<div class="btn-wrapper ' . (!$canView ? 'disabled' : '') . '" ' .
+                            (!$canView ? 'title="You don\'t have permission to view videos"' : '') . '>
+                                <i class="bx bx-file-find preview"
+                                data-allowed="' . ($canView ? '1' : '0') . '"></i>
+                            </div>';
+
+                        /* ===== DELETE VIDEO ===== */
+                        $canDelete = can('delete', MENU_ID);
+                        echo '<div class="btn-wrapper ' . (!$canDelete ? 'disabled' : '') . '" ' .
+                            (!$canDelete ? 'title="You don\'t have permission to delete videos"' : '') . '>
+                                <i class="bx bx-trash delete"
+                                data-allowed="' . ($canDelete ? '1' : '0') . '"></i>
+                            </div>';
+
+                        echo '</td></tr>';
+
+                        $i++;
+                    }
+                }
+                ?>
             </tbody>
         </table>
     </div>
@@ -239,7 +308,12 @@ if (isset($_POST['add'])) {
                     <input type="text" class="form-control" id="video_title" required>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" onclick="edit_title(document.getElementById('video_id').value,document.getElementById('video_title').value)">Save changes</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update youtube videos"
+                        <?php } ?>>
+                        <button type="button" class="btn btn-primary" onclick="edit_title(document.getElementById('video_id').value,document.getElementById('video_title').value)" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>Save changes</button>
+                    </div>
                     <button type="button" class="btn btn-secondary" onclick="$('#modal').modal('hide')">Cancel</button>
                 </div>
             </div>
@@ -268,8 +342,16 @@ if (isset($_POST['add'])) {
     </div>
     <iframe name="print_frame" width="0" height="0" frameborder="0" src="about:blank"></iframe>
 
-    <!-- Revealing Text Box -->
+    <!-- Scripts -->
 
+    <!-- Global Const Variables for can_insert,can_update,can_soft_delete,can_hard_delete -->
+    <script>
+        const CAN_UPDATE = <?= can('update', MENU_ID) ? 'true' : 'false' ?>;
+        const CAN_DELETE = <?= can('delete', MENU_ID) ? 'true' : 'false' ?>;
+        const CAN_VIEW = <?= can('view', MENU_ID) ? 'true' : 'false' ?>;
+    </script>
+
+    <!-- Revealing Text Box -->
     <script type="text/javascript">
         function reveal() {
             button = document.getElementById('plus-icon');
@@ -302,7 +384,12 @@ if (isset($_POST['add'])) {
 
     <!-- Delete, Edit, Preview Row -->
     <script type="text/javascript">
-        $(".delete").click(function() {
+        $(".delete").click(function(e) {
+            if (!CAN_DELETE) {
+                e.preventDefault();
+                alert("You do not have permission to delete video");
+                return;
+            }
             video_id = $(this).parent().siblings().eq(1).text();
             if (!confirm('Confirm to delete Video: ' + video_id + '?')) {
                 return;
@@ -321,7 +408,12 @@ if (isset($_POST['add'])) {
             }
         });
 
-        $(".edit").click(function() {
+        $(".edit").click(function(e) {
+            if (!CAN_UPDATE) {
+                e.preventDefault();
+                alert("You do not have permission to edit video");
+                return;
+            }
             video_id = $(this).parent().siblings().eq(1).text();
             video_title = $(this).parent().siblings().eq(2).text();
             document.getElementById("video_id").value = video_id;
@@ -346,8 +438,13 @@ if (isset($_POST['add'])) {
                 }
             });
         }
-        $(".preview").click(function() {
-            video_id = $(this).parent().siblings().eq(1).text();
+        $(".preview").click(function(e) {
+            if (!CAN_VIEW) {
+                e.preventDefault();
+                alert("You do not have permission to preview video");
+                return;
+            }
+            video_id = $(this).parent().parent().siblings().eq(1).text();
             video_title = $(this).parent().siblings().eq(2).text();
             document.getElementById("modal-video-player").src = "https://www.youtube.com/embed/" + video_id
             $("#modal1").modal("show");

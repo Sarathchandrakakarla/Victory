@@ -1,11 +1,22 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-  echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 90);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+if (!can('view', MENU_ID)) {
+  echo "<script>alert('You don\'t have permission to view blog posts');
+      location.replace('/Victory/Admin/admin_dashboard.php')</script>";
   exit;
 }
+
+error_reporting(0);
+?>
+
+<?php
 date_default_timezone_set('Asia/Kolkata');
 
 // Helper: Sanitize filename to prevent spaces, special chars for security & consistency
@@ -28,6 +39,11 @@ function createPostFolder($postId)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (isset($_POST['add'])) {
+    if (!can('create', MENU_ID)) {
+      echo "<script>alert('You don\'t have permission to create post');
+          location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+      exit;
+    }
     // === CREATE POST ===
     $title = mysqli_real_escape_string($link, trim($_POST['Title']));
     $desc = mysqli_real_escape_string($link, trim($_POST['Description']));
@@ -96,6 +112,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   if (isset($_POST['update'])) {
+    if (!can('update', MENU_ID)) {
+      echo "<script>alert('You don\'t have permission to update post');
+          location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+      exit;
+    }
     // === EDIT POST ===
     $postId = intval($_POST['Post_Id']);
     $title = mysqli_real_escape_string($link, trim($_POST['Title']));
@@ -209,6 +230,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   if (isset($_POST['delete'])) {
+    if (!can('delete', MENU_ID)) {
+      echo "<script>alert('You don\'t have permission to delete post');
+          location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+      exit;
+    }
     // === DELETE POST ===
     $postId = intval($_POST['Post_Id']);
     $postFolder = "../../Images/blog/posts_images/post_" . $postId;
@@ -229,6 +255,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   if (isset($_POST['fetch'])) {
+    if (!can('view', MENU_ID)) {
+      echo "<script>alert('You don\'t have permission to view posts');
+          location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+      exit;
+    }
     $whereClauses = [];
 
     if (!empty($_POST['filterTitle'])) {
@@ -280,22 +311,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       echo "<td>" . htmlspecialchars($row['Author']) . "</td>";
       echo "<td>" . date("d-m-Y H:i", strtotime($row['Posted_On'])) . "</td>";
       echo '
-      <td style="height:115px;display: flex;gap:20px;align-items:center;">
-        <a href="/Victory/blog/post.php?id=' . $row['Post_Id'] . '" target="_blank" class="btn btn-sm btn-success d-flex justify-content-center align-items-center" style="width: 70px;height:40px;gap:8px;">
-          <i class="fas fa-eye"></i> <span>View</span>
-        </a>
-        <button class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" style="width: 70px;height:40px;gap:8px;" data-bs-toggle="modal" data-bs-target="#editPostModal' . $row['Post_Id'] . '">
-          <i class="bx bx-edit"></i> <span>Edit</span>
-        </button>
-        <form method="POST" action="" style="display:inline;" onsubmit="return confirm(\'Are you sure you want to delete this post?\');">
-          <input type="hidden" name="Post_Id" value="' . $row['Post_Id'] . '" />
-          <button type="submit" name="delete" class="btn btn-sm btn-danger d-flex justify-content-center align-items-center" style="width: 80px;height:40px;gap:8px;">
+      <td style="height:115px;display:flex;gap:20px;align-items:center;">';
+
+      /* ===== VIEW ===== */
+      echo '<div ' . (!can('view', MENU_ID) ? 'title="You don\'t have permission to view this post"' : '') . '>';
+
+      if (can('view', MENU_ID)) {
+        echo '<a href="/Victory/blog/post.php?id=' . $row['Post_Id'] . '"
+             target="_blank"
+             class="btn btn-sm btn-success d-flex justify-content-center align-items-center"
+             style="width:70px;height:40px;gap:8px;">
+            <i class="fas fa-eye"></i> <span>View</span>
+          </a>';
+      } else {
+        echo '<a href="javascript:void(0)"
+             class="btn btn-sm btn-secondary d-flex justify-content-center align-items-center disabled"
+             style="width:70px;height:40px;gap:8px;">
+            <i class="fas fa-eye"></i> <span>View</span>
+          </a>';
+      }
+      echo '</div>';
+
+      /* ===== EDIT ===== */
+      echo '<div ' . (!can('update', MENU_ID) ? 'title="You don\'t have permission to edit this post"' : '') . '>';
+
+      if (can('update', MENU_ID)) {
+        echo '<button class="btn btn-sm btn-warning d-flex justify-content-center align-items-center"
+                  style="width:70px;height:40px;gap:8px;"
+                  data-bs-toggle="modal"
+                  data-bs-target="#editPostModal' . $row['Post_Id'] . '">
+            <i class="bx bx-edit"></i> <span>Edit</span>
+          </button>';
+      } else {
+        echo '<button class="btn btn-sm btn-secondary d-flex justify-content-center align-items-center"
+                  style="width:70px;height:40px;gap:8px;"
+                  disabled>
+            <i class="bx bx-edit"></i> <span>Edit</span>
+          </button>';
+      }
+      echo '</div>';
+
+      /* ===== DELETE ===== */
+      echo '<div ' . (!can('delete', MENU_ID) ? 'title="You don\'t have permission to delete this post"' : '') . '>';
+
+      if (can('delete', MENU_ID)) {
+        echo '<form method="POST"
+                 action=""
+                 style="display:inline;"
+                 onsubmit="return confirm(\'Are you sure you want to delete this post?\');">
+            <input type="hidden" name="Post_Id" value="' . $row['Post_Id'] . '" />
+            <button type="submit"
+                    name="delete"
+                    class="btn btn-sm btn-danger d-flex justify-content-center align-items-center"
+                    style="width:80px;height:40px;gap:8px;">
+              <i class="bx bx-trash"></i> <span>Delete</span>
+            </button>
+          </form>';
+      } else {
+        echo '<button class="btn btn-sm btn-secondary d-flex justify-content-center align-items-center"
+                  style="width:80px;height:40px;gap:8px;"
+                  disabled>
             <i class="bx bx-trash"></i> <span>Delete</span>
-          </button>
-        </form>
-      </td>
-      ';
-      echo "</tr>";
+          </button>';
+      }
+      echo '</div>
+        </td>
+      </tr>';
     }
     exit;
   }
@@ -367,6 +448,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       height: 60px;
       width: 60px;
     }
+
+    td div[title],
+    td div[title] * {
+      cursor: not-allowed !important;
+    }
+
+    .disabled {
+      pointer-events: none;
+      opacity: 0.6;
+    }
   </style>
 </head>
 
@@ -376,9 +467,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="container my-4" style="margin-left: 8%;">
     <h2 class="mb-4">Manage Blog Posts</h2>
 
-    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addPostModal">
-      <i class="bx bx-plus"></i> Add New Post
-    </button>
+    <div class="btn-wrapper"
+      <?php if (!can('create', MENU_ID)) { ?>
+      title="You don't have permission to create blog post"
+      <?php } ?>>
+      <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addPostModal" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>
+        <i class="bx bx-plus"></i> Add New Post
+      </button>
+    </div>
 
     <form id="filterForm" class="row g-3 mb-3 align-items-end">
       <div class="col-md-3">
@@ -412,7 +508,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="date" class="form-control" id="filterDateTo" name="filterDateTo">
       </div>
       <div class="col-md-3 d-flex align-items-end gap-2">
-        <button type="submit" class="btn btn-primary">Apply Filters</button>
+        <div class="btn-wrapper"
+          <?php if (!can('view', MENU_ID)) { ?>
+          title="You don't have permission to view/filter blog posts"
+          <?php } ?>>
+          <button type="submit" class="btn btn-primary" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Apply Filters</button>
+        </div>
         <button type="button" class="btn btn-outline-secondary" id="resetFilters">Reset</button>
       </div>
     </form>
@@ -441,29 +542,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     while ($row = mysqli_fetch_assoc($res)) {
       $mediaFiles = json_decode($row['Media'], true) ?: [];
     ?>
-      <!-- <tr>
-              <td><?= $row['Post_Id']; ?></td>
-              <td><img src="../../Images/blog/posts_images/post_<?= $row['Post_Id']; ?>/<?= htmlspecialchars($row['Cover_Photo']); ?>" class="img-thumbnail rounded" style="width: 200px;height:100px" /></td>
-              <td><?= htmlspecialchars($row['Title']); ?></td>
-              <td><?= htmlspecialchars($row['Description']); ?></td>
-              <td><?= htmlspecialchars($row['Author']); ?></td>
-              <td><?= date("d-m-Y H:i", strtotime($row['Posted_On'])); ?></td>
-              <td style="height:115px;display: flex;gap:20px;align-items:center;">
-                <a href="/Victory/blog/post.php?id=<?= $row['Post_Id']; ?>" target="_blank" class="btn btn-sm btn-success d-flex justify-content-center align-items-center" style="width: 70px;height:40px;gap:8px;">
-                  <i class="fas fa-eye"></i> <span>View</span>
-                </a>
-                <button class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" style="width: 70px;height:40px;gap:8px;" data-bs-toggle="modal" data-bs-target="#editPostModal<?= $row['Post_Id']; ?>">
-                  <i class="bx bx-edit"></i> <span>Edit</span>
-                </button>
-                <form method="POST" action="" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this post?');">
-                  <input type="hidden" name="Post_Id" value="<?= $row['Post_Id']; ?>" />
-                  <button type="submit" name="delete" class="btn btn-sm btn-danger d-flex justify-content-center align-items-center" style="width: 80px;height:40px;gap:8px;">
-                    <i class="bx bx-trash"></i> <span>Delete</span>
-                  </button>
-                </form>
-              </td>
-            </tr> -->
-
       <!-- Edit Modal -->
       <div class="modal fade" id="editPostModal<?= $row['Post_Id']; ?>" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -554,7 +632,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="submit" name="update" class="btn btn-success">Update Post</button>
+                <div class="btn-wrapper"
+                  <?php if (!can('update', MENU_ID)) { ?>
+                  title="You don't have permission to update this post"
+                  <?php } ?>>
+                  <button type="submit" name="update" class="btn btn-success" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>Update Post</button>
+                </div>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
               </div>
             </form>
@@ -641,7 +724,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" name="add" class="btn btn-success">Save Post</button>
+            <div class="btn-wrapper"
+              <?php if (!can('create', MENU_ID)) { ?>
+              title="You don't have permission to create blog post"
+              <?php } ?>>
+              <button type="submit" name="add" class="btn btn-success" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Save Post</button>
+            </div>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
           </div>
         </form>

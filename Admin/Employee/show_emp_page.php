@@ -1,15 +1,15 @@
 <?php
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-  echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 51);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 <?php
-include '../../link.php';
 function validate($data)
 {
   $data = trim($data);
@@ -18,6 +18,11 @@ function validate($data)
   return $data;
 }
 if (isset($_POST['show'])) {
+  if (!can('view', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to view employee data');
+      location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+    exit;
+  }
   $id = validate($_POST['show_id']);
 
   $sql = "SELECT * FROM employee_master_data WHERE Emp_Id = '$id'";
@@ -71,6 +76,11 @@ if (isset($_POST['show'])) {
 }
 
 if (isset($_POST['update'])) {
+  if (!can('update', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to update employee data');
+      location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+    exit;
+  }
   $id = validate($_POST['show_id']);
 
   $sql = "SELECT * FROM employee_master_data WHERE Emp_Id = '$id'";
@@ -125,6 +135,11 @@ if (isset($_POST['update'])) {
 }
 
 if (isset($_POST['delete'])) {
+  if (!can('delete', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to delete employee');
+      location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+    exit;
+  }
   $id = validate($_POST['show_id']);
 
   echo "<script>if(!confirm('Confirm To Delete Employee Data from Employee Database?')){
@@ -201,9 +216,24 @@ if (isset($_POST['delete'])) {
                                                                                                         echo "";
                                                                                                       } ?>" oninput="this.value = this.value.toUpperCase()" required>
           <div class="buttons mt-3">
-            <button class="btn btn-primary" type="submit" name="show">Show</button>
-            <button class="btn btn-warning" type="submit" name="update">Modify</button>
-            <button class="btn btn-danger" type="submit" name="delete">Delete</button>
+            <div class="btn-wrapper"
+              <?php if (!can('view', MENU_ID)) { ?>
+              title="You don't have permission to view employee data"
+              <?php } ?>>
+              <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+            </div>
+            <div class="btn-wrapper"
+              <?php if (!can('update', MENU_ID)) { ?>
+              title="You don't have permission to update employee data"
+              <?php } ?>>
+              <button class="btn btn-warning" type="submit" name="update" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>Modify</button>
+            </div>
+            <div class="btn-wrapper"
+              <?php if (!can('delete', MENU_ID)) { ?>
+              title="You don't have permission to delete employee data"
+              <?php } ?>>
+              <button class="btn btn-danger" type="submit" name="delete" onclick="if(!confirm('Confirm to Delete Employee Data?')){return false;}else{return true;}" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>>Delete</button>
+            </div>
           </div>
         </form>
       </div>

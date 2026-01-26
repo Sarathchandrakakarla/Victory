@@ -1,11 +1,13 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
-//error_reporting(0);
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 88);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 
 
@@ -128,10 +130,25 @@ if (!$_SESSION['Admin_Id_No']) {
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-4">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
-                    <button class="btn btn-warning">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
+                    <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -175,7 +192,7 @@ if (!$_SESSION['Admin_Id_No']) {
                     <th>Login Status</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tbody">
                 <?php
                 function getData()
                 {
@@ -283,6 +300,11 @@ if (!$_SESSION['Admin_Id_No']) {
                 }
 
                 if (isset($_POST['show'])) {
+                    if (!can('view', MENU_ID)) {
+                        echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                        exit;
+                    }
                     $report_type = $_POST['Report_Type'];
                     $report = ["Not Logged In" => 0, "Logged In" => 0];
                     echo "<script>report_container.hidden = '';</script>";
@@ -374,18 +396,18 @@ if (!$_SESSION['Admin_Id_No']) {
                             $newestDate = max($dateObjects)->format('Y-m-d');
                             if (!$_POST['From_Date'] && !$_POST['To_Date']) {
                                 echo "
-                            <script>
-                                from_date.value = '" . $oldestDate . "';
-                                to_date.value = '" . $newestDate . "';
-                                type_txt_label.innerHTML = '" . format_date($oldestDate) . " - " . format_date($newestDate) . "';
-                            </script>
+                                <script>
+                                    from_date.value = '" . $oldestDate . "';
+                                    to_date.value = '" . $newestDate . "';
+                                    type_txt_label.innerHTML = '" . format_date($oldestDate) . " - " . format_date($newestDate) . "';
+                                </script>
                             ";
                             } else if (!$_POST['From_Date'] && $_POST['To_Date']) {
                                 echo "
-                            <script>
-                                from_date.value = '" . $oldestDate . "';
-                                type_txt_label.innerHTML = '" . format_date($oldestDate) . " - " . format_date($to_date) . "';
-                            </script>
+                                <script>
+                                    from_date.value = '" . $oldestDate . "';
+                                    type_txt_label.innerHTML = '" . format_date($oldestDate) . " - " . format_date($to_date) . "';
+                                </script>
                             ";
                             }
                         }
@@ -419,11 +441,10 @@ if (!$_SESSION['Admin_Id_No']) {
                         $i++;
                     }
                     echo '
-                            <script>
-                                logged_in.innerHTML = ' . $report['Logged In'] . ';
-                                not_logged_in.innerHTML = ' . $report['Not Logged In'] . ';
-                            </script>
-                            ';
+                        <script>
+                            logged_in.innerHTML = ' . $report['Logged In'] . ';
+                            not_logged_in.innerHTML = ' . $report['Not Logged In'] . ';
+                        </script>';
                 }
                 ?>
             </tbody>

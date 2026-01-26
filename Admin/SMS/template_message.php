@@ -1,26 +1,13 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 81);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
-?>
-<?php
-if (isset($_POST['Action']) && $_POST['Action'] == "Get_Id") {
-    $id = $_POST['Id'];
-    $sql = mysqli_query($link, "SELECT * FROM `whatsapp_templates` WHERE T_Id = '$id'");
-    if (mysqli_num_rows($sql) == 0) {
-        echo "No Data Found";
-        return;
-    } else {
-        while ($row = mysqli_fetch_assoc($sql)) {
-            echo $row['T_Type'] . "|" . $row['M_Type'] . "|" . $row['Placeholders'];
-            return;
-        }
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -140,8 +127,18 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Get_Id") {
             </div>
             <div class="row justify-content-center mt-3">
                 <div class="col-lg-3">
-                    <button type="submit" class="btn btn-primary" onclick="if(excel.value == ''){alert('Please Select Excel File!');return false;}else{return true;}" name="Upload">Upload Excel</button>
-                    <button type="submit" class="btn btn-success" name="Send">Send</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to upload or send SMS"
+                        <?php } ?>>
+                        <button type="submit" class="btn btn-primary" onclick="if(excel.value == ''){alert('Please Select Excel File!');return false;}else{return true;}" name="Upload" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Upload Excel</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to send SMS"
+                        <?php } ?>>
+                        <button class="btn btn-success" name="Send" id="send" onclick="return false;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Send</button>
+                    </div>
                     <button type="reset" class="btn btn-warning" onclick="media_row.hidden = 'hidden';alert_container.hidden = 'hidden';send_alert_container.hidden = 'hidden';">Clear</button>
                 </div>
             </div>
@@ -173,6 +170,11 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Get_Id") {
         </div>
         <?php
         if (isset($_POST['Upload'])) {
+            if (!can('create', MENU_ID)) {
+                echo "<script>alert('You don\'t have permission to send SMS');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                exit;
+            }
             $excel = $_FILES['Excel'];
             $excel_name = $excel['name'];
             $location = "../../Files/Message Files/excel.xlsx";
@@ -197,7 +199,13 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Get_Id") {
                 </script>";
             }
         }
+
         if (isset($_POST['Send'])) {
+            if (!can('create', MENU_ID)) {
+                echo "<script>alert('You don\'t have permission to send SMS');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                exit;
+            }
             echo "<script>alert_container.hidden = 'hidden';</script>";
             if ($_POST['T_Id']) {
                 $T_Id = $_POST['T_Id'];

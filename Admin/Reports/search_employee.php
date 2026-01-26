@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 52);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 <!DOCTYPE html>
@@ -76,7 +78,12 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning">Clear</button>
                 </div>
             </div>
@@ -104,6 +111,11 @@ error_reporting(0);
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $txtinp = $_POST['txtinp'];
                         echo "<script>document.getElementById('txtinp').value = '" . $txtinp . "'</script>";
                         $sql = "SELECT * FROM `employee_master_data` WHERE Emp_First_Name LIKE '%$txtinp%'";
@@ -112,12 +124,12 @@ error_reporting(0);
                         if (mysqli_num_rows($result) > 0) {
                             while ($row = mysqli_fetch_assoc($result)) {
                                 echo '<tr>
-              <td>' . $i . '</td>
-              <td>' . $row['Emp_Id'] . '</td>
-              <td>' . $row['Emp_First_Name'] . '</td>
-              <td>' . $row['Emp_Sur_Name'] . '</td>
-              <td>' . $row['Father_Name'] . '</td>
-              </tr>';
+                                <td>' . $i . '</td>
+                                <td>' . $row['Emp_Id'] . '</td>
+                                <td>' . $row['Emp_First_Name'] . '</td>
+                                <td>' . $row['Emp_Sur_Name'] . '</td>
+                                <td>' . $row['Father_Name'] . '</td>
+                                </tr>';
                                 $i++;
                             }
                         } else {

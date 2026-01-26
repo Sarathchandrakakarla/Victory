@@ -1,12 +1,18 @@
 <?php
-session_start();
-if (!$_SESSION['Id_No']) {
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
+
+define('MENU_ID', 132);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+if (!can('view', MENU_ID)) {
   echo "<script>
-  alert('Student Id Not Rendered');
-  location.replace('student_login.php');
-  </script>
+  alert('You don\'t have permission to view your profile! Please Contact School Office');
+  location.replace('/Victory/Student/student_dashboard.php');
   </script>";
 }
+error_reporting(0);
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">

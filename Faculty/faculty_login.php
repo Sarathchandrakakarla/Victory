@@ -1,45 +1,110 @@
 <?php
 include '../link.php';
 session_start();
+
 if (isset($_POST['Login'])) {
+
     function validate($data)
     {
-        $data = trim($data);
-        $data = stripslashes($data);
-        $data = htmlspecialchars($data);
-        return $data;
+        return htmlspecialchars(stripslashes(trim($data)));
     }
+
     $uname = validate($_POST['UserName']);
-    $pass = validate($_POST['Password']);
-    $sql = "SELECT * FROM `faculty` WHERE Id_No = '$uname'";
+    $pass  = validate($_POST['Password']);
+
+    $sql = "SELECT f.Id_No,
+                f.Fac_Hash,
+                f.Status,
+                f.Role,
+                r.Role_Name,
+                r.Active_Flag
+            FROM faculty f
+            LEFT JOIN roles r ON r.Role_Id = f.Role
+            WHERE f.Id_No = '$uname'
+            ";
+
     $result = mysqli_query($link, $sql);
-    if (mysqli_num_rows($result) == 1) {
+
+    if (mysqli_num_rows($result) === 1) {
+
         $row = mysqli_fetch_assoc($result);
-        $adm_id = $row['Id_No'];
-        $adm_hash = $row['Fac_Hash'];
-        $role = $row['Role'];
-        if (password_verify($pass, $adm_hash)) {
-            if ($row['Status'] == "Disabled") {
-                echo "<script>alert('Your Login has been Disabled.. Contact Admin Office');location.replace('faculty_login.php')</script>";
-                exit;
-            }
-            $_SESSION['Id_No'] = $adm_id;
-            $_SESSION['Role'] = $role;
-            header('Location: faculty_dashboard.php');
+        // 🔒 Role missing (invalid mapping)
+        if ($row['Role_Name'] === null) {
+            echo "<script>
+                    alert('Your Role is Invalid. Contact Office Admin');
+                    location.replace('faculty_login.php');
+                </script>";
             exit;
-        } else {
-            echo "<script>alert('Incorrect Password');
-                    </script>";
         }
-    } else {
-        echo "<script>alert('Incorrect Username');
-                    </script>";
-    }
-} else {
-    echo "<script>alert('variable 'UserName' or variable 'Password' is not declared');
+
+
+        if (!password_verify($pass, $row['Fac_Hash'])) {
+            echo "<script>alert('Incorrect Password');</script>";
+            exit;
+        }
+
+        // 🔒 Faculty disabled
+        if ($row['Status'] === 'Disabled') {
+            echo "<script>
+                alert('Your Login has been Disabled. Contact Admin Office');
+                location.replace('faculty_login.php');
             </script>";
+            exit;
+        }
+
+        // 🔒 Role inactive
+        if ((int)$row['Active_Flag'] !== 1) {
+            echo "<script>
+                alert('Your Role is Inactive. Contact Office Admin');
+                location.replace('faculty_login.php');
+            </script>";
+            exit;
+        }
+
+        // ✅ Secure session
+        session_regenerate_id(true);
+
+        $_SESSION['Id_No']      = $row['Id_No'];
+        $_SESSION['Role_Name'] = $row['Role_Name'];   // UI only
+
+        // 🔐 Load RBAC
+        $_SESSION['RBAC'] = [];
+
+        $roleId = (int)$row['Role'];
+
+        $permQuery = mysqli_query(
+            $link,
+            "SELECT Menu_Id,
+                    can_view, can_create, can_update,
+                    can_delete, can_print, can_export,
+                    can_custom1, can_custom2, can_custom3, can_custom4
+             FROM role_menu_map
+             WHERE Role_Id = $roleId"
+        );
+
+        while ($p = mysqli_fetch_assoc($permQuery)) {
+            $_SESSION['RBAC'][(int)$p['Menu_Id']] = [
+                'view'    => (int)$p['can_view'],
+                'create'  => (int)$p['can_create'],
+                'update'  => (int)$p['can_update'],
+                'delete'  => (int)$p['can_delete'],
+                'print'   => (int)$p['can_print'],
+                'export'  => (int)$p['can_export'],
+                'custom1' => (int)$p['can_custom1'],
+                'custom2' => (int)$p['can_custom2'],
+                'custom3' => (int)$p['can_custom3'],
+                'custom4' => (int)$p['can_custom4'],
+            ];
+        }
+
+        header('Location: faculty_dashboard.php');
+        exit;
+    } else {
+        echo "<script>alert('Incorrect Username');</script>";
+    }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

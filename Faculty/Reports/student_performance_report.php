@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Id_No']) {
-    echo "<script>alert('Faculty Id Not Rendered');
-    location.replace('../faculty_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 115);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -109,10 +111,25 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-5">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -157,6 +174,11 @@ error_reporting(0);
                 <tbody id="tbody">
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         if ($_POST['Class']) {
                             $class = $_POST['Class'];
                             $_SESSION['Class'] = $class;
@@ -209,213 +231,10 @@ error_reporting(0);
                 </tbody>
             </table>
         </div>
-        <div class="container">
-            <div class="row justify-content-center mt-4">
-                <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" name="add"
-                        onclick="return confirm('Confirm to Update Performance of <?php echo $class . ' ' . $section; ?>?') && validatePerformance();">
-                        Update Performance
-                    </button>
-
-                </div>
-            </div>
-        </div>
     </form>
     <iframe name="print_frame" width="0" height="0" frameborder="0" src="about:blank"></iframe>
 
-    <?php
-    if (isset($_POST['add'])) {
-        $class = $_SESSION['Class'];
-        $section = $_SESSION['Section'];
-        echo "<script>
-                document.getElementById('class').value = '" . $class . "';
-                document.getElementById('sec').value = '" . $section . "';
-            </script>";
-        $reading = $_POST['reading'];
-        $writing = $_POST['writing'];
-        $learning = $_POST['learning'];
-        $handwriting = $_POST['handwriting'];
-        $response = $_POST['response'];
-        $overall = $_POST['overall'];
-        $grade = $_POST['grade'];
-
-        //Arrays
-        $ids = array();
-        $categories = [
-            'Reading'      => $reading,
-            'Writing'     => $writing,
-            'Learning'     => $learning,
-            'Handwriting' => $handwriting,
-            'Response'  => $response,
-            'Overall'   => $overall,
-            'Grade'     => $grade,
-        ];
-        $final = [];
-        $perf_status = true;
-
-        //Queries
-        $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section' ORDER BY Id_No");
-        if (mysqli_num_rows($query1) == 0) {
-            echo "<script>alert('Invalid Class or Section!');</script>";
-            return;
-        } else {
-            while ($row1 = mysqli_fetch_assoc($query1)) {
-                array_push($ids, $row1['Id_No']);
-            }
-        }
-        foreach ($ids as $index => $id) {
-            foreach ($categories as $key => $values) {
-                $final[$id][$key] = $values[$index] ?? null; // safely fetch by index
-            }
-        }
-        foreach ($final as $id => $performance) {
-            $values = array_values($performance);
-            $filledCount = count(array_filter($values, fn($v) => $v !== null));
-            $totalCount = count($values);
-
-            if ($filledCount === 0) {
-                // ✅ Case 1: All values are null
-                continue; // or handle accordingly
-            } else if ($filledCount === $totalCount) {
-                // ✅ Case 2: All values are filled (not null)
-                $check_query = mysqli_query($link, "SELECT * FROM `student_performance` WHERE Id_No = '$id'");
-                if (mysqli_num_rows($check_query) == 0) {
-                    $query2 = "INSERT INTO `student_performance`(Id_No,Reading,Writing,Learning,Handwriting,Response,Overall,Grade) VALUES('$id','" . $performance['Reading'] . "','" . $performance['Writing'] . "','" . $performance['Learning'] . "','" . $performance['Handwriting'] . "','" . $performance['Response'] . "','" . $performance['Overall'] . "'," . $performance['Grade'] . ")";
-                } else {
-                    $query2 = "UPDATE `student_performance` SET Reading = '" . $performance['Reading'] . "',Writing = '" . $performance['Writing'] . "',Learning = '" . $performance['Learning'] . "',Handwriting = '" . $performance['Handwriting'] . "',Response = '" . $performance['Response'] . "',Overall = '" . $performance['Overall'] . "',Grade = " . $performance['Grade'] . " WHERE Id_No = '$id'";
-                }
-                if (!mysqli_query($link, $query2)) {
-                    echo "<script>alert('Performance Updation Failed for " . $id . "');</script>";
-                    exit;
-                }
-            }
-        }
-        echo "<script>alert('Performance Updated Successfully!');</script>";
-    }
-    ?>
-
-
     <!-- Scripts -->
-
-    <!-- Change labels -->
-    <script>
-        $(document).ready(function() {
-            $('.edit').on('click', function() {
-                // Toggle all cells with class "criteria-row"
-                document.querySelectorAll('.criteria-row').forEach((el) => {
-                    el.hidden = !el.hidden;
-                });
-
-                // Toggle Edit/Close button text
-                const $editText = $('#edit-text');
-                $editText.text($editText.text().trim() === 'Edit' ? 'Close' : 'Edit');
-                $('.table-container').css('max-width', $editText.text().trim() === 'Edit' ? '700px' : '1200px')
-
-                // Toggle icon class
-                $('#edit-icon').toggleClass('bg-edit bx-window-close');
-            });
-        });
-    </script>
-
-    <!-- To handle down arrow key navigation -->
-    <script>
-        document.addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                const active = document.activeElement;
-                if (active.classList.contains("form-control")) {
-                    event.preventDefault();
-
-                    // Get the current input's closest table row
-                    const currentRow = active.closest("tr");
-                    if (!currentRow) return;
-
-                    // Find the index of the input inside the row (in case there are multiple inputs per row)
-                    const inputsInRow = currentRow.querySelectorAll(".form-control");
-                    const inputIndex = Array.from(inputsInRow).indexOf(active);
-
-                    // Get the next row
-                    const nextRow = currentRow.nextElementSibling;
-                    if (nextRow) {
-                        const inputsInNextRow = nextRow.querySelectorAll(".form-control");
-                        if (inputsInNextRow[inputIndex]) {
-                            inputsInNextRow[inputIndex].focus();
-                            inputsInNextRow[inputIndex].select();
-                        }
-                    }
-                }
-            }
-        });
-    </script>
-
-    <!-- Validate Grade -->
-    <script>
-        function validateGrade(ele) {
-            event.preventDefault()
-            let val = ele.value;
-            if (val && (val < 1 || val > 10)) {
-                $(ele).css('border-color', 'red');
-                alert('Grade should be 1 to 10');
-                $(ele).val()
-            }
-        }
-    </script>
-
-    <!-- Validate Radio Values -->
-    <script>
-        function validatePerformance() {
-            const rows = document.querySelectorAll('#tbody tr');
-            const criteriaCount = 7; // Reading, Writing, ..., Grade
-            let isValid = true;
-            let firstInvalidRow = null;
-            let hasPartialFill = false;
-            let hasInvalidGrade = false;
-
-            rows.forEach((row, index) => {
-                row.style.outline = ''; // Reset previous highlights
-
-                const radios = row.querySelectorAll('input[type="radio"]:checked');
-                const gradeInput = row.querySelector('input[type="number"]');
-                const gradeVal = gradeInput?.value?.trim();
-
-                let filled = radios.length;
-                if (gradeVal) filled++;
-
-                // ✅ Validate partial fill
-                if (filled > 0 && filled < criteriaCount) {
-                    isValid = false;
-                    hasPartialFill = true;
-                    row.style.outline = '2px solid red';
-                    if (!firstInvalidRow) firstInvalidRow = row;
-                }
-
-                // ✅ Validate grade value (if present)
-                if (gradeVal) {
-                    const num = Number(gradeVal);
-                    if (isNaN(num) || num < 1 || num > 10) {
-                        isValid = true;
-                        hasInvalidGrade = true;
-                        row.style.outline = '2px solid orange';
-                        if (!firstInvalidRow) firstInvalidRow = row;
-                    }
-                }
-            });
-
-            if (hasPartialFill) {
-                alert("Please fill all partially filled rows before submitting.");
-            } else if (hasInvalidGrade) {
-                alert("Grade values must be between 1 and 10.");
-            }
-
-            if ((!isValid || hasInvalidGrade) && firstInvalidRow) {
-                firstInvalidRow.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-            }
-
-            return !(hasPartialFill || hasInvalidGrade);
-        }
-    </script>
 
     <!-- Export Table to Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>

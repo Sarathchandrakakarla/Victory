@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-  echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 61);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -115,8 +117,18 @@ error_reporting(0);
     <div class="container">
       <div class="row justify-content-center mt-4">
         <div class="col-lg-4">
-          <button class="btn btn-primary" name="show">Show</button>
-          <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+          <div class="btn-wrapper"
+            <?php if (!can('view', MENU_ID)) { ?>
+            title="You don't have permission to view this report"
+            <?php } ?>>
+            <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+          </div>
+          <div class="btn-wrapper"
+            <?php if (!can('export', MENU_ID)) { ?>
+            title="You don't have permission to export this report"
+            <?php } ?>>
+            <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+          </div>
         </div>
       </div>
     </div>
@@ -173,31 +185,36 @@ error_reporting(0);
         </tr>
         <?php
         if (isset($_POST['show'])) {
+          if (!can('view', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to view ledger');
+              location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+          }
           echo '<tr>
-            <th></th>
-            <th style="text-align: center;font-size:25px;color:red">NAME OF CLASS:</th>
-            <th style="text-align: center;font-size:25px;color:blue;" id="class_section">' . $class . ' ' . $section . '</th>
-          </tr>
-          <tr>
-            <th style="color:blue;">Id No.</th>
-            <th style="color:blue;">Name</th>
-            <th style="color:blue;">Previous Balance</th>
-            <th style="color:blue;">Commit Fee</th>
-            <th style="color:blue;">I Term</th>
-            <th style="color:blue;">RC No</th>
-            <th style="color:blue;">Date</th>
-            <th style="color:blue;">II Term</th>
-            <th style="color:blue;">RC No</th>
-            <th style="color:blue;">Date</th>
-            <th style="color:blue;">III Term</th>
-            <th style="color:blue;">RC No</th>
-            <th style="color:blue;">Date</th>
-            <th style="color:blue;">IV Term</th>
-            <th style="color:blue;">RC No</th>
-            <th style="color:blue;">Date</th>
-          </tr>
-        </thead>
-        <tbody id="tbody">';
+                  <th></th>
+                  <th style="text-align: center;font-size:25px;color:red">NAME OF CLASS:</th>
+                  <th style="text-align: center;font-size:25px;color:blue;" id="class_section">' . $class . ' ' . $section . '</th>
+                </tr>
+                <tr>
+                  <th style="color:blue;">Id No.</th>
+                  <th style="color:blue;">Name</th>
+                  <th style="color:blue;">Previous Balance</th>
+                  <th style="color:blue;">Commit Fee</th>
+                  <th style="color:blue;">I Term</th>
+                  <th style="color:blue;">RC No</th>
+                  <th style="color:blue;">Date</th>
+                  <th style="color:blue;">II Term</th>
+                  <th style="color:blue;">RC No</th>
+                  <th style="color:blue;">Date</th>
+                  <th style="color:blue;">III Term</th>
+                  <th style="color:blue;">RC No</th>
+                  <th style="color:blue;">Date</th>
+                  <th style="color:blue;">IV Term</th>
+                  <th style="color:blue;">RC No</th>
+                  <th style="color:blue;">Date</th>
+                </tr>
+              </thead>
+              <tbody id="tbody">';
           if ($_POST['Class']) {
             $class = $_POST['Class'];
             echo '<script>document.getElementById("cls").value = "' . $class . '";</script>';
@@ -275,16 +292,6 @@ error_reporting(0);
 
 
   <!-- Scripts -->
-
-  <!-- Print Table -->
-  <script type="text/javascript">
-    function printDiv() {
-      window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'><?php echo $class; ?> Student Details</h2>";
-      window.frames["print_frame"].document.body.innerHTML += document.querySelector('.table-container').innerHTML;
-      window.frames["print_frame"].window.focus();
-      window.frames["print_frame"].window.print();
-    }
-  </script>
 
   <!-- Export Table to Excel -->
   <script type="text/javascript">

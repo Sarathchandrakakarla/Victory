@@ -1,12 +1,26 @@
 <?php
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 51);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+if (!$_SESSION['Emp_Id_No']) {
   echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>
+  alert('Employee Id Not Rendered');
+  location.replace('show_emp_page.php');
   </script>";
 }
+
+if (!can('view', MENU_ID)) {
+  echo "<script>
+  alert('You don\'t have permission to view employee data');
+  location.replace('show_emp_page.php');
+  </script>";
+}
+error_reporting(0);
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">

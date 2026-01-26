@@ -1,14 +1,21 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Id_No']) {
-  echo "<script>
-  alert('Student Id Not Rendered');
-  location.replace('../student_login.php');
-  </script>";
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 137);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+if (!can('view', MENU_ID)) {
+  echo "<script>alert('You don\'t have permission to view blog posts');
+      location.replace('/Victory/Admin/admin_dashboard.php')</script>";
   exit;
 }
+
 error_reporting(0);
+?>
+<?php
 date_default_timezone_set('Asia/Kolkata');
 
 // Helper: Sanitize filename (allow alphanumeric, _, -, .)
@@ -30,6 +37,11 @@ function createPostFolder($postId, $suffix = '')
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (isset($_POST['add'])) {
+    if (!can('create', MENU_ID)) {
+      echo "<script>alert('You don\'t have permission to create post');
+          location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+      exit;
+    }
     // ==== ADD POST REQUEST ====
     $title = mysqli_real_escape_string($link, trim($_POST['Title']));
     $desc = mysqli_real_escape_string($link, trim($_POST['Description']));
@@ -91,6 +103,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   if (isset($_POST['update'])) {
+    if (!can('update', MENU_ID)) {
+      echo "<script>alert('You don\'t have permission to update post');
+          location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+      exit;
+    }
     // ==== EDIT POST REQUEST ====
     $postId = intval($_POST['Post_Id']);
     $title = mysqli_real_escape_string($link, trim($_POST['Title']));
@@ -233,6 +250,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   if (isset($_POST['delete'])) {
+    if (!can('delete', MENU_ID)) {
+      echo "<script>alert('You don\'t have permission to delete post');
+          location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+      exit;
+    }
     // ==== DELETE POST OR REQUEST ====
 
     $postId = intval($_POST['Post_Id']);
@@ -277,6 +299,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   if (isset($_POST['fetch'])) {
+    if (!can('view', MENU_ID)) {
+      echo "<script>alert('You don\'t have permission to view posts');
+          location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+      exit;
+    }
     // ==== FETCH POSTS / REQUESTS (For Filters) ====
     $author = $_SESSION['Id_No'];
 
@@ -341,10 +368,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     while ($row = mysqli_fetch_assoc($res)) {
       echo "<tr>";
       echo "<td>" . htmlspecialchars($row['Post_Id']) . "</td>";
+      /* ===== COVER IMAGE ===== */
       if ($_POST['data'] == 'requests') {
-        echo "<td style='width: 200px; height: 100px'><img src='../../Images/blog/posts_images/post_" . $row['Post_Id'] . '_request' . "/" . htmlspecialchars($row['Cover_Photo']) . "' class='img-thumbnail rounded' style='width: 200px; height: 100px'></td>";
+        echo "<td style='width:200px;height:100px'>
+            <img src='../../Images/blog/posts_images/post_{$row['Post_Id']}_request/" . htmlspecialchars($row['Cover_Photo']) . "'
+                 class='img-thumbnail rounded'
+                 style='width:200px;height:100px'>
+          </td>";
       } else {
-        echo "<td style='width: 200px; height: 100px'><img src='../../Images/blog/posts_images/post_" . $row['Post_Id']  . "/" . htmlspecialchars($row['Cover_Photo']) . "' class='img-thumbnail rounded' style='width: 200px; height: 100px'></td>";
+        echo "<td style='width:200px;height:100px'>
+            <img src='../../Images/blog/posts_images/post_{$row['Post_Id']}/" . htmlspecialchars($row['Cover_Photo']) . "'
+                 class='img-thumbnail rounded'
+                 style='width:200px;height:100px'>
+          </td>";
       }
       echo "<td>" . htmlspecialchars($row['Title']) . "</td>";
       echo "<td>" . htmlspecialchars($row['Description']) . "</td>";
@@ -355,23 +391,106 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       echo "<td>" . htmlspecialchars($row['Remarks']) . "</td>";
       echo "<td style='height:115px;display:flex;gap:20px;align-items:center;'>";
 
-      // Edit button: show if Published or Pending only
+      /* ==========================================================
+     VIEW / EDIT (same logic, RBAC enforced)
+     ========================================================== */
+
       if ($_POST['data'] != 'requests' || ($_POST['data'] == 'requests' && $row['Status'] !== 'Blocked')) {
+        /* ===== REQUEST MODE ===== */
         if ($_POST['data'] == 'requests') {
-          echo "<button class='btn btn-sm btn-warning d-flex justify-content-center align-items-center' style='width: 70px;height:40px;gap:8px;' data-bs-toggle='modal' data-bs-target='#editRequestModal" . $row['Post_Id'] . "'><i class='bx bx-edit'></i> <span>Edit</span></button>";
+
+          echo '<div ' . (!can('update', MENU_ID) ? 'title="You don\'t have permission to edit this request"' : '') . '>';
+
+          if (can('update', MENU_ID)) {
+            echo "<button class='btn btn-sm btn-warning d-flex justify-content-center align-items-center'
+                     style='width:70px;height:40px;gap:8px;'
+                     data-bs-toggle='modal'
+                     data-bs-target='#editRequestModal{$row['Post_Id']}'>
+                <i class='bx bx-edit'></i> <span>Edit</span>
+              </button>";
+          } else {
+            echo "<button class='btn btn-sm btn-secondary d-flex justify-content-center align-items-center'
+                     style='width:70px;height:40px;gap:8px;'
+                     disabled>
+                <i class='bx bx-edit'></i> <span>Edit</span>
+              </button>";
+          }
+
+          echo '</div>';
+
+          /* ===== NORMAL MODE ===== */
         } else {
-          echo '<a href="/Victory/blog/post.php?id=' . $row['Post_Id'] . '" target="_blank" class="btn btn-sm btn-success d-flex justify-content-center align-items-center" style="width: 70px;height:40px;gap:8px;">
-          <i class="fas fa-eye"></i> <span>View</span>
-          </a>';
-          echo "<button class='btn btn-sm btn-warning d-flex justify-content-center align-items-center' style='width: 70px;height:40px;gap:8px;' data-bs-toggle='modal' data-bs-target='#editPostModal" . $row['Post_Id'] . "'><i class='bx bx-edit'></i> <span>Edit</span></button>";
+
+          /* ----- VIEW ----- */
+          echo '<div ' . (!can('view', MENU_ID) ? 'title="You don\'t have permission to view this post"' : '') . '>';
+
+          if (can('view', MENU_ID)) {
+            echo "<a href='/Victory/blog/post.php?id={$row['Post_Id']}'
+                   target='_blank'
+                   class='btn btn-sm btn-success d-flex justify-content-center align-items-center'
+                   style='width:70px;height:40px;gap:8px;'>
+                <i class='fas fa-eye'></i> <span>View</span>
+              </a>";
+          } else {
+            echo "<a href='javascript:void(0)'
+                   class='btn btn-sm btn-secondary d-flex justify-content-center align-items-center disabled'
+                   style='width:70px;height:40px;gap:8px;'>
+                <i class='fas fa-eye'></i> <span>View</span>
+              </a>";
+          }
+
+          echo '</div>';
+
+          /* ----- EDIT ----- */
+          echo '<div ' . (!can('update', MENU_ID) ? 'title="You don\'t have permission to edit this post"' : '') . '>';
+
+          if (can('update', MENU_ID)) {
+            echo "<button class='btn btn-sm btn-warning d-flex justify-content-center align-items-center'
+                     style='width:70px;height:40px;gap:8px;'
+                     data-bs-toggle='modal'
+                     data-bs-target='#editPostModal{$row['Post_Id']}'>
+                <i class='bx bx-edit'></i> <span>Edit</span>
+              </button>";
+          } else {
+            echo "<button class='btn btn-sm btn-secondary d-flex justify-content-center align-items-center'
+                     style='width:70px;height:40px;gap:8px;'
+                     disabled>
+                <i class='bx bx-edit'></i> <span>Edit</span>
+              </button>";
+          }
+
+          echo '</div>';
         }
       }
 
-      // Delete button: always show
-      echo "<form method='POST' action='' style='display:inline;' onsubmit='return confirm(\"Are you sure you want to delete this post?\");'>";
-      echo "<input type='hidden' name='Post_Id' value='" . $row['Post_Id'] . "' />";
-      echo "<button type='submit' name='delete' class='btn btn-sm btn-danger d-flex justify-content-center align-items-center' style='width: 80px;height:40px;gap:8px;'><i class='bx bx-trash'></i> <span>Delete</span></button>";
-      echo "</form>";
+      /* ==========================================================
+     DELETE (always shown, RBAC controlled)
+     ========================================================== */
+
+      echo '<div ' . (!can('delete', MENU_ID) ? 'title="You don\'t have permission to delete this post"' : '') . '>';
+
+      if (can('delete', MENU_ID)) {
+        echo "<form method='POST'
+                 action=''
+                 style='display:inline;'
+                 onsubmit='return confirm(\"Are you sure you want to delete this post?\");'>
+            <input type='hidden' name='Post_Id' value='{$row['Post_Id']}'>
+            <button type='submit'
+                    name='delete'
+                    class='btn btn-sm btn-danger d-flex justify-content-center align-items-center'
+                    style='width:80px;height:40px;gap:8px;'>
+              <i class='bx bx-trash'></i> <span>Delete</span>
+            </button>
+          </form>";
+      } else {
+        echo "<button class='btn btn-sm btn-secondary d-flex justify-content-center align-items-center'
+                 style='width:80px;height:40px;gap:8px;'
+                 disabled>
+            <i class='bx bx-trash'></i> <span>Delete</span>
+          </button>";
+      }
+
+      echo '</div>';
 
       echo "</td></tr>";
     }
@@ -445,6 +564,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       height: 60px;
       width: 60px;
     }
+
+    td div[title],
+    td div[title] * {
+      cursor: not-allowed !important;
+    }
+
+    .disabled {
+      pointer-events: none;
+      opacity: 0.6;
+    }
   </style>
 </head>
 
@@ -455,9 +584,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="container my-4" style="margin-left: 8%;">
     <h2 class="mb-4 text-center">Manage Your Requests</h2>
 
-    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addPostModal">
-      <i class="bx bx-plus"></i> Add New Post
-    </button>
+    <div class="btn-wrapper"
+      <?php if (!can('create', MENU_ID)) { ?>
+      title="You don't have permission to create blog post"
+      <?php } ?>>
+      <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addPostModal" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>
+        <i class="bx bx-plus"></i> Add New Post
+      </button>
+    </div>
 
     <form id="requestsFilterForm" class="row g-3 mb-3 align-items-end">
       <div class="col-md-3">
@@ -485,7 +619,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="date" class="form-control" id="filterDateTo" name="filterDateTo">
       </div>
       <div class="col-md-3 d-flex align-items-end gap-2">
-        <button type="submit" class="btn btn-primary">Apply Filters</button>
+        <div class="btn-wrapper"
+          <?php if (!can('view', MENU_ID)) { ?>
+          title="You don't have permission to view/filter blog posts"
+          <?php } ?>>
+          <button type="submit" class="btn btn-primary" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Apply Filters</button>
+        </div>
         <button type="button" class="btn btn-outline-secondary" id="requestsresetFilters">Reset</button>
       </div>
     </form>
@@ -640,7 +779,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </div>
             </div>
             <div class="modal-footer">
-              <button type="submit" name="update" class="btn btn-success">Update Post</button>
+              <div class="btn-wrapper"
+                <?php if (!can('update', MENU_ID)) { ?>
+                title="You don't have permission to update this post"
+                <?php } ?>>
+                <button type="submit" name="update" class="btn btn-success" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>Update Post</button>
+              </div>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             </div>
           </form>
@@ -748,7 +892,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </div>
             </div>
             <div class="modal-footer">
-              <button type="submit" name="update" class="btn btn-success">Update Post</button>
+              <div class="btn-wrapper"
+                <?php if (!can('update', MENU_ID)) { ?>
+                title="You don't have permission to update this post"
+                <?php } ?>>
+                <button type="submit" name="update" class="btn btn-success" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>Update Post</button>
+              </div>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             </div>
           </form>
@@ -823,7 +972,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" name="add" class="btn btn-success">Submit Post for Approval</button>
+            <div class="btn-wrapper"
+              <?php if (!can('create', MENU_ID)) { ?>
+              title="You don't have permission to create blog post"
+              <?php } ?>>
+              <button type="submit" name="add" class="btn btn-success" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Submit Post for Approval</button>
+            </div>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
           </div>
         </form>

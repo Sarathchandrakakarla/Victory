@@ -1,13 +1,12 @@
 <?php
-include '../link.php';
-session_start();
-if (!$_SESSION['Id_No']) {
-    echo "<script>
-  alert('Faculty Id Not Rendered');
-  location.replace('faculty_login.php');
-  </script>
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 122);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -83,10 +82,25 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-5">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -123,6 +137,11 @@ error_reporting(0);
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to your time table! Please Contact School Office');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $id = $_SESSION['Id_No'];
                         $query1 = mysqli_query($link, "SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM employee_master_data WHERE Emp_Id = '$id') THEN 'Employee Not Found' WHEN NOT EXISTS (SELECT 1 FROM time_table WHERE (Period1 LIKE '$id%' OR Period2 LIKE '$id%' OR Period3 LIKE '$id%' OR Period4 LIKE '$id%' OR Period5 LIKE '$id%' OR Period6 LIKE '$id%' OR Period7 LIKE '$id%' OR Period8 LIKE '$id%')) THEN 'Time Table Not Assigned' ELSE 'OK' END AS status");
                         $status = mysqli_fetch_array($query1)['status'];

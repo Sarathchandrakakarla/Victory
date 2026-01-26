@@ -9,12 +9,17 @@ top:0.80cm
 bottom:0.80cm
 */
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
-//error_reporting(0);
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 24);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
+?>
+
+<?php
 function month($date)
 {
     $arr = explode('-', $date);
@@ -233,6 +238,11 @@ function month($date)
         <?php
 
         if (isset($_POST['Ok'])) {
+            if (!can('view', MENU_ID)) {
+                echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                exit;
+            }
             $months = array(
                 'June',
                 'July',

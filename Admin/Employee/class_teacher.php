@@ -1,15 +1,22 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
-//error_reporting(0);
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 54);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 
 <?php
 if (isset($_POST['Save'])) {
+    if (!can('update', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to insert/update class teacher');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     $id = $_POST['Id_No'];
     $class = $_POST['Class'];
     $section = $_POST['Section'];
@@ -32,7 +39,13 @@ if (isset($_POST['Save'])) {
         }
     }
 }
+
 if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
+    if (!can('delete', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to delete class teacher');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     $class = $_POST['Class'];
     $section = $_POST['Section'];
     if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `class_teacher` WHERE Class = '$class' AND Section = '$section'")) == 0) {
@@ -112,6 +125,11 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
     .icon {
         cursor: pointer;
     }
+
+    .disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 </style>
 
 <body class="bg-light">
@@ -122,10 +140,25 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
         <div class="container">
             <div class="row justify-content-center mt-5">
                 <div class="col-lg-4">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
-                    <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
+                    <button class="btn btn-warning" type="reset" onclick="hideTable();">Clear</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -162,23 +195,48 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $sql = "SELECT smd.Stu_Class AS Class, smd.Stu_Section AS Section, emd.Emp_First_Name, emd.Mobile, emd.Emp_Id, ct.Id_No, CASE WHEN ct.Id_No IS NOT NULL THEN 'Assigned' ELSE 'Not Assigned' END AS Status FROM (SELECT DISTINCT Stu_Class, Stu_Section FROM student_master_data WHERE Stu_Class IN ('PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS')) AS smd LEFT JOIN class_teacher ct ON smd.Stu_Class = ct.Class AND smd.Stu_Section = ct.Section LEFT JOIN employee_master_data emd ON ct.Id_No = emd.Emp_Id ORDER BY FIELD(smd.Stu_Class, 'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'), smd.Stu_Section";
                         $result = mysqli_query($link, $sql);
                         $i = 1;
                         while ($row = mysqli_fetch_assoc($result)) {
                             echo '<tr>
-                <td style="padding:5px;">' . $i . '</td>
-                <td style="padding:5px;">' . $row['Class'] . ' ' . $row['Section'] . '</td>
-                <td style="padding:5px;">' . $row['Id_No'] . '</td>
-                <td style="padding:5px;">' . $row['Emp_First_Name'] . '</td>
-                <td style="padding:5px;">' . $row['Mobile'] . '</td>';
+                                <td style="padding:5px;">' . $i . '</td>
+                                <td style="padding:5px;">' . $row['Class'] . ' ' . $row['Section'] . '</td>
+                                <td style="padding:5px;">' . $row['Id_No'] . '</td>
+                                <td style="padding:5px;">' . $row['Emp_First_Name'] . '</td>
+                                <td style="padding:5px;">' . $row['Mobile'] . '</td>';
                             if ($row['Status'] == "Not Assigned") {
                                 echo '<td class="no-print" style="padding:5px;"><i class="bx bx-plus icon insert bg-primary text-white rounded-circle p-2" data-bs-toggle="modal" data-bs-target="#Modal" data-class="' . $row['Class'] . '"  data-section="' . $row['Section'] . '"></i></td>';
                             } else {
                                 echo '
                                 <td class="no-print" style="padding:5px;">
-                                    <i class="bx bx-edit icon edit bg-warning rounded-circle p-2" data-bs-toggle="modal" data-bs-target="#Modal" data-class="' . $row['Class'] . '"  data-section="' . $row['Section'] . '" onclick="getDetails(\'' . $row['Id_No'] . '\');"></i>
-                                    <i class="bx bx-trash icon delete bg-danger text-white rounded-circle p-2"></i>
+
+                                    <i class="bx bx-edit icon edit rounded-circle p-2 ' .
+                                    (can('update', MENU_ID) ? 'bg-warning' : 'bg-secondary disabled') . '"
+                                        ' .
+                                    (can('update', MENU_ID)
+                                        ? 'data-bs-toggle="modal" data-bs-target="#Modal"
+                                            data-class="' . $row['Class'] . '"
+                                            data-section="' . $row['Section'] . '"
+                                            onclick="getDetails(\'' . $row['Id_No'] . '\');"'
+                                        : 'title="You don\'t have permission to edit"'
+                                    ) . '>
+                                    </i>
+
+                                    <i class="bx bx-trash icon delete rounded-circle p-2 ' .
+                                    (can('delete', MENU_ID) ? 'bg-danger text-white' : 'bg-secondary disabled') . '"
+                                        ' .
+                                    (can('delete', MENU_ID)
+                                        ? 'onclick="deleteRow(\'' . $row['Id_No'] . '\')"'
+                                        : 'title="You don\'t have permission to delete"'
+                                    ) . '>
+                                    </i>
+
                                 </td>';
                             }
                             echo '</tr>';
@@ -207,7 +265,12 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" name="Save">Save changes</button>
+                        <div class="btn-wrapper"
+                            <?php if (!can('update', MENU_ID)) { ?>
+                            title="You don't have permission to update class teacher"
+                            <?php } ?>>
+                            <button type="submit" class="btn btn-primary" name="Save" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>Save changes</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -277,6 +340,11 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
     <!-- Delete Row -->
     <script type="text/javascript">
         $(".delete").click(function() {
+            const CAN_DELETE = <?= can('delete', MENU_ID) ? 'true' : 'false' ?>;
+            if (!CAN_DELETE) {
+                alert("You do not have permission to delete class teacher");
+                return;
+            }
             let cls = $(this).parent().siblings().eq(1).text();
             let section = cls.charAt(cls.length - 1).trim()
             cls = cls.slice(0, cls.length - 1).trim();

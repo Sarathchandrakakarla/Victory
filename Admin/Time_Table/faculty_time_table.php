@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 43);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -88,13 +90,33 @@ error_reporting(0);
             </div>
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-5">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#emplist">
-                        Employee List
-                    </button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', 53)) { ?>
+                        title="You don't have permission to view employee list"
+                        <?php } ?>>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#emplist" <?php echo !can('view', 53) ? 'disabled' : ''; ?>>
+                            Employee List
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -131,6 +153,11 @@ error_reporting(0);
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $id = $_POST['Id_No'];
                         echo '<script>
                             document.getElementById("id_no").value = "' . $id . '";
@@ -182,17 +209,25 @@ error_reporting(0);
                         </thead>
                         <tbody>
                             <?php
-                            $query4 = mysqli_query($link, "SELECT * FROM `employee_master_data` WHERE Status = 'Working' ORDER BY Emp_Id");
-                            $i = 1;
-                            while ($row4 = mysqli_fetch_assoc($query4)) {
+                            if (can('view', 53)) {
+                                $query4 = mysqli_query($link, "SELECT * FROM `employee_master_data` WHERE Status = 'Working' ORDER BY Emp_Id");
+                                $i = 1;
+                                while ($row4 = mysqli_fetch_assoc($query4)) {
+                                    echo "
+                                    <tr>
+                                        <td class='border border-dark'>" . $i . "</td>
+                                        <td class='border border-dark'>" . $row4['Emp_Id'] . "</td>
+                                        <td class='border border-dark'>" . $row4['Emp_First_Name'] . "</td>
+                                    </tr>
+                                    ";
+                                    $i++;
+                                }
+                            } else {
                                 echo "
                                 <tr>
-                                    <td class='border border-dark'>" . $i . "</td>
-                                    <td class='border border-dark'>" . $row4['Emp_Id'] . "</td>
-                                    <td class='border border-dark'>" . $row4['Emp_First_Name'] . "</td>
+                                    <td class='border border-dark text-center' colspan='3'>You don't have permission to view employee list</td>
                                 </tr>
                                 ";
-                                $i++;
                             }
                             ?>
                         </tbody>

@@ -1,13 +1,13 @@
 <?php
-include '../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('admin_login.php');
-  </script>
-  </script>";
-}
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
+
+define('MENU_ID', 100);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 <?php
 function Export_Database($host, $user, $pass, $name,  $tables = false, $backup_name = false)
@@ -20,9 +20,10 @@ function Export_Database($host, $user, $pass, $name,  $tables = false, $backup_n
     while ($row = $queryTables->fetch_row()) {
         $target_tables[] = $row[0];
     }
-    if ($tables !== false) {
-        $target_tables = array_intersect($target_tables, $tables);
+    if ($tables === false) {
+        $tables = $target_tables;   // export all tables
     }
+    $target_tables = array_intersect($target_tables, $tables);
     foreach ($target_tables as $table) {
         $result         =   $mysqli->query('SELECT * FROM ' . $table);
         $fields_amount  =   $result->field_count;
@@ -127,12 +128,22 @@ $tables             = "Your tables";
 //or add 5th parameter(array) of specific tables:    array("mytable1","mytable2","mytable3") for multiple tables
 
 if (isset($_POST['Backup'])) {
+    if (!can('view', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to download database backup');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     //Backing Up the Full Database
 
     $backup = Export_Database($mysqlHostName, $mysqlUserName, $mysqlPassword, $DbName,  $tables = false, $backup_name = false);
 }
 
 if (isset($_POST['Restore'])) {
+    if (!can('update', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to restore database');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     //Restoring and Updating the Full Database
     $file = $_FILES["SQL"]["name"];
     $targetDirectory = "../backups/" . $file;
@@ -173,6 +184,15 @@ if (isset($_POST['Restore'])) {
             display: block;
         }
     }
+
+    [title],
+    [title] * {
+        cursor: not-allowed !important;
+    }
+
+    input:disabled {
+        opacity: 0.6;
+    }
 </style>
 
 <body>
@@ -193,13 +213,30 @@ if (isset($_POST['Restore'])) {
         <form action="" method="post" enctype="multipart/form-data">
             <div class="row justify-content-center mt-5">
                 <div class="col-lg-4">
-                    <input type="file" class="form-control" accept=".sql" name="SQL" id="sql">
+                    <span <?= !can('update', MENU_ID) ? 'title="You don\'t have permission to import database"' : '' ?>>
+                        <input type="file"
+                            class="form-control"
+                            accept=".sql"
+                            name="SQL"
+                            id="sql"
+                            <?= !can('update', MENU_ID) ? 'disabled' : '' ?>>
+                    </span>
                 </div>
             </div>
             <div class="row justify-content-center mt-5">
                 <div class="col-lg-4">
-                    <button class="btn btn-primary" type="submit" name="Backup">Backup Database</button>
-                    <button class="btn btn-success" type="submit" name="Restore" onclick="if(sql.value == ''){alert('Please Select Database File to Restore!');return false}else{return true;}">Restore Database</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to download database backup"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="Backup" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Backup Database</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to restore database"
+                        <?php } ?>>
+                        <button class="btn btn-success" type="submit" name="Restore" onclick="if(sql.value == ''){alert('Please Select Database File to Restore!');return false}else{return true;}" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>Restore Database</button>
+                    </div>
                 </div>
             </div>
         </form>

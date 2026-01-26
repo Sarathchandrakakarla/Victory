@@ -1,16 +1,23 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
-//error_reporting(0);
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 67);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 
 <?php
 
 if (isset($_POST['add'])) {
+    if (!can('create', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to insert into this report');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     if ($_POST['Id_No']) {
         $id = $_POST['Id_No'];
 
@@ -127,6 +134,11 @@ if (isset($_POST['add'])) {
         font-size: 20px;
         color: red;
     }
+
+    .disabled {
+        color: grey;
+        cursor: not-allowed;
+    }
 </style>
 
 <body class="bg-light">
@@ -140,7 +152,12 @@ if (isset($_POST['add'])) {
                     <label for=""><b>Add New Student</b></label>
                 </div>
                 <div class="col-lg-1">
-                    <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;"> <i class="bx bx-plus" id="plus-icon"></i> </button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert into this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>> <i class="bx bx-plus" id="plus-icon"></i> </button>
+                    </div>
                 </div>
                 <div class="col-lg-3">
                     <input type="text" class="form-control" id="inp" name="Id_No" placeholder="Enter Student Id No." value="<?php if (isset($id)) {
@@ -150,17 +167,37 @@ if (isset($_POST['add'])) {
                                                                                                                             } ?>" style="opacity: 0;">
                 </div>
                 <div class="col-lg-1">
-                    <button class="btn btn-warning" name="add" id="add-btn" style="opacity: 0;">Insert</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert into this report"
+                        <?php } ?>>
+                        <button class="btn btn-warning" name="add" id="add-btn" style="opacity: 0;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Insert</button>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="container">
             <div class="row justify-content-center mt-5">
                 <div class="col-lg-4">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -195,17 +232,33 @@ if (isset($_POST['add'])) {
             <tbody id="tbody">
                 <?php
                 if (isset($_POST['show'])) {
+                    if (!can('view', MENU_ID)) {
+                        echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                        exit;
+                    }
                     $sql = "SELECT smd.Id_No AS Id_No,smd.* FROM `vvip` v JOIN `student_master_data` smd ON v.Id_No = smd.Id_No WHERE smd.Stu_Class IN ('PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS') ORDER BY FIELD(Stu_Class,'PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS'),Stu_Section";
                     $result = mysqli_query($link, $sql);
                     $i = 1;
                     while ($row = mysqli_fetch_assoc($result)) {
                         echo '<tr>
-                <td style="padding:5px;">' . $i . '</td>
-                <td style="padding:5px;">' . $row['Id_No'] . '</td>
-                <td style="padding:5px;">' . $row['First_Name'] . '</td>
-                <td style="padding:5px;">' . $row['Stu_Class'] . ' ' . $row['Stu_Section'] . '</td>
-                <td style="padding:5px;"><i class="bx bx-trash delete"></i></td>
-                </tr>';
+                            <td style="padding:5px;">' . $i . '</td>
+                            <td style="padding:5px;">' . $row['Id_No'] . '</td>
+                            <td style="padding:5px;">' . $row['First_Name'] . '</td>
+                            <td style="padding:5px;">' . $row['Stu_Class'] . ' ' . $row['Stu_Section'] . '</td>
+                            <td style="padding:5px;">';
+
+                        if (can('delete', MENU_ID)) {
+                            echo '<i class="bx bx-trash delete text-danger"
+                                onclick="delete_row(\'' . $row['Id_No'] . '\')"></i>';
+                        } else {
+                            echo '<i class="bx bx-trash delete text-secondary disabled"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="You don\'t have permission to delete"></i>';
+                        }
+                        echo '  </td>
+                        </tr>';
                         $i++;
                     }
                 }
@@ -264,7 +317,13 @@ if (isset($_POST['add'])) {
                         Id_No: id_no
                     },
                     success: function(data) {
-                        alert('Student Deleted Successfully!! Refresh to get data updated!')
+                        if (data == "1") {
+                            alert('Student Deleted Successfully!! Refresh to get data updated!')
+                        } else if (data == "permission") {
+                            alert('You don\'t have permission to delete VVIP Student Data')
+                        } else {
+                            alert('Student Deletion Failed!')
+                        }
                     }
                 });
             }

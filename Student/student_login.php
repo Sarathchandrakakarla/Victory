@@ -1,95 +1,112 @@
 <?php
 include '../link.php';
 session_start();
+
 $flag = "";
+
 if (isset($_POST['Login'])) {
+
     function validate($data)
     {
-        $data = trim($data);
-        $data = stripslashes($data);
-        $data = htmlspecialchars($data);
-        return $data;
+        return htmlspecialchars(stripslashes(trim($data)));
     }
+
     $uname = validate($_POST['UserName']);
-    $pass = validate($_POST['Password']);
-    $sql = "SELECT * FROM `student` WHERE Id_No = '$uname'";
+    $pass  = validate($_POST['Password']);
+
+    // Fetch student + role (RBAC-ready, LEFT JOIN safety)
+    $sql = "
+        SELECT  s.Id_No,
+                s.Stu_Hash,
+                s.Status,
+                s.Role,
+                r.Role_Name,
+                r.Active_Flag
+        FROM student s
+        LEFT JOIN roles r ON r.Role_Id = s.Role
+        WHERE s.Id_No = '$uname'
+    ";
+
     $result = mysqli_query($link, $sql);
-    if (mysqli_num_rows($result) == 1) {
+
+    if (mysqli_num_rows($result) !== 1) {
+        $flag = "username";
+    } else {
+
         $row = mysqli_fetch_assoc($result);
-        $id = $row['Id_No'];
-        $stu_hash = $row['Stu_Hash'];
-        if (password_verify($pass, $stu_hash)) {
-            if ($row['Status'] == "Disabled") {
-                echo "<script>alert('Your Login has been Disabled.. Contact Admin Office');location.replace('student_login.php')</script>";
-                exit;
-            }
-            $_SESSION['Id_No'] = $id;
-            $sql_ = "SELECT * FROM `student_master_data` WHERE Id_No = '$id'";
-            $result_ = mysqli_query($link, $sql_);
-            if (mysqli_num_rows($result_) == 1) {
-                $row = mysqli_fetch_assoc($result_);
-                $stu_id = $row['Id_No'];
-                $stu_adm = $row['Adm_No'];
-                $firstname = $row['First_Name'];
-                $surname = $row['Sur_Name'];
-                $fathername = $row['Father_Name'];
-                $mothername = $row['Mother_Name'];
-                $dob = $row['DOB'];
-                $gender = $row['Gender'];
-                $mobile = $row['Mobile'];
-                $aadhar = $row['Aadhar'];
-                $class = $row['Stu_Class'];
-                $section = $row['Stu_Section'];
-                $religion = $row['Religion'];
-                $caste = $row['Caste'];
-                $category = $row['Category'];
-                $houseno = $row['House_No'];
-                $area = $row['Area'];
-                $village = $row['Village'];
-                $doj = $row['DOJ'];
-                $previous = $row['Previous_School'];
-                $van_route = $row['Van_Route'];
-                $referred_by = $row['Referred_By'];
-                $siblings = $row['Siblings'];
-                $_SESSION['Id_No'] = $id;
-                $_SESSION['Stu_Adm_No'] = $stu_adm;
-                $_SESSION['First_Name'] = $firstname;
-                $_SESSION['Sur_Name'] = $surname;
-                $_SESSION['Father_Name'] = $fathername;
-                $_SESSION['Mother_Name'] = $mothername;
-                $_SESSION['DOB'] = $dob;
-                $_SESSION['Gender'] = $gender;
-                $_SESSION['Mobile'] = $mobile;
-                $_SESSION['Aadhar'] = $aadhar;
-                $_SESSION['Stu_Class'] = $class;
-                $_SESSION['Stu_Section'] = $section;
-                $_SESSION['Religion'] = $religion;
-                $_SESSION['Caste'] = $caste;
-                $_SESSION['Category'] = $category;
-                $_SESSION['House_No'] = $houseno;
-                $_SESSION['Area'] = $area;
-                $_SESSION['Village'] = $village;
-                $_SESSION['DOJ'] = $doj;
-                $_SESSION['Previous_School'] = $previous;
-                $_SESSION['Van_Route'] = $van_route;
-                $_SESSION['Referred_By'] = $referred_by;
-                $_SESSION['Siblings'] = $siblings;
-            }
-            header('Location: student_dashboard.php');
+
+        if (!password_verify($pass, $row['Stu_Hash'])) {
+            $flag = "password";
+        } else if ($row['Status'] === 'Disabled') {
+            echo "<script>
+                alert('Your Login has been Disabled. Contact Admin Office');
+                location.replace('student_login.php');
+            </script>";
+            exit;
+        } else if ($row['Role'] === null || $row['Role_Name'] === null) {
+            echo "<script>
+                alert('Your Role is Not Assigned. Contact Office Admin');
+                location.replace('student_login.php');
+            </script>";
+            exit;
+        } else if ((int)$row['Active_Flag'] !== 1) {
+            echo "<script>
+                alert('Your Role is Inactive. Contact Office Admin');
+                location.replace('student_login.php');
+            </script>";
             exit;
         } else {
-            $flag = "password";
-            /*
-                echo "<script>alert('Incorrect Password');
-                    </script>";
-            */
+
+            // Secure session
+            session_regenerate_id(true);
+
+            $_SESSION['Id_No']      = $row['Id_No'];
+            $_SESSION['Role_Name'] = $row['Role_Name']; // UI only
+
+            // Load RBAC
+            $_SESSION['RBAC'] = [];
+            $roleId = (int)$row['Role'];
+
+            $permQuery = mysqli_query(
+                $link,
+                "SELECT Menu_Id,
+                        can_view, can_create, can_update,
+                        can_delete, can_print, can_export,
+                        can_custom1, can_custom2, can_custom3, can_custom4
+                 FROM role_menu_map
+                 WHERE Role_Id = $roleId"
+            );
+
+            while ($p = mysqli_fetch_assoc($permQuery)) {
+                $_SESSION['RBAC'][(int)$p['Menu_Id']] = [
+                    'view'    => (int)$p['can_view'],
+                    'create'  => (int)$p['can_create'],
+                    'update'  => (int)$p['can_update'],
+                    'delete'  => (int)$p['can_delete'],
+                    'print'   => (int)$p['can_print'],
+                    'export'  => (int)$p['can_export'],
+                    'custom1' => (int)$p['can_custom1'],
+                    'custom2' => (int)$p['can_custom2'],
+                    'custom3' => (int)$p['can_custom3'],
+                    'custom4' => (int)$p['can_custom4'],
+                ];
+            }
+
+            // Load student master data (unchanged behavior)
+            $id = $row['Id_No'];
+            $sql_ = "SELECT * FROM student_master_data WHERE Id_No = '$id'";
+            $result_ = mysqli_query($link, $sql_);
+
+            if (mysqli_num_rows($result_) === 1) {
+                $m = mysqli_fetch_assoc($result_);
+                foreach ($m as $key => $value) {
+                    $_SESSION[$key] = $value;
+                }
+            }
+
+            header('Location: student_dashboard.php');
+            exit;
         }
-    } else {
-        $flag = "username";
-        /*
-            echo "<script>alert('Incorrect Username');
-                    </script>";
-            */
     }
 }
 ?>
@@ -98,130 +115,122 @@ if (isset($_POST['Login'])) {
 <html lang="en">
 
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="shortcut icon" href="../Images/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="../Images/favicon.ico">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/footer.css">
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
-    <!-- Bootstrap Links -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <title>Victory EM School</title>
-</head>
-<style>
-    nav {
-        background: #1b1b1b;
-    }
 
-    nav ul li .sub-menu {
-        background: #1b1b1b;
-    }
+    <style>
+        nav {
+            background: #1b1b1b;
+        }
 
-    body {
-        background: #1abc9c;
-    }
+        nav ul li .sub-menu {
+            background: #1b1b1b;
+        }
 
-    #hide {
-        position: absolute;
-        text-align: right;
-        margin: -3% 26%;
-        font-size: 20px;
-        color: #1abc9c;
-        cursor: pointer;
-    }
+        body {
+            background: #1abc9c;
+        }
 
-    @media screen and (max-width:920px) {
         #hide {
             position: absolute;
-            text-align: right;
-            margin: -13% 74%;
+            margin: -3% 26%;
             font-size: 20px;
+            color: #1abc9c;
+            cursor: pointer;
         }
-    }
 
-    @media screen and (max-width:500px) {
-        footer {
-            bottom: -10%;
+        @media (max-width:920px) {
+            #hide {
+                margin: -13% 74%;
+            }
         }
-    }
 
-    @media screen and (max-height:600px) {
-        footer {
-            bottom: -200px;
+        @media (max-width:500px) {
+            footer {
+                bottom: -10%;
+            }
         }
-    }
-</style>
+
+        @media (max-height:600px) {
+            footer {
+                bottom: -200px;
+            }
+        }
+    </style>
+</head>
 
 <body>
+
     <nav>
         <div class="logo">
-            <img src="../Images/Victory Logo.png" alt="..." width="70px">
+            <img src="../Images/Victory Logo.png" width="70">
         </div>
         <div class="heading">
             <h3>Victory Schools, Kodur</h3>
         </div>
         <input type="checkbox" id="click" />
-        <label for="click" class="menu-btn">
-            <i class="fas fa-bars"></i>
-        </label>
+        <label for="click" class="menu-btn"><i class="fas fa-bars"></i></label>
         <ul>
             <li><a href="../index.php">Home</a></li>
             <li><a href="../about.html">About</a></li>
             <li><a href="../Gallery/gallery.html">Gallery</a></li>
             <li><a href="../contact.html">Contact</a></li>
-            <li><a href="../youtube.php" id="link">Our Stories</a></li>
-            <li><a href="../blog/blog_index.php" id="link">Blog</a></li>
             <li>
                 <a class="active" href="#">Login</a>
                 <ul class="login-sub-menu sub-menu">
                     <li><a href="../Admin/admin_login.php">Admin Login</a></li>
-                    <li><a class="active" href="student_login.php">Student Login</a></li>
+                    <li><a class="active" href="#">Student Login</a></li>
                     <li><a href="../Faculty/faculty_login.php">Faculty Login</a></li>
                 </ul>
             </li>
         </ul>
     </nav>
+
     <div class="container col-lg-4">
         <div class="wrapper">
             <div class="title p-2"><span>Student Login</span></div>
-            <form action="" method="post">
-                <?php if ($flag == "password") { ?>
-                    <div class="row">
-                        <div class="alert alert-danger d-flex align-items-center" role="alert">
-                            <div id="alert">
-                                Incorrect Password
-                            </div>
-                        </div>
-                    </div>
+
+            <form method="post">
+                <?php if ($flag === "password") { ?>
+                    <div class="alert alert-danger">Incorrect Password</div>
                 <?php } ?>
-                <?php if ($flag == "username") { ?>
-                    <div class="row">
-                        <div class="alert alert-danger d-flex align-items-center" role="alert">
-                            <div id="alert">
-                                Incorrect Username
-                            </div>
-                        </div>
-                    </div>
+                <?php if ($flag === "username") { ?>
+                    <div class="alert alert-danger">Incorrect Username</div>
                 <?php } ?>
+
                 <div class="row">
                     <i class="fas fa-user"></i>
-                    <input type="text" placeholder="User Name" id="user" value="<?php echo (isset($uname)) ? $uname : ''; ?>" name="UserName" oninput="this.value = this.value.toUpperCase()" required>
+                    <input type="text" name="UserName" placeholder="User Name"
+                        value="<?= isset($uname) ? $uname : '' ?>"
+                        oninput="this.value=this.value.toUpperCase()" required>
                 </div>
+
                 <div class="row">
                     <i class="fas fa-lock"></i>
-                    <input type="password" placeholder="Password" id="password" value="<?php echo (isset($pass)) ? $pass : ''; ?>" name="Password" required>
+                    <input type="password" name="Password" id="password" placeholder="Password" required>
                 </div>
+
                 <span class="fas fa-eye" id="hide"></span>
-                <div class="pass"><a href="forgot_password.php">Forgot password?</a></div>
+
+                <div class="pass">
+                    <a href="forgot_password.php">Forgot password?</a>
+                </div>
+
                 <div class="row button">
-                    <input type="submit" name="Login">
+                    <input type="submit" name="Login" value="Login">
                 </div>
             </form>
         </div>
     </div>
+
     <footer>
         <div class="footer-bottom">
             <p>
@@ -234,17 +243,16 @@ if (isset($_POST['Login'])) {
             </p>
         </div>
     </footer>
-</body>
-<script type="text/javascript">
-    $('#hide').on('click', function() {
-        $(this).toggleClass('fa-eye');
-        $(this).toggleClass('fa-eye-slash');
-        if ($(this).hasClass('fa-eye-slash')) {
-            $('#password').attr('type', 'text')
-        } else {
-            $('#password').attr('type', 'password')
-        }
-    });
-</script>
 
-</html>
+    <script>
+        $('#hide').on('click', function() {
+            $(this).toggleClass('fa-eye fa-eye-slash');
+            $('#password').attr('type',
+                $(this).hasClass('fa-eye-slash') ? 'text' : 'password'
+            );
+        });
+    </script>
+
+</body>
+
+</html>yy

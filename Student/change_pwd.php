@@ -1,12 +1,13 @@
 <?php
-session_start();
-if (!$_SESSION['Id_No']) {
-  echo "<script>
-  alert('Student Id Not Rendered');
-  location.replace('student_login.php');
-  </script>
-  </script>";
-}
+include_once('../link.php');
+include_once('includes/rbac_helper.php');
+
+define('MENU_ID', 139);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 
 <?php
@@ -18,6 +19,11 @@ if (isset($_POST['change'])) {
     $data = stripslashes($data);
     $data = htmlspecialchars($data);
     return $data;
+  }
+  if (!can('update', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to change your password! Please Contact School Office!');
+      location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+    exit;
   }
   $id = validate($_POST['UserName']);
   $old = validate($_POST['O_Password']);
@@ -128,7 +134,12 @@ if (isset($_POST['change'])) {
         </div>
         <div class="pass"><a href="forgot_password.php">Forgot password?</a></div>
         <div class="row button">
-          <input type="submit" name="change">
+          <div class="btn-wrapper <?php echo !can('update', MENU_ID) ? 'rbac-disabled' : ''; ?>"
+            <?php if (!can('update', MENU_ID)) { ?>
+            title="You don't have permission to update student/faculty password"
+            <?php } ?>>
+            <input type="submit" name="change" class="btn" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>
+          </div>
         </div>
       </form>
     </div>

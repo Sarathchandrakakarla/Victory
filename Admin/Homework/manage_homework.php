@@ -1,14 +1,21 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
-//error_reporting(0);
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 29);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 <?php
 if (isset($_POST['Delete_All'])) {
+    if (!can('custom1', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to delete past homeworks');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     function deleteDirectory($dir)
     {
         if (!is_dir($dir)) {
@@ -61,12 +68,17 @@ if (isset($_POST['Delete_All'])) {
 }
 
 if (isset($_POST['Previous'])) {
+    if (!can('custom1', MENU_ID)) {
+        $flag = "false";
+        echo $flag;
+        return;
+    }
     $flag = "false";
     $classes = ["PreKG", "LKG", "UKG"];
     for ($i = 1; $i <= 10; $i++) {
         $classes[] = $i . " CLASS";
     }
-    $sections = ["A", "B", "C", "D"];
+    $sections = ["A", "B", "C", "D", "E"];
     $date = new DateTime();
     $date = $date->modify("-7 days")->format('d-m-Y');
     $date = new DateTime($date);
@@ -99,6 +111,11 @@ if (isset($_POST['Previous'])) {
 ?>
 <?php
 if (isset($_POST['GetDetails'])) {
+    if (!can('update', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to update homework');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     $date = $_POST['Date'];
     $class = $_POST['Class'];
     $section = $_POST['Section'];
@@ -128,6 +145,17 @@ if (isset($_POST['Action'])) {
     $section = $_POST['Section'];
     $subject = $_POST['Subject'];
     if ($action == "new" || $action == "update") {
+        if ($action == "new" && !can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to create homwork');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
+        if ($action == "update" && !can('update', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to update homework');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
+
         $location = '../../Files/Homework/' . $class . ' ' . $section;
         if (!is_dir($location)) {
             mkdir($location);
@@ -295,6 +323,11 @@ if (isset($_POST['Action'])) {
             }
         }
     } else if ($action == "delete") {
+        if (!can('delete', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to delete homework');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         if (is_dir("../../Files/Homework/" . $class . " " . $section . "/" . $date)) {
             foreach (array_slice(scandir("../../Files/Homework/" . $class . " " . $section . "/" . $date), 2) as $file) {
                 if (str_contains($file, $subject)) {
@@ -373,6 +406,12 @@ if (isset($_POST['Action'])) {
             display: block;
         }
     }
+
+    .disabled-icon {
+        color: grey !important;
+        cursor: not-allowed !important;
+        pointer-events: none;
+    }
 </style>
 
 <body class="bg-light">
@@ -426,9 +465,19 @@ if (isset($_POST['Action'])) {
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-5">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable();">Clear</button>
-                    <button class="btn btn-danger" type="submit" name="Delete_All" onclick="if(!confirm('Confirm to Delete Past Week Homeworks?')){return false;}else{return true;}">Delete Past Week Homeworks</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('custom1', MENU_ID)) { ?>
+                        title="You don't have permission to delete past homeworks"
+                        <?php } ?>>
+                        <button class="btn btn-danger" type="submit" name="Delete_All" onclick="if(!confirm('Confirm to Delete Past Week Homeworks?')){return false;}else{return true;}" <?php echo !can('custom1', MENU_ID) ? 'disabled' : ''; ?>>Delete Past Week Homeworks</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -463,7 +512,14 @@ if (isset($_POST['Action'])) {
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" onclick="$('.img_container').empty();">Clear All Images</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="save_btn" onclick="save();">Save changes</button>
+
+                        <button type="button"
+                            class="btn btn-primary"
+                            id="save_btn"
+                            data-allowed="0"
+                            onclick="save();">
+                            Save changes
+                        </button>
                     </div>
                 </div>
             </div>
@@ -509,6 +565,11 @@ if (isset($_POST['Action'])) {
                     }
                     echo "<script>date.value = '" . date('Y-m-d') . "';</script>";
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $date = $_POST['Date'];
                         echo "<script>date.value = '" . $date . "';</script>";
                         $date = format_date($date);
@@ -526,6 +587,11 @@ if (isset($_POST['Action'])) {
                                         echo "<script>alert('Subjects Not Available for this Class!')</script>";
                                     }
                                     $i = 1;
+                                    $canCreate = can('create', MENU_ID);
+                                    $canView = can('view', MENU_ID);
+                                    $canUpdate = can('update', MENU_ID);
+                                    $canDelete = can('delete', MENU_ID);
+                                    $canStats = can('custom2', MENU_ID);
                                     while ($row1 = mysqli_fetch_assoc($query1)) {
                                         echo '
                                         <tr>
@@ -534,14 +600,63 @@ if (isset($_POST['Action'])) {
                                             <td>';
                                         if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `homework` WHERE Date = '$date' AND Class = '$class' AND Section = '$section' AND Subject = '" . $row1['Subjects'] . "'")) == 0) {
                                             echo '
-                                            <button class="btn btn-primary" data-bs-toggle="modal" id="new_' . $row1['Subjects'] . '" data-bs-target="#modal" onclick="modal_form.reset();ShowModal(this.id)"><i class="bx bx-message-square-add"></i> New</button>
+                                            <span class="btn-wrapper ' . (!$canCreate ? 'disabled-wrapper' : '') . '"
+                                                ' . (!$canCreate ? 'title="You don\'t have permission to create new entry"' : '') . '>
+                                                <button class="btn btn-primary"
+                                                        id="new_' . $row1['Subjects'] . '"
+                                                        data-mode="create"
+                                                        data-allowed="' . ($canCreate ? '1' : '0') . '"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modal"
+                                                        onclick="' . ($canCreate
+                                                ? 'modal_form.reset();ShowModal(this.id)'
+                                                : 'return false;') . '">
+                                                    <i class="bx bx-message-square-add"></i> New
+                                                </button>
+                                            </span>
                                             ';
                                         } else {
                                             echo '
-                                            <a href="/Victory/Files/Homework/' . $class . ' ' . $section . '/' . $date . '/' . $row1['Subjects'] . '.pdf" target="_blank" class="btn btn-warning"><i class="fas fa-eye"></i> View</a>
-                                            <button class="btn btn-success" data-bs-toggle="modal" id="update_' . $row1['Subjects'] . '" data-bs-target="#modal" onclick="ShowModal(this.id)"><i class="bx bx-edit-alt"></i> Update</button>
-                                            <button class="btn btn-danger" id="delete_' . $row1['Subjects'] . '" onclick="deletework(this.id)"><i class="bx bx-trash"></i> Delete</button>
-                                            <a href="/Victory/Admin/Homework/homework_analytics.php?Action=show&Date=' . $date . '&Class=' . $class . '&Section=' . $section . '&Subject=' . $row1['Subjects'] . '" target="_blank"><button class="btn btn-primary" id="stats_' . $row1['Subjects'] . '"><i class="bx bx-line-chart"></i> Analytics</button></a>
+                                            <a href="/Victory/Files/Homework/' . $class . ' ' . $section . '/' . $date . '/' . $row1['Subjects'] . '.pdf"
+                                            target="_blank"
+                                            class="btn btn-warning ' . (!$canView ? 'disabled' : '') . '"
+                                            ' . (!$canView ? 'title="You don\'t have permission to view"' : '') . '>
+                                            <i class="fas fa-eye"></i> View
+                                            </a>
+
+                                            <span class="btn-wrapper ' . (!$canUpdate ? 'disabled-wrapper' : '') . '"
+                                                ' . (!$canUpdate ? 'title="You don\'t have permission to update"' : '') . '>
+                                                <button class="btn btn-success"
+                                                        id="update_' . $row1['Subjects'] . '"
+                                                        data-mode="update"
+                                                        data-allowed="' . ($canUpdate ? '1' : '0') . '"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modal"
+                                                        onclick="' . ($canUpdate ? 'ShowModal(this.id)' : 'return false;') . '">
+                                                    <i class="bx bx-edit-alt"></i> Update
+                                                </button>
+                                            </span>
+
+                                            <span class="btn-wrapper ' . (!$canDelete ? 'disabled-wrapper' : '') . '"
+                                                ' . (!$canDelete ? 'title="You don\'t have permission to delete"' : '') . '>
+                                                <button class="btn btn-danger"
+                                                        id="delete_' . $row1['Subjects'] . '"
+                                                        onclick="' . ($canDelete ? 'deletework(this.id)' : 'return false;') . '">
+                                                    <i class="bx bx-trash"></i> Delete
+                                                </button>
+                                            </span>
+
+                                            <span class="btn-wrapper ' . (!$canStats ? 'disabled-wrapper' : '') . '"
+                                                ' . (!$canStats ? 'title="You don\'t have permission to view analytics"' : '') . '>
+                                                <a href="' . ($canStats
+                                                ? '/Victory/Admin/Homework/homework_analytics.php?Action=show&Date=' . $date . '&Class=' . $class . '&Section=' . $section . '&Subject=' . $row1['Subjects']
+                                                : '#') . '"
+                                                target="_blank">
+                                                    <button class="btn btn-primary" ' . (!$canStats ? 'onclick="return false;"' : '') . '>
+                                                        <i class="bx bx-line-chart"></i> Analytics
+                                                    </button>
+                                                </a>
+                                            </span>
                                             ';
                                         }
                                         echo '
@@ -642,24 +757,52 @@ if (isset($_POST['Action'])) {
             })
         }
 
-        function ShowModal(eleid) {
-            var subject = eleid.split("_")[1];
-            var modal = document.getElementById('modal');
+        function ShowModal(el) {
+
+            // 🔐 RBAC check (client-side safety)
+            if (el.dataset.allowed !== "1") {
+                alert("You don't have permission to perform this action");
+                return false;
+            }
+
+            var mode = el.dataset.mode; // create | update
+            var subject = el.id.split("_")[1];
             var d = date.value.split("-").reverse().join("-");
+
             $('#modal').off("shown.bs.modal");
             $('#modal').off("hide.bs.modal");
-            $('#modal').on('shown.bs.modal', function(e) {
-                $('.modal-title').html($('#class').val() + " " + $('#section').val() + " " + subject);
-                $('#modal_details').val(eleid.split('_')[0] + "," + $('#class').val() + "," + $('#section').val() + "," + subject);
-                if (eleid.split("_")[0] == "update") {
+
+            $('#modal').on('shown.bs.modal', function() {
+
+                document.getElementById('save_btn').dataset.allowed =
+                    (mode === "create" && <?= $canCreate ? 'true' : 'false' ?>) ||
+                    (mode === "update" && <?= $canUpdate ? 'true' : 'false' ?>) ?
+                    "1" : "0";
+
+                $('.modal-title').html(
+                    $('#class').val() + " " +
+                    $('#section').val() + " " +
+                    subject + " (" + mode.toUpperCase() + ")"
+                );
+
+                $('#modal_details').val(
+                    mode + "," +
+                    $('#class').val() + "," +
+                    $('#section').val() + "," +
+                    subject
+                );
+
+                if (mode === "update") {
                     file_row.hidden = "";
+                    img_file.hidden = "";
                     getDetails(d, $('#class').val(), $('#section').val(), subject);
                 } else {
-                    img_file.hidden = "";
                     file_row.hidden = "hidden";
+                    img_file.hidden = "";
                 }
-            })
+            });
         }
+
         modal.addEventListener('hide.bs.modal', function() {
             document.getElementById("modal_form").reset()
             $('.img_container').empty()
@@ -745,6 +888,10 @@ if (isset($_POST['Action'])) {
     <!-- Save HomeWork -->
     <script>
         function save() {
+            if (document.getElementById('save_btn').dataset.allowed !== "1") {
+                alert("You don't have permission to save changes");
+                return;
+            }
             let formData = new FormData();
             let action = "";
             $('#modal_form').serializeArray().forEach((e) => {

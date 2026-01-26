@@ -1,12 +1,12 @@
 <?php
-include '../../link.php';
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 69);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -60,6 +60,11 @@ function format_date($date)
 }
 
 if (isset($_POST['Ok'])) {
+    if (!can('create', MENU_ID)) {
+        echo "<script>alert('You don\'t have permission to insert expenses');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        exit;
+    }
     $ac = $_POST['AC_No'];
     $date = $_POST['DOP'];
 
@@ -282,6 +287,22 @@ if (isset($_POST['Ok'])) {
             display: none;
         }
     }
+
+    /* Hover ONLY when enabled */
+    form .button input:not(:disabled):hover {
+        background: linear-gradient(-135deg, #71b7e6, #9b59b6);
+    }
+
+    /* 🔒 Disabled state */
+    form .button input:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        background: linear-gradient(135deg, #b5b5b5, #8e8e8e);
+    }
+
+    .btn-wrapper {
+        display: contents;
+    }
 </style>
 
 <body>
@@ -346,7 +367,12 @@ if (isset($_POST['Ok'])) {
                     </div>
                 </div>
                 <div class="button">
-                    <input type="submit" name="add" value="Insert" />
+                    <div class="btn-wrapper"
+                        <?php if (!can('create', MENU_ID)) { ?>
+                        title="You don't have permission to insert expenses"
+                        <?php } ?>>
+                        <input type="submit" name="add" value="Insert" onclick="if(!confirm('Confirm to Insert Debiter Data?')){return false;}else{return true;}" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
                 </div>
             </form>
         </div>
@@ -393,6 +419,11 @@ if (isset($_POST['Ok'])) {
     <?php
 
     if (isset($_POST['add'])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to insert expenses');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $date = $_POST['DOP'];
         $ac = $_POST['AC_No'];
         $name = $_POST['Name'];
@@ -470,6 +501,12 @@ if (isset($_POST['Ok'])) {
     ?>
     <!-- Scripts -->
 
+    <!-- Global Const Variables for can_update,can_allocate -->
+    <script>
+        const CAN_VIEW = <?= can('view', MENU_ID) ? 'true' : 'false' ?>;
+        const CAN_DELETE = <?= can('delete', MENU_ID) ? 'true' : 'false' ?>;
+    </script>
+
     <!-- Print Table -->
     <script type="text/javascript">
         function printDiv() {
@@ -491,6 +528,10 @@ if (isset($_POST['Ok'])) {
             text += index + ": " + item + "<br>";
         }
         $('#ac_no').on('focus', function() {
+            if (!CAN_VIEW) {
+                alert("You do not have permission to view expenses/collections");
+                return;
+            }
             date = document.getElementById('dop').value;
             var mydate = new Date(date);
             var month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -519,7 +560,11 @@ if (isset($_POST['Ok'])) {
                     Type: type
                 },
                 success: function(data) {
-                    document.querySelector('#tbody').innerHTML = data;
+                    if (data == "permission") {
+                        alert('You don\'t have permission to view expenses/collections');
+                    } else {
+                        document.querySelector('#tbody').innerHTML = data;
+                    }
                 }
             });
         });
@@ -528,6 +573,10 @@ if (isset($_POST['Ok'])) {
     <!-- Delete Row -->
     <script type="text/javascript">
         function delete_row(e) {
+            if (!CAN_DELETE) {
+                alert("You do not have permission to delete expenses/collections");
+                return;
+            }
             type = document.getElementById('expenditure').checked ? 'expenses' : 'collections';
             date = document.getElementById('date').innerHTML
             if (type == "expenses") {
@@ -550,6 +599,8 @@ if (isset($_POST['Ok'])) {
                                 alert('Payment Deleted Successfully!!');
                             } else if (data == "failure") {
                                 alert('Payment Deletion Failed!');
+                            } else if (data = "permission") {
+                                alert('You don\'t have permission to delete expenses');
                             } else {
                                 alert('No Payment Found!');
                             }
@@ -577,6 +628,8 @@ if (isset($_POST['Ok'])) {
                                 alert('Payment Deleted Successfully!!');
                             } else if (data == "failure") {
                                 alert('Payment Deletion Failed!');
+                            } else if (data = "permission") {
+                                alert('You don\'t have permission to delete collections');
                             } else {
                                 alert('No Collection Found!');
                             }

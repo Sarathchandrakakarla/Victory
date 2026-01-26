@@ -1,3 +1,35 @@
+<?php
+include $_SERVER['DOCUMENT_ROOT'] . '/Victory/link.php';
+
+if (!isset($_SESSION['RBAC'])) {
+    $_SESSION['RBAC'] = [];
+}
+
+function hasMenuAccess(int $menuId): bool
+{
+    return isset($_SESSION['RBAC'][$menuId]);
+}
+$parents = [];
+$children = [];
+$menu_query = mysqli_query($link, "SELECT Menu_Id, Display_Name, Parent_Flag, Par_Menu_Id, Route, Icon, Menu_Type, Sequence_Id FROM menus WHERE Active_Flag = 1 AND Login_Type = 'Admin' ORDER BY (CASE WHEN Parent_Flag = 1 THEN Sequence_Id ELSE 999999 END), Par_Menu_Id, FIELD(Menu_Type, 'Entry', 'View'), Sequence_Id");
+while ($menu_row = mysqli_fetch_assoc($menu_query)) {
+    $menu_id = (int)$menu_row['Menu_Id'];
+
+    if ((int)$menu_row['Parent_Flag'] === 1) {
+        $parents[$menu_id] = $menu_row;
+    } else {
+        // RBAC FILTER HERE
+        if (!hasMenuAccess($menu_id)) {
+            continue;
+        }
+
+        $parId = $menu_row['Par_Menu_Id'] !== null ? (int)$menu_row['Par_Menu_Id'] : 0;
+        if (!isset($children[$parId])) $children[$parId] = [];
+        $children[$parId][] = $menu_row;
+    }
+}
+
+?>
 <nav>
     <div class="logo">
         <img src="/Victory/Images/Victory Logo.png" alt="..." width="70px">
@@ -11,20 +43,17 @@
     </label>
     <ul>
         <li>
-            <img src="/Victory/Images/<?php echo $_SESSION['Admin_Id_No']; ?>.jpg" alt="Admin Image">
+            <img src="/Victory/Images/admin_img/<?php echo $_SESSION['Admin_Id_No']; ?>.jpg" alt="Admin Image">
         </li>
         <li>
-            <a href="#"><?php echo $_SESSION['Admin_Id_No'];
-                        if ($_SESSION['Role'] == "Admin") {
-                            echo "(Administrator)";
-                        } else {
-                            echo "(Super Admin)";
-                        } ?></a>
+            <a href="#"><?php echo $_SESSION['Admin_Id_No'] . '(' . $_SESSION['Role_Name'] . ')'; ?></a>
             <ul class="login-sub-menu sub-menu">
-                <li>
-                    <p style="color: #f2f2f2;">Upload New Photo</p>
-                    <input type='file' id="getFile" name="img" accept=".png,.jpg,.jpeg" onchange="saveImg()">
-                </li>
+                <?php if (in_array($_SESSION['Role_Name'], ['System Admin', 'Super Admin'])): ?>
+                    <li>
+                        <p style="color: #f2f2f2;">Upload New Photo</p>
+                        <input type='file' id="getFile" name="img" accept=".png,.jpg,.jpeg" onchange="saveImg()">
+                    </li>
+                <?php endif; ?>
                 <li><a href="/Victory/php/logout.php">Sign Out</a></li>
             </ul>
         </li>
@@ -37,331 +66,67 @@
         <span class="logo_name">Administrator</span>
     </div>
     <ul class="nav-links">
-        <li>
-            <a href="/Victory/Admin/admin_dashboard.php">
-                <i class="bx bx-home"></i>
-                <span class="link_name">Dashboard</span>
-            </a>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-user"></i>
-                    <span class="link_name">Student</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Student</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Student/Stu_Register.php">Student Details Entry</a></li>
-                <li><a href="/Victory/Admin/Student/show_student_page.php">Show/Modify Student Details</a></li>
-                <li>
-                    <a class="link_name" href="#" id="view"><label for="">View</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Reports/class_wise_stu_report.php">Class wise Student Report</a></li>
-                <li><a href="/Victory/Admin/Reports/search_student.php">Search Student</a></li>
-                <li><a href="/Victory/Admin/Reports/address.php">Address</a></li>
-                <li><a href="/Victory/Admin/Reports/address_no_wise.php">Address Number Wise</a></li>
-                <li><a href="/Victory/Admin/Reports/route_wise_report.php">Van Routes List</a></li>
-                <li><a href="/Victory/Admin/Reports/strength.php">Strength Particulars</a></li>
-                <li><a href="/Victory/Admin/Reports/doj_report.php">Joining Date Report</a></li>
-                <li><a href="/Victory/Admin/Reports/consolidated_route.php">Consolidated Route</a></li>
-                <li><a href="/Victory/Admin/Student/unique_students.php">Unique Parents List</a></li>
-                <li><a href="/Victory/Admin/Reports/images_missing.php">Missing Images Report</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-book"></i>
-                    <span class="link_name">Examinations</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Examinations</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Marks/class_wise_examination.php">Class Wise Examinations Entry</a></li>
-                <li><a href="/Victory/Admin/Marks/class_wise_subjects.php">Class Wise Subjects Entry</a></li>
-                <li><a href="/Victory/Admin/Marks/class_marks.php">Class Wise Marks Entry</a></li>
-                <li><a href="/Victory/Admin/Reports/student_performance.php">Student Performance Entry</a></li>
-                <li>
-                    <a class="link_name" href="#" id="view"><label for="">View</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Reports/class_wise_marks.php">Class wise Marks View</a></li>
-                <li><a href="/Victory/Admin/Reports/individual_marks.php">Individual Marks View</a></li>
-                <li><a href="/Victory/Admin/Reports/marks_entry_slip.php">Marks Entry Slip</a></li>
-                <li><a href="/Victory/Admin/Marks/hallticket.php">Hall Ticket</a></li>
-                <li><a href="/Victory/Admin/Marks/marklist.php">Mark List</a></li>
-                <li><a href="/Victory/Admin/Reports/student_performance_report.php">Student Performance Report</a></li>
-                <li><a href="/Victory/Admin/Reports/quarterly_performance_report.php">Quarterly Performance Report</a></li>
-                <li><a href="/Victory/Admin/Reports/consolidated_marks.php">Consolidated Marks</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-edit"></i>
-                    <span class="link_name">Homework</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Homework</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Homework/manage_homework.php">Manage Class Wise Homeworks</a></li>
-                <li>
-                    <a class="link_name" href="#" id="view"><label for="">View</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Homework/class_wise_homework_report.php">Class Wise Homeworks Report</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-user-check"></i>
-                    <span class="link_name">Attendance</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Attendance</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Attendance/att_daily.php">Attendance Daily Entry</a></li>
-                <li><a href="/Victory/Admin/Attendance/working_days.php">Working Days/Holidays Entry</a></li>
-                <li><a href="/Victory/Admin/Attendance/emp_attendance.php">Employee Attendance Entry</a></li>
-                <li><a href="/Victory/Admin/Attendance/excel.php">Attendance Daily Upload</a></li>
-                <li>
-                    <a class="link_name" href="#" id="view"><label for="">View</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Attendance/date_wise.php">Date Wise Absentees View</a></li>
-                <li><a href="/Victory/Admin/Attendance/date_class_wise.php">Date and Class Wise Absentees View</a></li>
-                <li><a href="/Victory/Admin/Attendance/class_wise.php">Class Wise Attendance View</a></li>
-                <li><a href="/Victory/Admin/Attendance/emp_attendance_view.php">Employee Attendance View</a></li>
-                <li><a href="/Victory/Admin/Attendance/attendance_ranking.php">Class Wise Attendance Ranking</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-calendar"></i>
-                    <span class="link_name">Time Table</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Time Table</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Time_Table/time_table.php">Time Table Entry/View</a></li>
-                <li><a href="/Victory/Admin/Time_Table/faculty_time_table.php">Faculty Time Table</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-book-add"></i>
-                    <span class="link_name">Admission Book</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Admission Book</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Admission/admission_entry.php">Admission Book Entry</a></li>
-                <li><a href="/Victory/Admin/Admission/admission_update.php">Admission Book Show/Modify</a></li>
-                <li><a href="/Victory/Admin/Admission/parent_letter.php">Parent Letter</a></li>
-                <li><a href="/Victory/Admin/Admission/study_certificate.php">Study Certificate</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-user"></i>
-                    <span class="link_name">Employee</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Employee</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Employee/Emp_register.php">Employee Details Entry</a></li>
-                <li><a href="/Victory/Admin/Employee/show_emp_page.php">Show/Modify Employee Details</a></li>
-                <li>
-                    <a class="link_name" href="#" id="view"><label for="">View</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Reports/search_employee.php">Search Employee</a></li>
-                <li><a href="/Victory/Admin/Reports/employee_list.php">Employee List</a></li>
-                <li><a href="/Victory/Admin/Employee/class_teacher.php">Class Teacher List</a></li>
-                <li><a href="/Victory/Admin/Reports/referred_by.php">Referred By</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-credit-card"></i>
-                    <span class="link_name">Fee</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Fee</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Fee/actual_fee.php">Actual Fee Entry</a></li>
-                <li><a href="/Victory/Admin/Fee/committed_fee.php">Committed Fee Entry</a></li>
-                <li><a href="/Victory/Admin/Fee/stu_fee_pay.php">Student Fee Pay Entry</a></li>
-                <li><a href="/Victory/Admin/Fee/committed_date.php">Commitment Date Entry</a></li>
-                <li><a href="/Victory/Admin/Reports/ledger.php">Class Wise Ledger Create</a></li>
-                <li>
-                    <a class="link_name" href="#" id="view"><label for="">View</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Reports/actual_fee_report.php">Actual Fee Report</a></li>
-                <li><a href="/Victory/Admin/Reports/class_wise_fee.php">Class Wise Fee Report</a></li>
-                <li><a href="/Victory/Admin/Fee/paid_details.php">Student Paid Details</a></li>
-                <li><a href="/Victory/Admin/Reports/class_wise_fee_balances.php">Class Wise Consolidated Fee</a></li>
-                <li><a href="/Victory/Admin/Reports/excess_fee_report.php">Excess Fee Balance Report</a></li>
-                <li><a href="/Victory/Admin/Fee/vvip_list.php">VVIP Students List</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-rupee"></i>
-                    <span class="link_name">Financial Transaction</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Financial Transaction</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Finance/tran_entry.php">Expenditure Entry/View</a></li>
-                <li><a href="/Victory/Admin/Finance/debiter_entry.php">Debiter's Entry</a></li>
-                <li><a href="/Victory/Admin/Finance/debiter_list.php">Debiter's List</a></li>
-                <li><a href="/Victory/Admin/Finance/debiter_transactions.php">Debiter's Transactions</a></li>
-                <li><a href="/Victory/Admin/Finance/consolidated_fee.php">Consolidated Fee</a></li>
-                <li><a href="/Victory/Admin/Finance/consolidated_finance.php">Consolidated Finance</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-envelope"></i>
-                    <span class="link_name">SMS</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">SMS</label></a>
-                </li>
-                <li><a href="/Victory/Admin/SMS/absent.php">Student Absent</a></li>
-                <li><a href="/Victory/Admin/SMS/faculty_attendance.php">Teacher Absent</a></li>
-                <li><a href="/Victory/Admin/SMS/fee.php">Student Fee</a></li>
-                <li><a href="/Victory/Admin/SMS/marks.php">Student Marks</a></li>
-                <li><a href="/Victory/Admin/SMS/special.php">Special SMS</a></li>
-                <li><a href="/Victory/Admin/SMS/template_message.php">Message By Template</a></li>
-                <li><a href="/Victory/Admin/SMS/credentials.php">Credentials SMS</a></li>
-                <li><a href="/Victory/Admin/SMS/text_file.php">Phone Numbers Text File</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-log-in"></i>
-                    <span class="link_name">Login</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Login</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Login/bulk_excel_upload.php">Student Credentials Bulk Upload</a></li>
-                <li>
-                    <a class="link_name" href="#" id="view"><label for="">View</label></a>
-                </li>
-                <li><a href="/Victory/Admin/Login/class_wise_credentials.php">Class Wise Credentials View</a></li>
-                <li><a href="/Victory/Admin/Login/faculty_credentials.php">Faculty Credentials View</a></li>
-                <li><a href="/Victory/Admin/Login/student_app_login_report.php">Student App Login Report</a></li>
-            </ul>
-        </li>
-        <?php if ($_SESSION['Role'] != "Admin") { ?>
+        <?php foreach ($parents as $parent):
+            // Parent visible ONLY if it has visible children
+            $pid = (int)$parent['Menu_Id'];
+            if ($parent['Display_Name'] != "Dashboard" && empty($children[$pid])) {
+                continue;
+            }
+            $pname = htmlspecialchars($parent['Display_Name'], ENT_QUOTES, 'UTF-8');
+            $proute = htmlspecialchars($parent['Route'] ?? '#', ENT_QUOTES, 'UTF-8');
+            $picon  = htmlspecialchars($parent['Icon'] ?? 'question', ENT_QUOTES, 'UTF-8');
+            $hasSub = !empty($children[$pid]);
+        ?>
             <li>
                 <div class="iocn-link">
-                    <a href="#">
-                        <i class="bx bx-news"></i>
-                        <span class="link_name">Our Blog</span>
+                    <a href="<?= $proute ?>">
+                        <i class="bx bx-<?= $picon ?>"></i>
+                        <span class="link_name"><?= $pname ?></span>
                     </a>
-                    <i class="bx bxs-chevron-down arrow"></i>
+                    <?php if ($hasSub): ?>
+                        <i class="bx bxs-chevron-down arrow"></i>
+                    <?php endif; ?>
                 </div>
-                <ul class="sub-menu">
-                    <li>
-                        <a class="link_name" href="#"><label for="">Our Blog</label></a>
-                    </li>
-                    <li><a href="/Victory/Admin/Blog/manage_blog.php">Manage Blog Posts</a></li>
-                    <li><a href="/Victory/Admin/Blog/manage_requests.php">Manage Requests</a></li>
-                </ul>
+
+                <?php if ($hasSub):
+                    // split children into Entry and View (DB ordering preserved)
+                    $entries = [];
+                    $views   = [];
+                    foreach ($children[$pid] as $c) {
+                        if (isset($c['Menu_Type']) && strcasecmp($c['Menu_Type'], 'View') === 0) {
+                            $views[] = $c;
+                        } else {
+                            $entries[] = $c;
+                        }
+                    }
+                ?>
+                    <ul class="sub-menu">
+                        <li>
+                            <a class="link_name" href="#"><label><?= $pname ?></label></a>
+                        </li>
+
+                        <?php foreach ($entries as $e):
+                            $eroute = htmlspecialchars($e['Route'] ?? '#', ENT_QUOTES, 'UTF-8');
+                            $ename  = htmlspecialchars($e['Display_Name'] ?? '', ENT_QUOTES, 'UTF-8');
+                        ?>
+                            <li><a href="<?= $eroute ?>"><?= $ename ?></a></li>
+                        <?php endforeach; ?>
+
+                        <?php if (!empty($views)): ?>
+                            <li>
+                                <a class="link_name" href="#" id="view"><label>View</label></a>
+                            </li>
+                            <?php foreach ($views as $v):
+                                $vroute = htmlspecialchars($v['Route'] ?? '#', ENT_QUOTES, 'UTF-8');
+                                $vname  = htmlspecialchars($v['Display_Name'] ?? '', ENT_QUOTES, 'UTF-8');
+                            ?>
+                                <li><a href="<?= $vroute ?>"><?= $vname ?></a></li>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </ul>
+                <?php endif; ?>
             </li>
-        <?php } ?>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-user"></i>
-                    <span class="link_name"><?php if ($_SESSION['Role'] == "Admin") {
-                                                echo "Admin";
-                                            } else {
-                                                echo "Super Admin";
-                                            } ?></span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for=""><?php if ($_SESSION['Role'] == "Admin") {
-                                                                    echo "Admin";
-                                                                } else {
-                                                                    echo "Super Admin";
-                                                                } ?></label></a>
-                </li>
-                <?php if ($_SESSION['Role'] != "Admin") { ?>
-                    <li><a href="/Victory/Admin/add_user.php">Add Admin User</a></li>
-                    <li><a href="/Victory/Admin/image.php">Add Images</a></li>
-                    <li><a href="/Victory/Admin/home_text.php">Manage Home Page Text</a></li>
-                    <li><a href="/Victory/Admin/manage_youtube_videos.php">Manage Youtube Videos</a></li>
-                <?php } ?>
-                <li><a href="/Victory/Admin/add_stu_user.php">Add Student/Faculty User</a></li>
-                <li><a href="/Victory/Admin/stu_pass_change.php">Change Student/Faculty Password</a></li>
-                <li><a href="/Victory/Admin/topics.php">Manage Notification Groups</a></li>
-                <li><a href="/Victory/Admin/backup_db.php">Backup Database</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="iocn-link">
-                <a href="#">
-                    <i class="bx bx-cog"></i>
-                    <span class="link_name">Settings</span>
-                </a>
-                <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-                <li>
-                    <a class="link_name" href="#"><label for="">Settings</label></a>
-                </li>
-                <?php if ($_SESSION['Role'] != "Admin") { ?>
-                    <li><a href="/Victory/Admin/refresh_data.php">Refresh Data</a></li>
-                <?php } ?>
-                <li><a href="/Victory/Admin/change_pwd.php">Reset Password</a></li>
-            </ul>
-        </li>
+        <?php endforeach; ?>
     </ul>
 </div>
 

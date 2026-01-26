@@ -1,11 +1,22 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 91);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+if (!can('view', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to view blog requests');
+      location.replace('/Victory/Admin/admin_dashboard.php')</script>";
     exit;
 }
+
+error_reporting(0);
+?>
+
+<?php
 date_default_timezone_set('Asia/Kolkata');
 
 // Helper: Sanitize filename to prevent spaces, special chars for security & consistency
@@ -82,6 +93,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['update'])) {
+        if (!can('update', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to update this post');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         // === EDIT POST ===
         $postId = intval($_POST['Post_Id']);
         $title = mysqli_real_escape_string($link, trim($_POST['Title']));
@@ -186,12 +202,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['accept'])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to accept this post');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $postId = intval($_POST['Post_Id']);
         $remarks = $_POST['Remarks'];
         acceptPost($link, $postId, $remarks);
     }
 
     if (isset($_POST['reject'])) {
+        if (!can('delete', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to reject this post');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $postId = intval($_POST['Post_Id']);
         $remarks = $_POST['Remarks'];
         if (mysqli_query($link, "UPDATE posts_requests SET Status = 'Rejected',Remarks = '$remarks' WHERE Post_Id = $postId")) {
@@ -202,6 +228,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['block'])) {
+        if (!can('custom1', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to block this post');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $postId = intval($_POST['Post_Id']);
         $remarks = $_POST['Remarks'];
         if (mysqli_query($link, "UPDATE posts_requests SET Status = 'Blocked',Remarks = '$remarks' WHERE Post_Id = $postId")) {
@@ -212,6 +243,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['fetch'])) {
+        if (!can('view', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to view blog post requests');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $whereClauses = [];
 
         if (!empty($_POST['filterTitle'])) {
@@ -275,32 +311,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<td>" . htmlspecialchars($row['Author']) . "</td>";
             echo "<td>" . date("d-m-Y H:i", strtotime($row['Posted_On'])) . "</td>";
             echo "<td>" . htmlspecialchars($row['Status']) . "</td>";
-            echo '
-      <td style="height:115px;display: flex;gap:20px;align-items:center;">
-        <button class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" style="width: 70px;height:40px;gap:8px;" data-bs-toggle="modal" data-bs-target="#editPostModal' . $row['Post_Id'] . '">
-          <i class="bx bx-edit"></i> <span>Edit</span>
-        </button>
-        <form method="POST" action="" style="display:inline;" onsubmit="return openRemarksModal(event,' . $row['Post_Id'] . ',\'accept\');">
-          <input type="hidden" name="Post_Id" value="' . $row['Post_Id'] . '" />
-          <button type="submit" name="accept" class="btn btn-sm btn-success d-flex justify-content-center align-items-center" style="width: 80px;height:40px;gap:8px;">
-            <i class="bx bx-check-circle"></i> <span>Accept</span>
-          </button>
-        </form>
-        <form method="POST" action="" style="display:inline;" onsubmit="return openRemarksModal(event,' . $row['Post_Id'] . ',\'reject\');">
-          <input type="hidden" name="Post_Id" value="' . $row['Post_Id'] . '" />
-          <button type="submit" name="reject" class="btn btn-sm btn-danger d-flex justify-content-center align-items-center" style="width: 80px;height:40px;gap:8px;">
-            <i class="bx bx-x-circle"></i> <span>Reject</span>
-          </button>
-        </form>
-        <form method="POST" action="" style="display:inline;" onsubmit="return openRemarksModal(event,' . $row['Post_Id'] . ',\'block\');">
-          <input type="hidden" name="Post_Id" value="' . $row['Post_Id'] . '" />
-          <button type="submit" name="block" class="btn btn-sm btn-danger d-flex justify-content-center align-items-center" style="width: 80px;height:40px;gap:8px;">
-            <i class="bx bx-block"></i> <span>Block</span>
-          </button>
-        </form>
-      </td>
-      ';
-            echo "</tr>";
+            echo '<td style="height:115px;display:flex;gap:20px;align-items:center;">';
+
+            /* ===== EDIT ===== */
+            echo '<div ' . (!can('update', MENU_ID) ? 'title="You don\'t have permission to edit"' : '') . '>';
+
+            if (can('update', MENU_ID)) {
+                echo '<button class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" style="width:70px;height:40px;gap:8px;" data-bs-toggle="modal" data-bs-target="#editPostModal' . $row['Post_Id'] . '">
+                    <i class="bx bx-edit"></i> <span>Edit</span>
+                </button>';
+            } else {
+                echo '<button class="btn btn-sm btn-secondary d-flex justify-content-center align-items-center" style="width:70px;height:40px;gap:8px;" disabled>
+                    <i class="bx bx-edit"></i> <span>Edit</span>
+                </button>';
+            }
+            echo '</div>';
+
+            /* ===== ACCEPT ===== */
+            echo '<div ' . (!can('create', MENU_ID) ? 'title="You don\'t have permission to accept"' : '') . '>';
+
+            if (can('create', MENU_ID)) {
+                echo '<form method="POST" action="" style="display:inline;" onsubmit="return openRemarksModal(event,' . $row['Post_Id'] . ',\'accept\');">
+                    <input type="hidden" name="Post_Id" value="' . $row['Post_Id'] . '" />
+                    <button type="submit" name="accept" class="btn btn-sm btn-success d-flex justify-content-center align-items-center" style="width:80px;height:40px;gap:8px;">
+                        <i class="bx bx-check-circle"></i> <span>Accept</span>
+                    </button>
+                </form>';
+            } else {
+                echo '<button class="btn btn-sm btn-secondary d-flex justify-content-center align-items-center" style="width:80px;height:40px;gap:8px;" disabled>
+                    <i class="bx bx-check-circle"></i> <span>Accept</span>
+                </button>';
+            }
+            echo '</div>';
+
+            /* ===== REJECT ===== */
+            echo '<div ' . (!can('delete', MENU_ID) ? 'title="You don\'t have permission to reject"' : '') . '>';
+
+            if (can('delete', MENU_ID)) {
+                echo '<form method="POST" action="" style="display:inline;" onsubmit="return openRemarksModal(event,' . $row['Post_Id'] . ',\'reject\');">
+                    <input type="hidden" name="Post_Id" value="' . $row['Post_Id'] . '" />
+                    <button type="submit" name="reject" class="btn btn-sm btn-danger d-flex justify-content-center align-items-center" style="width:80px;height:40px;gap:8px;">
+                        <i class="bx bx-x-circle"></i> <span>Reject</span>
+                    </button>
+                </form>';
+            } else {
+                echo '<button class="btn btn-sm btn-secondary d-flex justify-content-center align-items-center" style="width:80px;height:40px;gap:8px;" disabled>
+                    <i class="bx bx-x-circle"></i> <span>Reject</span>
+                </button>';
+            }
+            echo '</div>';
+
+            /* ===== BLOCK ===== */
+            echo '<div ' . (!can('custom1', MENU_ID) ? 'title="You don\'t have permission to block"' : '') . '>';
+
+            if (can('custom1', MENU_ID)) {
+                echo '<form method="POST" action="" style="display:inline;" onsubmit="return openRemarksModal(event,' . $row['Post_Id'] . ',\'block\');">
+                    <input type="hidden" name="Post_Id" value="' . $row['Post_Id'] . '" />
+                    <button type="submit" name="block" class="btn btn-sm btn-danger d-flex justify-content-center align-items-center" style="width:80px;height:40px;gap:8px;">
+                        <i class="bx bx-block"></i> <span>Block</span>
+                    </button>
+                </form>';
+            } else {
+                echo '<button class="btn btn-sm btn-secondary d-flex justify-content-center align-items-center" style="width:80px;height:40px;gap:8px;" disabled>
+                    <i class="bx bx-block"></i> <span>Block</span>
+                </button>';
+            }
+            echo '</div>
+                </td>
+            </tr>';
         }
         exit;
     }
@@ -422,7 +500,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="date" class="form-control" id="filterDateTo" name="filterDateTo">
             </div>
             <div class="col-md-3 d-flex align-items-end gap-2">
-                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <div class="btn-wrapper"
+                    <?php if (!can('view', MENU_ID)) { ?>
+                    title="You don't have permission to view/filter blog posts"
+                    <?php } ?>>
+                    <button type="submit" class="btn btn-primary" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Apply Filters</button>
+                </div>
                 <button type="button" class="btn btn-outline-secondary" id="resetFilters">Reset</button>
             </div>
         </form>
@@ -496,12 +579,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 echo '<img src="' . $mediaPath . '" class="img-thumbnail" width="100">';
                                             } elseif (in_array($ext, ['mp4', 'webm', 'ogg'])) {
                                                 echo '<video width="150" controls>
-                              <source src="' . $mediaPath . '" type="video/' . $ext . '">
-                              Your browser does not support the video tag.
-                            </video>';
+                                                <source src="' . $mediaPath . '" type="video/' . $ext . '">
+                                                Your browser does not support the video tag.
+                                                </video>';
                                             } elseif ($ext === 'pdf') {
                                                 echo '<a href="' . $mediaPath . '" target="_blank" title="Open PDF" style="font-size: 2.45em; color: #d9534f;">
-                              <i class="bi bi-file-earmark-pdf"></i></a>';
+                                                    <i class="bi bi-file-earmark-pdf"></i></a>';
                                             } else {
                                                 echo '<a href="' . $mediaPath . '" target="_blank">' . htmlspecialchars($mediaFile) . '</a>';
                                             }
@@ -520,9 +603,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         $linksArr = !empty($row['Links']) ? explode(',', $row['Links']) : [''];
                                         foreach ($linksArr as $linkVal) {
                                             echo '<div class="input-group mb-2">
-                              <input type="url" name="Links[]" id="Links' . $row['Post_Id'] . '" placeholder="https://example.com" class="form-control" value="' . htmlspecialchars($linkVal) . '">
-                              <button type="button" class="btn btn-danger remove-link-btn">&times;</button>
-                            </div>';
+                                            <input type="url" name="Links[]" id="Links' . $row['Post_Id'] . '" placeholder="https://example.com" class="form-control" value="' . htmlspecialchars($linkVal) . '">
+                                            <button type="button" class="btn btn-danger remove-link-btn">&times;</button>
+                                            </div>';
                                         }
                                         ?>
                                     </div>
@@ -534,7 +617,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="submit" name="update" class="btn btn-success">Update and Publish Post</button>
+                                <div class="btn-wrapper"
+                                    <?php if (!can('update', MENU_ID)) { ?>
+                                    title="You don't have permission to update this post"
+                                    <?php } ?>>
+                                    <button type="submit" name="update" class="btn btn-success" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>Update and Publish Post</button>
+                                </div>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             </div>
                         </form>
@@ -916,8 +1004,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             remarksModal.show();
             document.getElementById('remarksTextarea').focus();
         }
-
-
         // Form submission handler to confirm and validate remarks
         function submitRemarksForm(event) {
             const type = document.getElementById('Type').value;

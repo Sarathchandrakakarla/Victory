@@ -1,11 +1,12 @@
 <?php
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 46);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -150,6 +151,17 @@ error_reporting(0);
         background: linear-gradient(-135deg, #71b7e6, #9b59b6);
     }
 
+    /* 🔒 Disabled state */
+    form .button input:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        background: linear-gradient(135deg, #b5b5b5, #8e8e8e);
+    }
+
+    .btn-wrapper {
+        display: contents;
+    }
+
     @media (max-width: 584px) {
         .container {
             max-width: 70%;
@@ -222,7 +234,12 @@ error_reporting(0);
                     </div>
                     <div class="input-box">
                         <span class="details"></span>
-                        <button class="btn btn-primary" id="ok" name="Ok">OK</button>
+                        <div class="btn-wrapper"
+                            <?php if (!can('view', MENU_ID)) { ?>
+                            title="You don't have permission to view student admission data"
+                            <?php } ?>>
+                            <button class="btn btn-primary" id="ok" name="Ok" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>OK</button>
+                        </div>
                     </div>
                     <div class="input-box">
                         <span class="details">Full Name</span>
@@ -352,8 +369,18 @@ error_reporting(0);
                     </div>
                 </div>
                 <div class="button">
-                    <input type="submit" name="update" value="Update" />
-                    <input type="submit" name="delete" value="Delete" onclick="if(!confirm('Confirm to Delete Student?')){return false;}else{return true;}" />
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update student admission data"
+                        <?php } ?>>
+                        <input type="submit" name="update" value="Update" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('delete', MENU_ID)) { ?>
+                        title="You don't have permission to delete student admission data"
+                        <?php } ?>>
+                        <input type="submit" name="delete" value="Delete" onclick="if(!confirm('Confirm to Delete Student Admission Data?')){return false;}else{return true;}" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?> />
+                    </div>
                     <input type="reset" value="Clear" />
                 </div>
             </form>
@@ -398,6 +425,11 @@ error_reporting(0);
     }
 
     if (isset($_POST['Ok'])) {
+        if (!can('view', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to view student admission data');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         if ($_POST['Book']) {
             $book = $_POST['Book'];
             $adm_no = $_POST['Adm_No'];
@@ -471,7 +503,13 @@ error_reporting(0);
             echo "<script>alert('Please Select Book!')</script>";
         }
     }
+
     if (isset($_POST["update"])) {
+        if (!can('update', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to update student admission data');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         if ($_POST['Book']) {
             $book = $_POST['Book'];
             echo "<script>document.getElementById('book').value='" . $book . "';</script>";
@@ -536,6 +574,11 @@ error_reporting(0);
     }
 
     if (isset($_POST['delete'])) {
+        if (!can('delete', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to delete student admission data');
+                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         if ($_POST['Book']) {
             $book = $_POST['Book'];
             $adm_no = explode('/', $_POST['Adm_No'])[0];

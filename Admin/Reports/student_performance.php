@@ -1,10 +1,13 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 19);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+error_reporting(0);
 ?>
 
 <!DOCTYPE html>
@@ -114,11 +117,31 @@ if (!$_SESSION['Admin_Id_No']) {
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-5">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
-                    <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
-                    <button class="btn btn-secondary edit" onclick="return false;"><span id="edit-text">Edit</span> <i class="bx bx-edit edit-icon"></i></button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
+                    <button class="btn btn-warning">Clear</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update this report"
+                        <?php } ?>>
+                        <button class="btn btn-secondary edit" onclick="return false;" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>><span id="edit-text">Edit</span> <i class="bx bx-edit edit-icon"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -163,6 +186,11 @@ if (!$_SESSION['Admin_Id_No']) {
                 <tbody id="tbody">
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         if ($_POST['Class']) {
                             $class = $_POST['Class'];
                             $_SESSION['Class'] = $class;
@@ -201,15 +229,15 @@ if (!$_SESSION['Admin_Id_No']) {
                                         <td class="criteria-row border" hidden>
                                             <div style="display:flex; gap:10px;">
                                                 <div class="form-check form-check-inline">
-                                                    <input class="form-check-input" type="radio" name="' . $cat . '[' . $i - 1 . ']" id="' . $cat . '-excellent[' . $i - 1 . ']" value="Excellent" ' . (($row[ucfirst($cat)] == "Excellent") ? 'checked' : '') . '>
+                                                    <input class="form-check-input" type="radio" name="' . $cat . '[' . $i - 1 . ']" id="' . $cat . '-excellent[' . $i - 1 . ']" value="Excellent" ' . (($row[ucfirst($cat)] == "Excellent") ? 'checked' : '') . ' ' . (!can('create', MENU_ID) ? 'disabled' : '') . '>
                                                     <label class="form-check-label" for="' . $cat . '-excellent[' . $i - 1 . ']">Excellent</label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input class="form-check-input" type="radio" name="' . $cat . '[' . $i - 1 . ']" id="' . $cat . '-good[' . $i - 1 . ']" value="Good" ' . (($row[ucfirst($cat)] == "Good") ? 'checked' : '') . '>
+                                                    <input class="form-check-input" type="radio" name="' . $cat . '[' . $i - 1 . ']" id="' . $cat . '-good[' . $i - 1 . ']" value="Good" ' . (($row[ucfirst($cat)] == "Good") ? 'checked' : '') . ' ' . (!can('create', MENU_ID) ? 'disabled' : '') . '>
                                                     <label class="form-check-label" for="' . $cat . '-good[' . $i - 1 . ']">Good</label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input class="form-check-input" type="radio" name="' . $cat . '[' . $i - 1 . ']" id="' . $cat . '-bad[' . $i - 1 . ']" value="Bad" ' . (($row[ucfirst($cat)] == "Bad") ? 'checked' : '') . '>
+                                                    <input class="form-check-input" type="radio" name="' . $cat . '[' . $i - 1 . ']" id="' . $cat . '-bad[' . $i - 1 . ']" value="Bad" ' . (($row[ucfirst($cat)] == "Bad") ? 'checked' : '') . ' ' . (!can('create', MENU_ID) ? 'disabled' : '') . '>
                                                     <label class="form-check-label" for="' . $cat . '-bad[' . $i - 1 . ']">Bad</label>
                                                 </div>
                                             </div>
@@ -220,7 +248,7 @@ if (!$_SESSION['Admin_Id_No']) {
                                         <!-- Grade -->
                                         <td class="criteria-row border" hidden>
                                             <div style="display:flex; gap:10px;align-items:center;">
-                                                <input class="form-control" type="number" oninput="validateGrade(this)" style="width:50px;" name="grade[' . $i - 1 . ']" id="grade[' . $i . ']" value="' . $row['Grade'] . '"/>
+                                                <input class="form-control" type="number" oninput="validateGrade(this)" style="width:50px;" name="grade[' . $i - 1 . ']" id="grade[' . $i . ']" value="' . $row['Grade'] . '" ' . (!can('create', MENU_ID) ? 'disabled' : '') . '/>
                                                 <span>/10</span>
                                             </div>
                                         </td>
@@ -241,11 +269,15 @@ if (!$_SESSION['Admin_Id_No']) {
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-3">
-                    <button class="btn btn-primary" type="submit" name="add"
-                        onclick="return confirm('Confirm to Update Performance of <?php echo $class . ' ' . $section; ?>?') && validatePerformance();">
-                        Update Performance
-                    </button>
-
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to update this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="add"
+                            onclick="return confirm('Confirm to Update Performance of <?php echo $class . ' ' . $section; ?>?') && validatePerformance();" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>
+                            Update Performance
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -254,6 +286,11 @@ if (!$_SESSION['Admin_Id_No']) {
 
     <?php
     if (isset($_POST['add'])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to insert into this report');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $class = $_SESSION['Class'];
         $section = $_SESSION['Section'];
         echo "<script>

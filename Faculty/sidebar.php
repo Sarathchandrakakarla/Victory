@@ -1,3 +1,34 @@
+<?php
+include $_SERVER['DOCUMENT_ROOT'] . '/Victory/link.php';
+
+if (!isset($_SESSION['RBAC'])) {
+  $_SESSION['RBAC'] = [];
+}
+
+function hasMenuAccess(int $menuId): bool
+{
+  return isset($_SESSION['RBAC'][$menuId]);
+}
+$parents = [];
+$children = [];
+$menu_query = mysqli_query($link, "SELECT Menu_Id, Display_Name, Parent_Flag, Par_Menu_Id, Route, Icon, Menu_Type, Sequence_Id FROM menus WHERE Active_Flag = 1 AND Login_Type = 'Faculty' ORDER BY (CASE WHEN Parent_Flag = 1 THEN Sequence_Id ELSE 999999 END), Par_Menu_Id, FIELD(Menu_Type, 'Entry', 'View'), Sequence_Id");
+while ($menu_row = mysqli_fetch_assoc($menu_query)) {
+  $menu_id = (int)$menu_row['Menu_Id'];
+
+  if ((int)$menu_row['Parent_Flag'] === 1) {
+    $parents[$menu_id] = $menu_row;
+  } else {
+    // RBAC FILTER HERE
+    if (!hasMenuAccess($menu_id)) {
+      continue;
+    }
+
+    $parId = $menu_row['Par_Menu_Id'] !== null ? (int)$menu_row['Par_Menu_Id'] : 0;
+    if (!isset($children[$parId])) $children[$parId] = [];
+    $children[$parId][] = $menu_row;
+  }
+}
+?>
 <nav>
   <div class="logo">
     <img src="/Victory/Images/Victory Logo.png" alt="..." width="70px">
@@ -14,7 +45,7 @@
       <img src="/Victory/Images/<?php echo $_SESSION['Id_No']; ?>.jpg" alt="Faculty Image">
     </li>
     <li>
-      <a href="#"><?php echo $_SESSION['Id_No'] . '(' . $_SESSION['Role'] . ')' ?></a>
+      <a href="#"><?php echo $_SESSION['Id_No'] . '(' . $_SESSION['Role_Name'] . ')' ?></a>
       <ul class="login-sub-menu sub-menu">
         <li><a href="/Victory/php/logout.php">Sign Out</a></li>
       </ul>
@@ -28,127 +59,67 @@
     <span class="logo_name">Faculty</span>
   </div>
   <ul class="nav-links">
-    <li>
-      <a href="/Victory/Faculty/faculty_dashboard.php">
-        <i class="bx bx-home"></i>
-        <span class="link_name">Dashboard</span>
-      </a>
-    </li>
-    <?php
-    if ($_SESSION['Role'] != "Van_Incharge") {
+    <?php foreach ($parents as $parent):
+      // Parent visible ONLY if it has visible children
+      $pid = (int)$parent['Menu_Id'];
+      if ($parent['Display_Name'] != "Dashboard" && empty($children[$pid])) {
+        continue;
+      }
+      $pname = htmlspecialchars($parent['Display_Name'], ENT_QUOTES, 'UTF-8');
+      $proute = htmlspecialchars($parent['Route'] ?? '#', ENT_QUOTES, 'UTF-8');
+      $picon  = htmlspecialchars($parent['Icon'] ?? 'question', ENT_QUOTES, 'UTF-8');
+      $hasSub = !empty($children[$pid]);
     ?>
       <li>
         <div class="iocn-link">
-          <a href="#">
-            <i class="bx bx-user"></i>
-            <span class="link_name">Student</span>
+          <a href="<?= $proute ?>">
+            <i class="bx bx-<?= $picon ?>"></i>
+            <span class="link_name"><?= $pname ?></span>
           </a>
-          <i class="bx bxs-chevron-down arrow"></i>
+          <?php if ($hasSub): ?>
+            <i class="bx bxs-chevron-down arrow"></i>
+          <?php endif; ?>
         </div>
-        <ul class="sub-menu">
-          <li>
-            <a class="link_name" href="#"><label for="">Student</label></a>
-          </li>
-          <li><a href="/Victory/Faculty/Reports/student_performance.php">Student Performance Entry</a></li>
-          <li>
-            <a class="link_name" href="#" id="view"><label for="">View</label></a>
-          </li>
-          <li><a href="/Victory/Faculty/Reports/show_student_page.php">Show Student Details</a></li>
-          <li><a href="/Victory/Faculty/Reports/class_wise_stu_report.php">Class wise Student Report</a></li>
-          <li><a href="/Victory/Faculty/Reports/search_student.php">Search Student</a></li>
-          <li><a href="/Victory/Faculty/Reports/address.php">Address</a></li>
-          <li><a href="/Victory/Faculty/Reports/student_performance_report.php">Student Performance Report</a></li>
-          <li><a href="/Victory/Faculty/Reports/quarterly_performance_report.php">Quarterly Performance Report</a></li>
-        </ul>
-      </li>
-      <li>
-        <div class="iocn-link">
-          <a href="#">
-            <i class="bx bx-book"></i>
-            <span class="link_name">Examinations</span>
-          </a>
-          <i class="bx bxs-chevron-down arrow"></i>
-        </div>
-        <ul class="sub-menu">
-          <li>
-            <a class="link_name" href="#"><label for="">Examinations</label></a>
-          </li>
-          <li><a href="/Victory/Faculty/Reports/class_wise_marks.php">Class wise Marks View</a></li>
-          <li><a href="/Victory/Faculty/Reports/individual_marks.php">Individual Marks View</a></li>
-        </ul>
-      </li>
-      <li>
-        <div class="iocn-link">
-          <a href="#">
-            <i class="bx bx-calendar"></i>
-            <span class="link_name">Time Table</span>
-          </a>
-          <i class="bx bxs-chevron-down arrow"></i>
-        </div>
-        <ul class="sub-menu">
-          <li>
-            <a class="link_name" href="#"><label for="">Time Table</label></a>
-          </li>
-          <li><a href="/Victory/Faculty/time_table.php">School Time Table</a></li>
-          <li><a href="/Victory/Faculty/my_time_table.php">My Time Table</a></li>
-        </ul>
-      </li>
-    <?php } ?>
-    <?php
-    if ($_SESSION['Role'] == "Faculty_Admin" || $_SESSION['Role'] == "Van_Incharge") {
-    ?>
-      <li>
-        <div class="iocn-link">
-          <a href="#">
-            <i class="bx bx-user-check"></i>
-            <span class="link_name">Attendance</span>
-          </a>
-          <i class="bx bxs-chevron-down arrow"></i>
-        </div>
-        <ul class="sub-menu">
-          <li>
-            <a class="link_name" href="#"><label for="">Van Attendance</label></a>
-          </li>
-          <li><a href="/Victory/Faculty/Attendance/van_att_daily.php">Van Attendance Daily Entry</a></li>
 
-          <li>
-            <a class="link_name" href="#" id="view"><label for="">View</label></a>
-          </li>
-          <li><a href="/Victory/Faculty/Attendance/date_wise.php">Date Wise Absentees View</a></li>
-          <li><a href="/Victory/Faculty/Attendance/route_wise.php">Route Wise Attendance View</a></li>
-        </ul>
+        <?php if ($hasSub):
+          // split children into Entry and View (DB ordering preserved)
+          $entries = [];
+          $views   = [];
+          foreach ($children[$pid] as $c) {
+            if (isset($c['Menu_Type']) && strcasecmp($c['Menu_Type'], 'View') === 0) {
+              $views[] = $c;
+            } else {
+              $entries[] = $c;
+            }
+          }
+        ?>
+          <ul class="sub-menu">
+            <li>
+              <a class="link_name" href="#"><label><?= $pname ?></label></a>
+            </li>
+
+            <?php foreach ($entries as $e):
+              $eroute = htmlspecialchars($e['Route'] ?? '#', ENT_QUOTES, 'UTF-8');
+              $ename  = htmlspecialchars($e['Display_Name'] ?? '', ENT_QUOTES, 'UTF-8');
+            ?>
+              <li><a href="<?= $eroute ?>"><?= $ename ?></a></li>
+            <?php endforeach; ?>
+
+            <?php if (!empty($views)): ?>
+              <li>
+                <a class="link_name" href="#" id="view"><label>View</label></a>
+              </li>
+              <?php foreach ($views as $v):
+                $vroute = htmlspecialchars($v['Route'] ?? '#', ENT_QUOTES, 'UTF-8');
+                $vname  = htmlspecialchars($v['Display_Name'] ?? '', ENT_QUOTES, 'UTF-8');
+              ?>
+                <li><a href="<?= $vroute ?>"><?= $vname ?></a></li>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </ul>
+        <?php endif; ?>
       </li>
-    <?php } ?>
-    <li>
-      <div class="iocn-link">
-        <a href="#">
-          <i class="bx bx-news"></i>
-          <span class="link_name">Our Blog</span>
-        </a>
-        <i class="bx bxs-chevron-down arrow"></i>
-      </div>
-      <ul class="sub-menu">
-        <li>
-          <a class="link_name" href="#"><label for="">Our Blog</label></a>
-        </li>
-        <li><a href="/Victory/Faculty/Blog/manage_blog.php">Manage Blog Posts</a></li>
-      </ul>
-    </li>
-    <li>
-      <div class="iocn-link">
-        <a href="#">
-          <i class="bx bx-cog"></i>
-          <span class="link_name">Settings</span>
-        </a>
-        <i class="bx bxs-chevron-down arrow"></i>
-      </div>
-      <ul class="sub-menu">
-        <li>
-          <a class="link_name" href="#"><label for="">Settings</label></a>
-        </li>
-        <li><a href="/Victory/Faculty/change_pwd.php">Reset Password</a></li>
-      </ul>
-    </li>
+    <?php endforeach; ?>
   </ul>
 </div>
 <script src="/Victory/js/script.js"></script>

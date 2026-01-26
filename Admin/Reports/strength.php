@@ -1,10 +1,19 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 10);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
+if (!can('view', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to view this report');
+            location.replace('/Victory/Admin/admin_dashboard.php')</script>";
+    exit;
 }
+
+error_reporting(0);
 ?>
 
 <!DOCTYPE html>
@@ -83,7 +92,12 @@ if (!$_SESSION['Admin_Id_No']) {
         </div>
         <div class="row justify-content-center mt-4 p-1">
             <div class="col-lg-2">
-                <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
+                <div class="btn-wrapper"
+                    <?php if (!can('print', MENU_ID)) { ?>
+                    title="You don't have permission to print this report"
+                    <?php } ?>>
+                    <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                </div>
             </div>
         </div>
     </div>

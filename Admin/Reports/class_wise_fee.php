@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 63);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -165,9 +167,14 @@ error_reporting(0);
                         <input class="form-check-input" type="radio" name="fee" id="wo_commit" checked value="Wo_Commit">
                         <label class="form-check-label" for="wo_commit">Without Committed Fee</label>
                     </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="fee" id="w_commit" value="W_Commit">
-                        <label class="form-check-label" for="w_commit">With Committed Fee</label>
+                    <div class="btn-wrapper"
+                        <?php if (!can('custom1', MENU_ID)) { ?>
+                        title="You don't have permission to view this report with committed fee"
+                        <?php } ?>>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="fee" id="w_commit" value="W_Commit" <?php echo !can('custom1', MENU_ID) ? 'disabled' : ''; ?>>
+                            <label class="form-check-label" for="w_commit">With Committed Fee</label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -187,10 +194,25 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-4">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
-                    <button class="btn btn-warning">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
+                    <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -244,6 +266,11 @@ error_reporting(0);
                 <tr>
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         $fee_for = $_POST['fee_for'];
                         if ($fee_for == "For_Report") {
                             echo "<script>document.getElementById('for_report').checked = true;</script>";
@@ -260,6 +287,11 @@ error_reporting(0);
                         }
                         $c_fee = $_POST['fee'];
                         if ($c_fee == "W_Commit") {
+                            if (!can('custom1', MENU_ID)) {
+                                echo "<script>alert('You don\'t have permission to view this report with committed fees');
+                                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                                exit;
+                            }
                             echo "<script>document.getElementById('w_commit').checked = true;</script>";
                         } else {
                             echo "<script>document.getElementById('wo_commit').checked = true;</script>";
@@ -779,11 +811,11 @@ error_reporting(0);
                             if ($flag) {
                                 if ($c_fee == "Wo_Commit") {
                                     echo "<script>document.getElementById('last_head').hidden = 'hidden';
-                                document.getElementById('current_head').hidden = 'hidden';
-                                document.getElementById('total_head').hidden = 'hidden';
-                                document.getElementById('paid_head').hidden = 'hidden';
-                                document.getElementById('route_head').hidden = 'hidden';
-                                document.getElementById('van_head').hidden = 'hidden';</script>";
+                                        document.getElementById('current_head').hidden = 'hidden';
+                                        document.getElementById('total_head').hidden = 'hidden';
+                                        document.getElementById('paid_head').hidden = 'hidden';
+                                        document.getElementById('route_head').hidden = 'hidden';
+                                        document.getElementById('van_head').hidden = 'hidden';</script>";
                                     if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
                                         echo "<script>
                                         document.getElementById('route_head').hidden = '';
@@ -795,9 +827,9 @@ error_reporting(0);
                                     foreach ($ids as $id) {
                                         if ($fee_filter == "W_Zero" || ($fee_filter == "Wo_Zero" && ($balance[$id] != 0 || $van_balance[$id] != 0))) {
                                             echo '<tr style="padding: 5px;">
-                  <td style="text-align:center">' . $i . '</td>
-                  <td>' . $id . '</td>
-                  <td style="padding:5px;">' . $names[$id] . '</td>';
+                                                <td style="text-align:center">' . $i . '</td>
+                                                <td>' . $id . '</td>
+                                                <td style="padding:5px;">' . $names[$id] . '</td>';
                                             if ($fee_by == "Route_Wise" || ($fee_by == "All_Students" && $type == "Vehicle Fee")) {
                                                 echo '<td>' . $classes[$id][0] . '</td>
                                         <td style="text-align:center;">' . $classes[$id][1] . '</td>';
@@ -818,7 +850,7 @@ error_reporting(0);
                                             }
                                             $van_total += (int)$van_balance[$id];
                                             echo '<td style="text-align:center">' . $van_balance[$id] . '</td>
-                  <td style="text-align:center">' . $mobile[$id] . '</td>';
+                                                <td style="text-align:center">' . $mobile[$id] . '</td>';
                                             if (file_exists("../../Images/stu_img/" . $id . ".jpg")) {
                                                 echo '<td oncontextmenu="return false;"><img src = "../../Images/stu_img/' . $id . '.jpg" class="rounded" width="100px" height="100px"';
                                             } else {
@@ -846,16 +878,16 @@ error_reporting(0);
                                     </tr>';
                                 } else {
                                     echo "<script>document.getElementById('last_head').hidden = '';
-                                document.getElementById('current_head').hidden = '';
-                                document.getElementById('total_head').hidden = '';
-                                document.getElementById('paid_head').hidden = '';
-                                document.getElementById('route_head').hidden = '';</script>";
+                                            document.getElementById('current_head').hidden = '';
+                                            document.getElementById('total_head').hidden = '';
+                                            document.getElementById('paid_head').hidden = '';
+                                            document.getElementById('route_head').hidden = '';</script>";
                                     if ($type == "Vehicle Fee") {
                                         echo "<script>document.getElementById('van_head').hidden = 'hidden';
-                                document.getElementById('van_bal_head').hidden = 'hidden';</script>";
+                                            document.getElementById('van_bal_head').hidden = 'hidden';</script>";
                                     } else {
                                         echo "<script>document.getElementById('van_head').hidden = '';
-                                document.getElementById('van_bal_head').hidden = '';</script>";
+                                            document.getElementById('van_bal_head').hidden = '';</script>";
                                     }
                                     $i = 1;
                                     $total = 0;
@@ -865,18 +897,18 @@ error_reporting(0);
                                     $van_bal_total = 0;
                                     foreach ($ids as $id) {
                                         echo '<tr style="padding: 5px;">
-                  <td style="text-align:center">' . $i . '</td>
-                  <td>' . $id . '</td>
-                  <td>' . $names[$id] . '</td>';
+                                            <td style="text-align:center">' . $i . '</td>
+                                            <td>' . $id . '</td>
+                                            <td>' . $names[$id] . '</td>';
                                         if ($fee_by == "Route_Wise" || ($fee_by == "All_Students" && $type == "Vehicle Fee")) {
                                             echo "<script>document.getElementById('class_head').hidden = '';
-                                document.getElementById('section_head').hidden = '';
-                                document.getElementById('route_head').hidden = 'hidden';</script>";
+                                                    document.getElementById('section_head').hidden = '';
+                                                    document.getElementById('route_head').hidden = 'hidden';</script>";
                                             if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
                                                 echo "<script>document.getElementById('route_head').hidden = '';</script>";
                                             }
                                             echo '<td>' . $classes[$id][0] . '</td>
-                    <td style="text-align:center;">' . $classes[$id][1] . '</td>';
+                                                <td style="text-align:center;">' . $classes[$id][1] . '</td>';
                                         } else if ($fee_by == "All_Students" && $type != "Vehicle Fee") {
                                             echo '
                                                 <td style="text-align:center;">' . $id_classes[$id][0] . '</td>
@@ -884,17 +916,17 @@ error_reporting(0);
                                             ';
                                         } else {
                                             echo "<script>document.getElementById('class_head').hidden = 'hidden';
-                                document.getElementById('section_head').hidden = 'hidden';
-                                document.getElementById('route_head').hidden = '';</script>";
+                                            document.getElementById('section_head').hidden = 'hidden';
+                                            document.getElementById('route_head').hidden = '';</script>";
                                         }
                                         $total += (int)$fee[$id][2];
                                         $paid_total += (int)$paid[$id];
                                         $balance_total += (int)$balance[$id];
                                         echo '<td style="text-align:center">' . $fee[$id][0] . '</td>
-                  <td style="text-align:center">' . $fee[$id][1] . '</td>
-                  <td style="text-align:center">' . $fee[$id][2] . '</td>
-                  <td style="text-align:center">' . $paid[$id] . '</td>
-                  <td style="text-align:center">' . $balance[$id] . '</td>';
+                                            <td style="text-align:center">' . $fee[$id][1] . '</td>
+                                            <td style="text-align:center">' . $fee[$id][2] . '</td>
+                                            <td style="text-align:center">' . $paid[$id] . '</td>
+                                            <td style="text-align:center">' . $balance[$id] . '</td>';
                                         if ($fee_by == "All_Students" && $type == "Vehicle Fee") {
                                             echo '
                                                 <td style="text-align:center;">' . $id_routes[$id] . '</td>
@@ -906,7 +938,7 @@ error_reporting(0);
                                             $van_total += (int)$van_fee[$id];
                                             $van_bal_total += (int)$van_balance[$id];
                                             echo '<td style="text-align:center">' . $van_fee[$id] . '</td>
-                  <td style="text-align:center">' . $van_balance[$id] . '</td>';
+                                                <td style="text-align:center">' . $van_balance[$id] . '</td>';
                                         }
                                         echo '<td style="text-align:center">' . $mobile[$id] . '</td>';
                                         echo '</tr>';

@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-    echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 33);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -144,8 +146,18 @@ error_reporting(0);
             <div class="container">
                 <div class="row justify-content-center mt-4">
                     <div class="col-lg-4">
-                        <button class="btn btn-primary" type="submit" name="insert" onclick="if(!confirm('Confirm to Insert/Update Working Days/Holidays?')){return false;}else{return true;}">Insert/Update</button>
-                        <button class="btn btn-primary" type="submit" name="delete" onclick="if(!confirm('Confirm to Delete Holiday?')){return false;}else{return true;}">Delete</button>
+                        <div class="btn-wrapper"
+                            <?php if (!can('create', MENU_ID)) { ?>
+                            title="You don't have permission to insert/update working days or holidays."
+                            <?php } ?>>
+                            <button class="btn btn-primary" type="submit" name="insert" onclick="if(!confirm('Confirm to Insert/Update Working Days/Holidays?')){return false;}else{return true;}" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Insert/Update</button>
+                        </div>
+                        <div class="btn-wrapper"
+                            <?php if (!can('delete', MENU_ID)) { ?>
+                            title="You don't have permission to delete working days or holidays."
+                            <?php } ?>>
+                            <button class="btn btn-primary" type="submit" name="delete" onclick="if(!confirm('Confirm to Delete Holiday?')){return false;}else{return true;}" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>>Delete</button>
+                        </div>
                         <button class="btn btn-warning" type="reset">Clear</button>
                     </div>
                 </div>
@@ -164,6 +176,11 @@ error_reporting(0);
         return $date;
     }
     if (isset($_POST['insert'])) {
+        if (!can('create', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to insert/update working days or holidays.');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $type = $_POST['type'];
         echo "<script>document.getElementById('" . strtolower($type) . "').checked = true;</script>";
 
@@ -232,6 +249,11 @@ error_reporting(0);
     }
 
     if (isset($_POST['delete'])) {
+        if (!can('delete', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to delete working days or holidays.');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         $date = $_POST['Date'];
         $date = format_date($date);
         if (mysqli_num_rows(mysqli_query($link, "SELECT Reason FROM `holidays` WHERE Date = '$date'")) == 0) {

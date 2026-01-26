@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-  echo "<script>alert('Admin Id Not Rendered');
-    location.replace('../admin_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 16);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 <!DOCTYPE html>
@@ -98,6 +100,12 @@ error_reporting(0);
       display: block;
     }
   }
+
+  .disabled-icon {
+    color: grey !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+  }
 </style>
 
 <body class="bg-light">
@@ -111,7 +119,12 @@ error_reporting(0);
           <label for=""><b>Add New Exam</b></label>
         </div>
         <div class="col-lg-1">
-          <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;"> <i class="bx bx-plus" id="plus-icon"></i> </button>
+          <div class="btn-wrapper"
+            <?php if (!can('create', MENU_ID)) { ?>
+            title="You don't have permission to insert into this report"
+            <?php } ?>>
+            <button class="btn btn-primary" style="border-radius: 50%;" id="plus" onclick="reveal();return false;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>> <i class="bx bx-plus" id="plus-icon"></i> </button>
+          </div>
         </div>
         <div class="col-lg-3">
           <input type="text" class="form-control" id="inp" name="New_Exam" placeholder="Enter Exam Name" value="<?php if (isset($exam)) {
@@ -121,7 +134,12 @@ error_reporting(0);
                                                                                                                 } ?>" style="opacity: 0;">
         </div>
         <div class="col-lg-1">
-          <button class="btn btn-warning" name="insert" id="add-btn" style="opacity: 0;">Insert</button>
+          <div class="btn-wrapper"
+            <?php if (!can('create', MENU_ID)) { ?>
+            title="You don't have permission to insert into this report"
+            <?php } ?>>
+            <button class="btn btn-warning" name="insert" id="add-btn" style="opacity: 0;" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>Insert</button>
+          </div>
         </div>
       </div>
     </div>
@@ -226,9 +244,19 @@ error_reporting(0);
     <div class="container">
       <div class="row justify-content-center mt-4">
         <div class="col-lg-3">
-          <button class="btn btn-primary" type="submit" name="add">ADD</button>
+          <div class="btn-wrapper"
+            <?php if (!can('create', MENU_ID)) { ?>
+            title="You don't have permission to insert into this report"
+            <?php } ?>>
+            <button class="btn btn-primary" type="submit" name="add" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>ADD</button>
+          </div>
           <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
-          <button class="btn btn-success" type="submit" name="show">Show</button>
+          <div class="btn-wrapper"
+            <?php if (!can('view', MENU_ID)) { ?>
+            title="You don't have permission to view this report"
+            <?php } ?>>
+            <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+          </div>
         </div>
       </div>
     </div>
@@ -262,6 +290,11 @@ error_reporting(0);
         <tr>
           <?php
           if (isset($_POST['add'])) {
+            if (!can('create', MENU_ID)) {
+              echo "<script>alert('You don\'t have permission to insert into this report');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+              exit;
+            }
             if ($_POST['Class']) {
               $class = $_POST['Class'];
               echo "<script>document.getElementById('class').value='$class'</script>";
@@ -303,6 +336,11 @@ error_reporting(0);
           }
 
           if (isset($_POST['insert'])) {
+            if (!can('create', MENU_ID)) {
+              echo "<script>alert('You don\'t have permission to insert into this report');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+              exit;
+            }
             if ($_POST['Class']) {
               $class = $_POST['Class'];
               echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
@@ -339,6 +377,11 @@ error_reporting(0);
           }
 
           if (isset($_POST['show'])) {
+            if (!can('view', MENU_ID)) {
+              echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+              exit;
+            }
             if ($_POST['Class']) {
               $class = $_POST['Class'];
               echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
@@ -346,13 +389,33 @@ error_reporting(0);
               $result = mysqli_query($link, $sql);
               $i = 1;
               while ($row = mysqli_fetch_assoc($result)) {
+
+                $canDelete = can('delete', MENU_ID);
+                $canUpdate = can('update', MENU_ID);
+
                 echo '<tr>
-                        <td>' . $i . '</td>
-                        <td>' . $row['Class'] . '</td>
-                        <td id="' . $i . ' exam">' . $row['Exam'] . '</td>
-                        <td id="' . $i . ' max">' . $row['Max_Marks'] . '</td>
-                        <td><i class="bx bx-trash delete"></i><i class="bx bx-edit modify"></i></i></td>
-                        </tr>';
+                <td>' . $i . '</td>
+                <td>' . $row['Class'] . '</td>
+                <td id="' . $i . ' exam">' . $row['Exam'] . '</td>
+                <td id="' . $i . ' max">' . $row['Max_Marks'] . '</td>
+                <td>';
+
+                // DELETE ICON
+                echo '<span class="btn-wrapper" style="cursor:' . (!$canDelete ? 'not-allowed' : 'pointer') . '" ' .
+                  (!$canDelete ? 'title="You don\'t have permission to delete"' : '') . '>
+                      <i class="bx bx-trash delete ' . (!$canDelete ? 'disabled-icon' : '') . '"
+                        data-allowed="' . ($canDelete ? '1' : '0') . '"></i>
+                    </span>';
+
+                // MODIFY ICON
+                echo '<span class="btn-wrapper ms-2" style="cursor:' . (!$canUpdate ? 'not-allowed' : 'pointer') . '" ' .
+                  (!$canUpdate ? 'title="You don\'t have permission to modify"' : '') . '>
+                        <i class="bx bx-edit modify ' . (!$canUpdate ? 'disabled-icon' : '') . '"
+                          data-allowed="' . ($canUpdate ? '1' : '0') . '"></i>
+                      </span>';
+
+                echo '</td></tr>';
+
                 $i++;
               }
             } else {
@@ -403,6 +466,9 @@ error_reporting(0);
   <!-- Modify Row -->
   <script type="text/javascript">
     $(".modify").click(function() {
+      if ($(this).hasClass('disabled-icon')) {
+        return false;
+      }
       cls = $(this).parent().siblings().eq(1).text();
       exm = $(this).parent().siblings().eq(2).text();
       max = $(this).parent().siblings().eq(3).text();
@@ -453,6 +519,9 @@ error_reporting(0);
   <!-- delete row -->
   <script type="text/javascript">
     $(".delete").click(function() {
+      if ($(this).hasClass('disabled-icon')) {
+        return false;
+      }
       cls = $(this).parent().siblings().eq(1).text();
       exm = $(this).parent().siblings().eq(2).text();
       if (!confirm('Confirm to delete ' + cls + ' ' + exm + ' Exam?')) {

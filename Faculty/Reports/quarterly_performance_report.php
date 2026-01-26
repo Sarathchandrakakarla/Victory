@@ -1,10 +1,12 @@
 <?php
 include_once('../../link.php');
-session_start();
-if (!$_SESSION['Id_No']) {
-    echo "<script>alert('Faculty Id Not Rendered');
-    location.replace('../faculty_login.php');</script>";
-}
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 116);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 error_reporting(0);
 ?>
 
@@ -165,17 +167,42 @@ error_reporting(0);
         <div class="container">
             <div class="row justify-content-center mt-4 report-btn-row">
                 <div class="col-lg-5">
-                    <button class="btn btn-primary" type="submit" name="show">Show</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('view', MENU_ID)) { ?>
+                        title="You don't have permission to view this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable();document.querySelector('.report-row').hidden = '';document.querySelector('.report-btn-row').hidden = '';document.querySelector('.save-row').hidden = 'hidden';document.querySelector('.save-btn-row').hidden = 'hidden';document.querySelector('.report-col-row').hidden = '';">Clear</button>
-                    <button class="btn btn-success" onclick="printDiv();return false;">Print</button>
-                    <button class="btn btn-success" onclick="return false;" id="export">Export To Excel</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('print', MENU_ID)) { ?>
+                        title="You don't have permission to print this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="printDiv();return false;" <?php echo !can('print', MENU_ID) ? 'disabled' : ''; ?>>Print</button>
+                    </div>
+                    <div class="btn-wrapper"
+                        <?php if (!can('export', MENU_ID)) { ?>
+                        title="You don't have permission to export this report"
+                        <?php } ?>>
+                        <button class="btn btn-success" onclick="return false;" id="export" <?php echo !can('export', MENU_ID) ? 'disabled' : ''; ?>>Export To Excel</button>
+                    </div>
                 </div>
             </div>
             <div class="row justify-content-center mt-4 save-btn-row" hidden>
                 <div class="col-lg-4">
-                    <button class="btn btn-primary" type="submit" name="save" onclick="if(!confirm('Confirm to Save Data?')){return false;}else{return true;}">Save</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('update', MENU_ID)) { ?>
+                        title="You don't have permission to save this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="save" onclick="if(!confirm('Confirm to Save Data?')){return false;}else{return true;}" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>Save</button>
+                    </div>
                     <button class="btn btn-warning" type="reset" onclick="hideTable();document.querySelector('.report-row').hidden = '';document.querySelector('.report-btn-row').hidden = '';document.querySelector('.save-row').hidden = 'hidden';document.querySelector('.save-btn-row').hidden = 'hidden';document.querySelector('.report-col-row').hidden = '';">Clear</button>
-                    <button class="btn btn-primary" type="submit" name="delete" onclick="if(!confirm('Confirm to Delete Present Data?')){return false;}else{return true;}">Delete Present Data</button>
+                    <div class="btn-wrapper"
+                        <?php if (!can('delete', MENU_ID)) { ?>
+                        title="You don't have permission to delete this report"
+                        <?php } ?>>
+                        <button class="btn btn-primary" type="submit" name="delete" onclick="if(!confirm('Confirm to Delete Present Data?')){return false;}else{return true;}" <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>>Delete Present Data</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -216,6 +243,11 @@ error_reporting(0);
                 <tbody id="tbody">
                     <?php
                     if (isset($_POST['show'])) {
+                        if (!can('view', MENU_ID)) {
+                            echo "<script>alert('You don\'t have permission to view this report');
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            exit;
+                        }
                         echo "
                         <script>
                             document.getElementById('report').checked = true;
@@ -397,6 +429,11 @@ error_reporting(0);
     </div>
     <?php
     if (isset($_POST['save'])) {
+        if (!can('update', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to save this report');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         echo "
         <script>
             document.getElementById('save').checked = true;
@@ -518,6 +555,11 @@ error_reporting(0);
     ?>
     <?php
     if (isset($_POST['delete'])) {
+        if (!can('delete', MENU_ID)) {
+            echo "<script>alert('You don\'t have permission to delete this report');
+                    location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            exit;
+        }
         echo "
         <script>
             document.getElementById('save').checked = true;

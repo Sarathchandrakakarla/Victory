@@ -1,21 +1,28 @@
 <?php
-session_start();
-if (!$_SESSION['Admin_Id_No']) {
-  echo "<script>
-  alert('Admin Id Not Rendered');
-  location.replace('../admin_login.php');
-  </script>";
-}
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
+
+define('MENU_ID', 4);
+
+requireLogin();
+requireMenuAccess(MENU_ID);
+
 if (!$_SESSION['Stu_Id_No']) {
   echo "<script>
   alert('Student Id Not Rendered');
   location.replace('show_student_page.php');
   </script>";
 }
+
+if (!can('update', MENU_ID)) {
+  echo "<script>alert('You don\'t have permission to update student data');
+    location.replace('/Victory/Admin/Student/show_student_page.php')</script>";
+  exit;
+}
 error_reporting(0);
 ?>
 
-<?php require '../../link.php';
+<?php
 function validate($data)
 {
   $data = trim($data);
@@ -25,6 +32,11 @@ function validate($data)
 }
 
 if (isset($_POST["update"])) {
+  if (!can('update', MENU_ID)) {
+    echo "<script>alert('You don\'t have permission to update student data');
+      location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+    exit;
+  }
   $id = validate($_POST['Stu_Id_No']);
   $adm = validate($_POST['Stu_Adm_No']);
   $firstname = validate($_POST['First_Name']);
@@ -35,6 +47,8 @@ if (isset($_POST["update"])) {
   $gender = validate($_POST['Gender']);
   $mobile = validate($_POST['Mobile']);
   $aadhar = validate($_POST['Aadhar']);
+  $mother_aadhar = validate($_POST['Mother_Aadhar']);
+  $father_aadhar = validate($_POST['Father_Aadhar']);
   $class = validate($_POST['Stu_Class']);
   $section = validate($_POST['Stu_Section']);
   $pass_class = validate($_POST['Pass_Class']);
@@ -69,7 +83,7 @@ if (isset($_POST["update"])) {
   $siblings_update_status = true;
   $update_sql = "UPDATE `student_master_data`
         SET Adm_No = '$adm', First_Name = '$firstname', Sur_Name = '$surname', Father_Name = '$fathername', Mother_Name = '$mothername',
-         DOB = '$dob', Gender = '$gender', Mobile = '$mobile', Aadhar = '$aadhar', Stu_Class = '$class', Stu_Section = '$section',
+         DOB = '$dob', Gender = '$gender', Mobile = '$mobile', Aadhar = '$aadhar', Mother_Aadhar = '$mother_aadhar', Father_Aadhar = '$father_aadhar', Stu_Class = '$class', Stu_Section = '$section',
           Religion = '$religion', Caste = '$caste', Category = '$category', House_No = '$houseno', Area = '$area',
           Village = '$village', DOJ = '$doj', Previous_School = '$previous', Referred_By = '$refer',";
   if ($van == "") {
@@ -351,6 +365,22 @@ if (isset($_POST["update"])) {
                                                                                       echo $_SESSION['Aadhar'];
                                                                                     } ?>" name="Aadhar" />
           </div>
+          <div class="input-box">
+            <span class="details">Mother Aadhar Number</span>
+            <input type="text" placeholder="Enter Mother Aadhar No." maxlength="12" value="<?php if (isset($_POST['Mother_Aadhar'])) {
+                                                                                              echo $_POST['Mother_Aadhar'];
+                                                                                            } else {
+                                                                                              echo $_SESSION['Mother_Aadhar'];
+                                                                                            } ?>" name="Mother_Aadhar" />
+          </div>
+          <div class="input-box">
+            <span class="details">Father Aadhar Number</span>
+            <input type="text" placeholder="Enter Father Aadhar No." maxlength="12" value="<?php if (isset($_POST['Father_Aadhar'])) {
+                                                                                              echo $_POST['Father_Aadhar'];
+                                                                                            } else {
+                                                                                              echo $_SESSION['Father_Aadhar'];
+                                                                                            } ?>" name="Father_Aadhar" />
+          </div>
           <div class="gender-details">
             <span class="gender-title">Siblings</span>
             <div class="category">
@@ -564,7 +594,12 @@ if (isset($_POST["update"])) {
           </div>
         </div>
         <div class="button">
-          <input type="submit" name="update" value="Update" onclick="return checkUpdate();" />
+          <div class="btn-wrapper"
+            <?php if (!can('update', MENU_ID)) { ?>
+            title="You don't have permission to update student data"
+            <?php } ?>>
+            <input type="submit" name="update" value="Update" onclick="return checkUpdate();" <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?> />
+          </div>
         </div>
       </form>
     </div>
@@ -675,6 +710,7 @@ if (isset($_POST["update"])) {
         $('.all_siblings').remove()
       }
     });
+
     $(document).ready(function() {
       const minus = $('.quantity__minus');
       const plus = $('.quantity__plus');
@@ -695,10 +731,12 @@ if (isset($_POST["update"])) {
         input.val(value);
       })
     });
+
     $('.quantity__minus').click(() => {
       if ($('.no_of_siblings').val() > 1)
         add_Ele(-1)
     });
+
     $('.quantity__plus').on('click', function() {
       add_Ele(1)
     });
