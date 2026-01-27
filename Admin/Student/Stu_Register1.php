@@ -307,75 +307,15 @@ error_reporting(0);
                             if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Id_No = '$id'")) != 0) {
                                 echo "<script>alert('Student with Id: " . $id . " Already Exists!!')</script>";
                             } else {
-
-                                /* Student Creation(student_master_data) and Student Login Creation(student) */
-                                $studentCreated = false;
-
-                                mysqli_begin_transaction($link);
-
-                                try {
-
-                                    /* ---------- Insert Student ---------- */
-                                    if ($route == "NULL") {
-                                        $student_sql = mysqli_query(
-                                            $link,
-                                            "INSERT INTO student_master_data VALUES (
-                                            '', '$id', '$admno', '$firstname', '$surname',
-                                            '$fathername', '$mothername', '$dob', '$gender',
-                                            '$mobile', '$aadhar', '$mother_aadhar', '$father_aadhar',
-                                            '$class', '$section', '$religion', '$caste', '$category',
-                                            '$houseno', '$area', '$village', '$doj',
-                                            '$previous_school', NULL, '$referred_by', NULL)"
-                                        );
-                                    } else {
-                                        $student_sql = mysqli_query(
-                                            $link,
-                                            "INSERT INTO student_master_data VALUES (
-                                            '', '$id', '$admno', '$firstname', '$surname',
-                                            '$fathername', '$mothername', '$dob', '$gender',
-                                            '$mobile', '$aadhar', '$mother_aadhar', '$father_aadhar',
-                                            '$class', '$section', '$religion', '$caste', '$category',
-                                            '$houseno', '$area', '$village', '$doj',
-                                            '$previous_school', '$route', '$referred_by', NULL)"
-                                        );
-                                    }
-
-                                    if (!$student_sql) {
-                                        throw new Exception('Student insert failed');
-                                    }
-
-                                    /* ---------- Insert Login ---------- */
-                                    $chk = mysqli_query(
-                                        $link,
-                                        "SELECT 1 FROM student WHERE Id_No = '$id' LIMIT 1"
-                                    );
-
-                                    if (mysqli_num_rows($chk)) {
-                                        throw new Exception('Login already exists for this student');
-                                    }
-
-                                    $password = "VHST" . rand(1111, 9999);
-                                    $hash = password_hash($password, PASSWORD_DEFAULT);
-
-                                    $login_sql = mysqli_query(
-                                        $link,
-                                        "INSERT INTO student(Id_No, Stu_Name, Stu_Password, Stu_Hash)
-                                        VALUES ('$id', '$firstname', '$password', '$hash')"
-                                    );
-
-                                    if (!$login_sql) {
-                                        throw new Exception('Login insert failed');
-                                    }
-
-                                    mysqli_commit($link);
-                                    $studentCreated = true;
-                                } catch (Exception $e) {
-
-                                    mysqli_rollback($link);
-                                    echo "<script>alert('" . $e->getMessage() . "');</script>";
+                                if ($route == "NULL") {
+                                    $sql = mysqli_query($link, "INSERT INTO `student_master_data` VALUES('', '$id','$admno', $firstname', '$surname', '$fathername', '$mothername', '$dob', '$gender', '$mobile', '$aadhar', '$houseno', '$area','$village', '$doj','$previous_school',NULL,'$referred_by',NULL)");
+                                } else {
+                                    $sql = mysqli_query($link, "INSERT INTO `student_master_data` VALUES('', '$id','$admno', '$firstname', '$surname', '$fathername', '$mothername', '$dob', '$gender', '$mobile', '$aadhar', '$mother_aadhar', '$father_aadhar','$class','$section', '$religion', '$caste', '$category', '$houseno', '$area','$village', '$doj','$previous_school','$route','$referred_by',NULL)");
                                 }
-
-                                if ($studentCreated) {
+                                if ($sql) {
+                                    $password = "VHST" . rand(1111, 9999);
+                                    $pass_hash = password_hash($password, PASSWORD_DEFAULT);
+                                    $login_sql = mysqli_query($link, "INSERT INTO `student`(Id_No,Stu_Name,Stu_Password,Stu_Hash) VALUES('$id','$firstname','$password','$pass_hash')");
 
                                     //SMS Sending
                                     $text = "Dear sir/Madam, we thank you for your trust on our victory schools and joining your child " . $firstname . " in the class " . $class . " " . $section . " with ID No: " . $id . ".We promise you to take of your child to the best of your expectation. Principal, Victory schools,Kodur-Ph: 08566-244584";
@@ -397,81 +337,21 @@ error_reporting(0);
                                             send(document.getElementById("sms_link").href);
                                         </script>';
 
-                                    /* Student School,Vehicle Fee Insertion(stu_fee_master_data) */
-                                    mysqli_begin_transaction($link);
 
-                                    try {
-
-                                        /* ---------- School Fee ---------- */
-                                        $sfQ = mysqli_query(
-                                            $link,
-                                            "SELECT Fee FROM actual_fee
-                                            WHERE Type='School Fee' AND Class='$class'
-                                            LIMIT 1"
-                                        );
-
-                                        if (!$sfQ || mysqli_num_rows($sfQ) == 0) {
-                                            throw new Exception('School fee not configured');
-                                        }
-
-                                        $school_fee = mysqli_fetch_assoc($sfQ)['Fee'];
-
-                                        $sfInsert = mysqli_query(
-                                            $link,
-                                            "INSERT INTO stu_fee_master_data VALUES (
-                                                '', '$id', '$firstname', '$class', '$section',
-                                                '$area', 'School Fee',
-                                                '$school_fee', '0', '$school_fee', '$school_fee', NULL)"
-                                        );
-
-                                        if (!$sfInsert) {
-                                            throw new Exception('School fee insert failed');
-                                        }
-
-                                        /* ---------- Vehicle Fee ---------- */
-                                        if ($route !== "NULL" && $route !== "") {
-
-                                            $vfQ = mysqli_query(
-                                                $link,
-                                                "SELECT Fee FROM actual_fee
-                                                WHERE Type='Vehicle Fee' AND Route='$route'
-                                                LIMIT 1"
-                                            );
-
-                                            if (!$vfQ || mysqli_num_rows($vfQ) == 0) {
-                                                throw new Exception('Vehicle fee not configured');
-                                            }
-
-                                            $vehicle_fee = mysqli_fetch_assoc($vfQ)['Fee'];
-
-                                            $vfInsert = mysqli_query(
-                                                $link,
-                                                "INSERT INTO stu_fee_master_data VALUES (
-                                                    '', '$id', '$firstname', '$class', '$section',
-                                                    '$area', 'Vehicle Fee',
-                                                    '$vehicle_fee', '0', '$vehicle_fee', '$vehicle_fee', '$route')"
-                                            );
-
-                                            if (!$vfInsert) {
-                                                throw new Exception('Vehicle fee insert failed');
-                                            }
-                                        }
-
-                                        mysqli_commit($link);
-
-                                        echo "<script>
-                                                alert('Student created successfully!');
-                                                location.replace('');
-                                            </script>";
-                                    } catch (Exception $e) {
-
-                                        mysqli_rollback($link);
-
-                                        echo "<script>
-                                                alert('Student created, but fee setup failed. Configure later.');
-                                                location.replace('');
-                                            </script>";
-                                    }
+                                    echo
+                                    "
+                                    <script>
+                                    alert('Student Inserted Successfully!');
+                                    location.replace('');
+                                    </script>
+                                    ";
+                                } else {
+                                    echo
+                                    "
+                                    <script>
+                                    alert('Student Data Insertion Failed!');
+                                    </script>
+                                    ";
                                 }
                             }
                         } else {

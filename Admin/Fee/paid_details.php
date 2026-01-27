@@ -146,157 +146,203 @@ error_reporting(0);
     <?php
     if (isset($_POST['show'])) {
         if (!can('view', MENU_ID)) {
-            echo "<script>alert('You don\'t have permission to view this report');
-                location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+            echo "<script>alert('You don\\'t have permission to view this report');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
             exit;
         }
-        if ($_POST['Type']) {
-            $type = $_POST['Type'];
-            if ($_POST['Id_No']) {
-                $id = $_POST['Id_No'];
-                echo "<script>document.getElementById('id').value = '" . $id . "';</script>";
-                echo "<script>document.getElementById('fee_type').value = '" . $type . "';</script>";
 
-                //Arrays
-                $fee_details = array();
+        if (!$_POST['Type'] || !$_POST['Id_No']) {
+            echo "<script>alert('Please select Fee Type and enter Id No');</script>";
+            exit;
+        }
 
-                //Queries
-                $id_sql = mysqli_query($link, "SELECT Father_Name,Stu_Class,Stu_Section FROM `student_master_data` WHERE Id_No = '$id'");
-                if (mysqli_num_rows($id_sql) == 0) {
-                    echo "<script>alert('Student Not Found in Student Master Data!')</script>";
+        $type = $_POST['Type'];
+        $id   = $_POST['Id_No'];
+
+        echo "<script>
+                document.getElementById('id').value = '$id';
+                document.getElementById('fee_type').value = '$type';
+            </script>";
+
+        /* =========================================================
+        STUDENT DETAILS (MANDATORY)
+        ========================================================= */
+        $id_sql = mysqli_query(
+            $link,
+            "SELECT First_Name, Father_Name, Stu_Class, Stu_Section
+         FROM student_master_data
+         WHERE Id_No='$id'
+         LIMIT 1"
+        );
+
+        if (mysqli_num_rows($id_sql) == 0) {
+            echo "<script>alert('Student Not Found in Student Master Data!')</script>";
+            exit;
+        }
+
+        $id_row = mysqli_fetch_assoc($id_sql);
+
+        $name        = $id_row['First_Name'];
+        $father_name = $id_row['Father_Name'];
+        $class       = $id_row['Stu_Class'] . ' ' . $id_row['Stu_Section'];
+
+        /* =========================================================
+        TOTAL FEE (PRIMARY → FALLBACK)
+        ========================================================= */
+        $total = 0;
+
+        $query1 = mysqli_query(
+            $link,
+            "SELECT Total
+         FROM stu_fee_master_data
+         WHERE Id_No='$id' AND Type='$type'
+         LIMIT 1"
+        );
+
+        if (mysqli_num_rows($query1) > 0) {
+
+            $row1 = mysqli_fetch_assoc($query1);
+            $total = (int)$row1['Total'];
+        } else {
+
+            $query_fb = mysqli_query(
+                $link,
+                "SELECT Balance
+             FROM fee_balances
+             WHERE Id_No='$id' AND Type='$type'
+             LIMIT 1"
+            );
+
+            if (mysqli_num_rows($query_fb) == 0) {
+                echo "<script>alert(
+                'Student Not Found in Fee Master Data and Fee Balances'
+            )</script>";
+                exit;
+            }
+
+            $row_fb = mysqli_fetch_assoc($query_fb);
+            $total = (int)$row_fb['Balance'];
+        }
+
+        /* =========================================================
+        PAID LOGIC — YOUR ORIGINAL STYLE (UNCHANGED)
+        ========================================================= */
+        $fee_details = [];
+        $sum = 0;
+
+        $query2 = mysqli_query(
+            $link,
+            "SELECT Bill_No, Fee, DOP
+         FROM stu_paid_fee
+         WHERE Id_No='$id' AND Type='$type'"
+        );
+
+        if (mysqli_num_rows($query2) == 0) {
+
+            $paid = 0;
+            $balance = $total;
+        } else {
+
+            while ($row2 = mysqli_fetch_assoc($query2)) {
+
+                $sum += (int)$row2['Fee'];
+
+                $temp = [];
+                array_push($temp, $row2['Bill_No']);
+                array_push($temp, $row2['Fee']);
+                array_push($temp, $row2['DOP']);
+
+                array_push($fee_details, $temp);
+            }
+
+            $paid = $sum;
+            $balance = max(0, (int)$total - (int)$paid);
+        }
+        echo '
+            <div class="container table-container mt-5">
+            <table class="table table-striped table-bordered" style="width:100%;">
+                <thead class="bg-secondary text-white">
+                    <tr>
+                        <th style="border:2px solid black;background-color:#6c757d;color:white;" class="text-center" colspan="4">Personal Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Id No.:</b></td>
+                        <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $id . '</td>
+                    </tr>
+                    <tr>
+                        <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Name:</b></td>
+                        <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $name . '</td>
+                    </tr>
+                    <tr>
+                        <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Father Name:</b></td>
+                        <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $father_name . '</td>
+                    </tr>
+                    <tr>
+                        <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Class:</b></td>
+                        <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $class . '</td>
+                    </tr>
+                    <tr>
+                        <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Type of Fee:</b></td>
+                        <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $type . '</td>
+                    </tr>
+                    <tr>
+                        <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Total Fee:</b></td>
+                        <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $total . '</td>
+                    </tr>
+                    <tr>
+                        <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Fee Paid:</b></td>
+                        <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $paid . '</td>
+                    </tr>
+                    <tr>
+                        <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Fee Balance:</b></td>
+                        <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $balance . '</td>
+                    </tr>
+                </tbody>
+                <thead class="bg-secondary text-white">
+                    <tr>
+                        <th style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;background-color:#6c757d;color:white;" class="text-center" colspan="4">Fee Details</th>
+                    </tr>
+                    <tr class="text-center">
+                        <td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;"><b>Bill No.</b></td>
+                        <td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;"><b>Amount</b></td>
+                        <td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;"><b>Date of Payment</b></td>
+                        <td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;" class="action"><b>Action</b></td>
+                    </tr>
+                </thead>
+                <tbody class="text-center" id="tbody">';
+        if (count($fee_details) == 0) {
+            echo '<td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;" colspan="4">No Payments Yet!</td>';
+        }
+        foreach ($fee_details as $details) {
+            echo '<tr>';
+            $i = true;
+            foreach ($details as $detail) {
+                if ($i) {
+                    echo '<td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;">' . $detail . '</td>';
                 } else {
-                    while ($id_row = mysqli_fetch_assoc($id_sql)) {
-                        $class = $id_row['Stu_Class'] . ' ' . $id_row['Stu_Section'];
-                        $father_name = $id_row['Father_Name'];
-                    }
-                    if (str_contains($class, "Others")) {
-                        echo "<script>alert('Student Passedout!!')</script>";
-                    } else {
-                        $query1 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
-                        $query2 = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type'");
-
-                        if ($query1) {
-                            if (mysqli_num_rows($query1) == 0) {
-                                echo "<script>alert('Student Not Found in Stu Fee Master Data')</script>";
-                            } else {
-                                while ($row1 = mysqli_fetch_assoc($query1)) {
-                                    $name = $row1['First_Name'];
-                                    $total = $row1['Total'];
-                                }
-                            }
-                        }
-
-                        if ($query2) {
-                            if (mysqli_num_rows($query2) == 0) {
-                                $paid = '0';
-                                $balance = $total;
-                            } else {
-                                $sum = 0;
-                                while ($row2 = mysqli_fetch_assoc($query2)) {
-                                    $sum += $row2['Fee'];
-                                    $temp = array();
-                                    array_push($temp, $row2['Bill_No']);
-                                    array_push($temp, $row2['Fee']);
-                                    array_push($temp, $row2['DOP']);
-                                    array_push($fee_details, $temp);
-                                }
-                                $paid = $sum;
-                                $balance = (int)($total) - (int)($paid);
-                            }
-                        }
-                    }
+                    echo '<td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;">' . $detail . '</td>';
                 }
-                echo '
-                <div class="container table-container mt-5">
-                <table class="table table-striped table-bordered" style="width:100%;">
-                    <thead class="bg-secondary text-white">
-                        <tr>
-                            <th style="border:2px solid black;background-color:#6c757d;color:white;" class="text-center" colspan="4">Personal Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Id No.:</b></td>
-                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $id . '</td>
-                        </tr>
-                        <tr>
-                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Name:</b></td>
-                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $name . '</td>
-                        </tr>
-                        <tr>
-                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Father Name:</b></td>
-                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $father_name . '</td>
-                        </tr>
-                        <tr>
-                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Class:</b></td>
-                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $class . '</td>
-                        </tr>
-                        <tr>
-                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Type of Fee:</b></td>
-                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $type . '</td>
-                        </tr>
-                        <tr>
-                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Total Fee:</b></td>
-                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $total . '</td>
-                        </tr>
-                        <tr>
-                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Fee Paid:</b></td>
-                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $paid . '</td>
-                        </tr>
-                        <tr>
-                            <td style="border-width: 0px 0px 2px 2px;border-color:black;border-style:solid;"><b>Fee Balance:</b></td>
-                            <td style="border-width: 0px 2px 2px;border-color:black;border-style:solid;padding-left:5px;" colspan="3">' . $balance . '</td>
-                        </tr>
-                    </tbody>
-                    <thead class="bg-secondary text-white">
-                        <tr>
-                            <th style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;background-color:#6c757d;color:white;" class="text-center" colspan="4">Fee Details</th>
-                        </tr>
-                        <tr class="text-center">
-                            <td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;"><b>Bill No.</b></td>
-                            <td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;"><b>Amount</b></td>
-                            <td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;"><b>Date of Payment</b></td>
-                            <td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;" class="action"><b>Action</b></td>
-                        </tr>
-                    </thead>
-                    <tbody class="text-center">';
-                if (count($fee_details) == 0) {
-                    echo '<td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;" colspan="4">No Payments Yet!</td>';
-                }
-                foreach ($fee_details as $details) {
-                    echo '<tr>';
-                    $i = true;
-                    foreach ($details as $detail) {
-                        if ($i) {
-                            echo '<td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;text-align:center;">' . $detail . '</td>';
-                        } else {
-                            echo '<td style="border-width: 0px 2px 2px 0px;border-color:black;border-style:solid;text-align:center;">' . $detail . '</td>';
-                        }
-                        $i = false;
-                    }
-                    echo '<td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;" class="action">';
-                    if (can('delete', MENU_ID)) {
-                        echo '<i class="bx bx-trash delete text-danger" onclick="delete_row(this)"></i>';
-                    } else {
-                        echo '<i class="bx bx-trash delete text-secondary disabled"
+                $i = false;
+            }
+            echo '<td style="border-width: 0px 2px 2px 2px;border-color:black;border-style:solid;" class="action">';
+            if (can('delete', MENU_ID)) {
+                echo '<i class="bx bx-trash delete text-danger" onclick="delete_row(this)"></i>';
+            } else {
+                echo '<i class="bx bx-trash delete text-secondary disabled"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
                             title="You don\'t have permission to delete student fee payments"></i>';
-                    }
-                    echo '</td>
-                    </tr>';
-                }
-                echo '
-                        </tbody>
-                    </table>
-                </div>
-                ';
-            } else {
-                echo "<script>alert('Please Enter Id No.')</script>";
             }
-        } else {
-            echo "<script>alert('Please Select Fee Type')</script>";
+            echo '</td>
+            </tr>';
         }
+        echo '
+                </tbody>
+            </table>
+        </div>
+        ';
     }
     ?>
     <iframe name="print_frame" width="0" height="0" onblur="$('#action').show();" frameborder="0" src="about:blank"></iframe>

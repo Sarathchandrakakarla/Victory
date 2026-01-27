@@ -114,7 +114,8 @@ if (isset($_POST["update"])) {
     $update_sql .= "Siblings = NULL WHERE Id_No = '$id'";
   }
   if ($siblings_update_status && isset($update_sql)) {
-    if (mysqli_query($link, $update_sql)) {
+
+    /* if (mysqli_query($link, $update_sql)) {
       if (str_contains(strtolower($class), "drop")) {
         if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type IN ('School Fee','Vehicle Fee')")) != 0) {
           if (mysqli_query($link, "UPDATE `stu_fee_master_data` SET Class = '$class',Section = '' WHERE Id_No = '$id' AND Type IN ('School Fee','Vehicle Fee')")) {
@@ -152,17 +153,290 @@ if (isset($_POST["update"])) {
 
       echo
       "
-                <script>
-                alert('Succesfully Updated');
-                </script>
-                ";
+      <script>
+      alert('Succesfully Updated');
+      </script>
+      ";
     } else {
       echo
       "
-                <script>
-                alert('Updation Failed (SQL error)');
-                </script>
-                ";
+      <script>
+      alert('Updation Failed (SQL error)');
+      </script>
+      ";
+    } */
+
+    /* Student Updation(student_master_data) */
+    $studentUpdated = false;
+
+    mysqli_begin_transaction($link);
+
+    try {
+
+      if (!mysqli_query($link, $update_sql)) {
+        throw new Exception('Student update failed');
+      }
+
+      mysqli_commit($link);
+      $studentUpdated = true;
+    } catch (Exception $e) {
+
+      mysqli_rollback($link);
+
+      $msg = addslashes($e->getMessage());
+      echo "<script>alert('$msg');</script>";
+    }
+
+
+    /* Student Fee Data Updation(stu_fee_master_data) */
+    if ($studentUpdated) {
+
+      mysqli_begin_transaction($link);
+
+      try {
+
+        /* =========================================================
+           SCHOOL FEE — ALWAYS
+        ========================================================= */
+
+        $sfQ = mysqli_query(
+          $link,
+          "SELECT * FROM stu_fee_master_data
+             WHERE Id_No='$id' AND Type='School Fee'
+             LIMIT 1"
+        );
+        if (!$sfQ) {
+          throw new Exception('School Fee select failed');
+        }
+
+        $sf_exists = mysqli_num_rows($sfQ) > 0;
+        $sf_row = $sf_exists ? mysqli_fetch_assoc($sfQ) : null;
+
+        /* ---------- INSERT SCHOOL FEE (IF MISSING) ---------- */
+        if (!$sf_exists) {
+
+          $afQ = mysqli_query(
+            $link,
+            "SELECT Fee FROM actual_fee
+                 WHERE Type='School Fee' AND Class='$class'
+                 LIMIT 1"
+          );
+          if (!$afQ) {
+            throw new Exception('Actual School Fee lookup failed');
+          }
+
+          if (mysqli_num_rows($afQ)) {
+
+            $actual = mysqli_fetch_assoc($afQ)['Fee'];
+
+            $ins = mysqli_query(
+              $link,
+              "INSERT INTO stu_fee_master_data VALUES (
+                        '', '$id', '$firstname', '$class', '$section',
+                        '$area', 'School Fee',
+                        '$actual', '0', '$actual',
+                        '$actual', NULL
+                    )"
+            );
+            if (!$ins) {
+              throw new Exception('School Fee insert failed');
+            }
+          }
+        } else {
+
+          /* ---------- SNAPSHOT UPDATE ---------- */
+          $upd = mysqli_query(
+            $link,
+            "UPDATE stu_fee_master_data SET
+                    First_Name='$firstname',
+                    Class='$class',
+                    Section='$section',
+                    Street='$area'
+                 WHERE Id_No='$id' AND Type='School Fee'"
+          );
+          if (!$upd) {
+            throw new Exception('School Fee snapshot update failed');
+          }
+
+          /* ---------- RECALC ONLY IF CLASS CHANGED ---------- */
+          if ($sf_row['Class'] !== $class) {
+
+            $afQ = mysqli_query(
+              $link,
+              "SELECT Fee FROM actual_fee
+                     WHERE Type='School Fee' AND Class='$class'
+                     LIMIT 1"
+            );
+            if (!$afQ) {
+              throw new Exception('Actual School Fee lookup failed');
+            }
+
+            if (mysqli_num_rows($afQ)) {
+
+              $new_actual  = mysqli_fetch_assoc($afQ)['Fee'];
+              $old_actual  = $sf_row['Actual'];
+              $old_current = $sf_row['Current_Balance'];
+              $last        = $sf_row['Last_Balance'];
+
+              $concession  = max(0, $old_actual - $old_current);
+              $new_current = max(0, $new_actual - $concession);
+              $total       = $last + $new_current;
+
+              $upd = mysqli_query(
+                $link,
+                "UPDATE stu_fee_master_data SET
+                            Actual='$new_actual',
+                            Current_Balance='$new_current',
+                            Total='$total'
+                         WHERE Id_No='$id' AND Type='School Fee'"
+              );
+              if (!$upd) {
+                throw new Exception('School Fee recalculation failed');
+              }
+            }
+          }
+        }
+
+        /* =========================================================
+           VEHICLE FEE — CONDITIONAL
+        ========================================================= */
+
+        if ($van === "") {
+
+          $upd = mysqli_query(
+            $link,
+            "UPDATE stu_fee_master_data
+                 SET Route=NULL
+                 WHERE Id_No='$id' AND Type='Vehicle Fee'"
+          );
+          if (!$upd) {
+            throw new Exception('Vehicle Fee route NULL update failed');
+          }
+        } elseif ($van === "Drop") {
+
+          $upd = mysqli_query(
+            $link,
+            "UPDATE stu_fee_master_data
+                 SET Route='Drop'
+                 WHERE Id_No='$id' AND Type='Vehicle Fee'"
+          );
+          if (!$upd) {
+            throw new Exception('Vehicle Fee Drop update failed');
+          }
+        } else {
+
+          $vfQ = mysqli_query(
+            $link,
+            "SELECT * FROM stu_fee_master_data
+                 WHERE Id_No='$id' AND Type='Vehicle Fee'
+                 LIMIT 1"
+          );
+          if (!$vfQ) {
+            throw new Exception('Vehicle Fee select failed');
+          }
+
+          $vf_exists = mysqli_num_rows($vfQ) > 0;
+          $vf_row = $vf_exists ? mysqli_fetch_assoc($vfQ) : null;
+
+          /* ---------- INSERT VEHICLE FEE (IF MISSING) ---------- */
+          if (!$vf_exists) {
+
+            $afQ = mysqli_query(
+              $link,
+              "SELECT Fee FROM actual_fee
+                     WHERE Type='Vehicle Fee' AND Route='$van'
+                     LIMIT 1"
+            );
+            if (!$afQ) {
+              throw new Exception('Actual Vehicle Fee lookup failed');
+            }
+
+            if (mysqli_num_rows($afQ)) {
+
+              $actual = mysqli_fetch_assoc($afQ)['Fee'];
+
+              $ins = mysqli_query(
+                $link,
+                "INSERT INTO stu_fee_master_data VALUES (
+                            '', '$id', '$firstname', '$class', '$section',
+                            '$area', 'Vehicle Fee',
+                            '$actual', '0', '$actual',
+                            '$actual', '$van'
+                        )"
+              );
+              if (!$ins) {
+                throw new Exception('Vehicle Fee insert failed');
+              }
+            }
+          } else {
+
+            /* ---------- SNAPSHOT UPDATE ---------- */
+            $upd = mysqli_query(
+              $link,
+              "UPDATE stu_fee_master_data SET
+                        First_Name='$firstname',
+                        Class='$class',
+                        Section='$section',
+                        Street='$area',
+                        Route='$van'
+                     WHERE Id_No='$id' AND Type='Vehicle Fee'"
+            );
+            if (!$upd) {
+              throw new Exception('Vehicle Fee snapshot update failed');
+            }
+
+            /* ---------- RECALC ONLY IF ROUTE CHANGED ---------- */
+            if ($vf_row['Route'] !== $van) {
+
+              $afQ = mysqli_query(
+                $link,
+                "SELECT Fee FROM actual_fee
+                         WHERE Type='Vehicle Fee' AND Route='$van'
+                         LIMIT 1"
+              );
+              if (!$afQ) {
+                throw new Exception('Actual Vehicle Fee lookup failed');
+              }
+
+              if (mysqli_num_rows($afQ)) {
+
+                $new_actual  = mysqli_fetch_assoc($afQ)['Fee'];
+                $old_actual  = $vf_row['Actual'];
+                $old_current = $vf_row['Current_Balance'];
+                $last        = $vf_row['Last_Balance'];
+
+                $concession  = max(0, $old_actual - $old_current);
+                $new_current = max(0, $new_actual - $concession);
+                $total       = $last + $new_current;
+
+                $upd = mysqli_query(
+                  $link,
+                  "UPDATE stu_fee_master_data SET
+                                Actual='$new_actual',
+                                Current_Balance='$new_current',
+                                Total='$total'
+                             WHERE Id_No='$id' AND Type='Vehicle Fee'"
+                );
+                if (!$upd) {
+                  throw new Exception('Vehicle Fee recalculation failed');
+                }
+              }
+            }
+          }
+        }
+
+        mysqli_commit($link);
+
+        echo "<script>alert('Successfully Updated');</script>";
+      } catch (Exception $e) {
+
+        mysqli_rollback($link);
+        error_log($e->getMessage());
+
+        echo "<script>
+            alert('Student updated, but fee update failed. Please verify fees.');
+        </script>";
+      }
     }
   }
 }

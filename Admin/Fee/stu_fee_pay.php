@@ -29,34 +29,53 @@ if (isset($_POST['Ok'])) {
             } else {
                 while ($row = mysqli_fetch_assoc($query1)) {
                     $name = $row['First_Name'];
-                    if ($type == "Vehicle Fee") {
+                    if ($type === 'Vehicle Fee') {
                         $route = $row['Van_Route'];
+                        if ($route === '' || $route === NULL) {
+                            echo "<script>alert('Vehicle route not assigned to student');</script>";
+                            exit;
+                        }
+                    } else {
+                        $class = $row['Stu_Class'];
+                        if ($class === '' || $class === NULL) {
+                            echo "<script>alert('Student class not assigned');</script>";
+                            exit;
+                        }
                     }
                 }
                 $total_fee = 0;
                 $ignore = 0;
-                $tot_query = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
+                $tot_query = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type' LIMIT 1");
                 if (mysqli_num_rows($tot_query) == 0) {
-                    $ignore = 1;
-                    $query2 = mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
+                    $query2 = mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type' LIMIT 1");
                     if (mysqli_num_rows($query2) == 0) {
-                        echo "<script>alert('Student Not Found in Fee Master Data and Fee Balances! Please Add student in Fee Master Data')</script>";
+                        echo "<script>alert('Student Not Found in Fee Master Data and Fee Balances! Please Add student in Fee Master Data via Student Modify Page')</script>";
+                        exit;
                     } else {
+                        $fee_source = "fee_balances";
                         while ($row2 = mysqli_fetch_assoc($query2)) {
                             $total_fee = $row2['Balance'];
                         }
                     }
-                }
-                while ($tot_row = mysqli_fetch_assoc($tot_query)) {
-                    $total_fee = $tot_row['Last_Balance'] + $tot_row['Current_Balance'];
+                } else {
+                    $fee_source = "stu_fee_master_data";
+                    while ($tot_row = mysqli_fetch_assoc($tot_query)) {
+                        $total_fee = $tot_row['Last_Balance'] + $tot_row['Current_Balance'];
+                    }
                 }
                 $paid_query = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Id_No = '$id' AND Type = '$type'");
                 $paid_tot = 0;
                 while ($paid_row = mysqli_fetch_assoc($paid_query)) {
                     $paid_tot += (int)$paid_row['Fee'];
                 }
-                $_SESSION['Final_Balance'] = $total_fee - $paid_tot;
-                $_SESSION['Ignore'] = $ignore;
+                $final = $total_fee - $paid_tot;
+                $_SESSION['Final_Balance'] = max(0, $final);
+                $_SESSION['FEE_SOURCE'] = $fee_source;
+                if ($type === 'Vehicle Fee') {
+                    $_SESSION['FEE_KEY'] = $route;
+                } else {
+                    $_SESSION['FEE_KEY'] = $class;
+                }
             }
         } else {
             echo "<script>alert('Please Enter ID No!')</script>";
@@ -73,144 +92,197 @@ function format_date($date)
 }
 
 if (isset($_POST['add'])) {
+
+    /* ---------- Permission ---------- */
     if (!can('create', MENU_ID)) {
-        echo "<script>alert('You don\'t have permission to insert student fee payment details');
-            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+        echo "<script>alert('You don\\'t have permission to insert student fee payment details');
+              location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
         exit;
     }
-    if ($_POST['Type']) {
-        $type = $_POST['Type'];
-        $date = $_POST['DOP'];
-        $payment_type = $_POST['Payment_Type'];
-        $_SESSION['DOP'] = $date;
-        $_SESSION['Payment_Type'] = $payment_type;
-        if ($_POST['Id_No']) {
-            $id = $_POST['Id_No'];
-            $query1 = mysqli_query($link, "SELECT * FROM `student_master_data` WHERE Id_No = '$id'");
-            while ($row = mysqli_fetch_assoc($query1)) {
-                $name = $row['First_Name'];
-                $class = $row['Stu_Class'];
-                $section = $row['Stu_Section'];
-                $mobile = $row['Mobile'];
-                $route = $row['Van_Route'];
-            }
-        } else {
-            echo "<script>alert('Please Enter ID No!')</script>";
-        }
-        if ($_POST['Amount']) {
-            $amount = $_POST['Amount'];
-            $arr = explode('-', $date);
-            $month = $arr[1];
-            switch ($month) {
-                case 1:
-                    $month = "Jan";
-                    break;
-                case 2:
-                    $month = "Feb";
-                    break;
-                case 3:
-                    $month = "Mar";
-                    break;
-                case 4:
-                    $month = "Apr";
-                    break;
-                case 5:
-                    $month = "May";
-                    break;
-                case 6:
-                    $month = "Jun";
-                    break;
-                case 7:
-                    $month = "Jul";
-                    break;
-                case 8:
-                    $month = "Aug";
-                    break;
-                case 9:
-                    $month = "Sep";
-                    break;
-                case 10:
-                    $month = "Oct";
-                    break;
-                case 11:
-                    $month = "Nov";
-                    break;
-                case 12:
-                    $month = "Dec";
-                    break;
-            }
-            $temp = $arr[0];
-            $arr[0] = $arr[2];
-            $arr[1] = $month;
-            $arr[2] = $temp;
 
-            $date = implode("-", $arr);
-            if ($_POST['Bill_No']) {
-                $bill = $_POST['Bill_No'];
-                if ($_SESSION['Ignore'] == 0 && (int)$amount > (int)$_SESSION['Final_Balance']) {
-                    echo "<script>alert('Amount Exceeded by Student Balance!')</script>";
-                } else {
-                    if ($type == "Vehicle Fee") {
-                        $sql = "INSERT INTO `stu_paid_fee` VALUES('','$id','$name','$type','$class','$section','$amount','$date','$payment_type','$bill','$route')";
-                        /* Excluded on 05-02-23
-                    $sql1 = mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
-                    while ($row = mysqli_fetch_assoc($sql1)) {
-                        $balance = $row['Balance'];
-                    }
-                    $balance -= $amount;
-                    $sql2 = "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'";
-                    */
-                    } else {
-                        $sql = "INSERT INTO `stu_paid_fee` VALUES('','$id','$name','$type','$class','$section','$amount','$date','$payment_type','$bill',NULL)";
-                        /* Excluded on 05-02-23
-                    $sql1 = mysqli_query($link, "SELECT * FROM `fee_balances` WHERE Id_No = '$id' AND Type = '$type'");
-                    while ($row = mysqli_fetch_assoc($sql1)) {
-                        $balance = $row['Balance'];
-                    }
-                    $balance -= $amount;
-                    $sql2 = "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'";
-                    */
-                    }
-                    //$fee_balance_sql = mysqli_query($link,"SELECT * FROM `fee_balances` ");
-                    if (str_contains(strtolower($class), "others") || str_contains(strtolower($class), "drop")) {
-                        $fee_balance_sql = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
-                        while ($fee_row = mysqli_fetch_assoc($fee_balance_sql)) {
-                            $balance = (int)$fee_row['Last_Balance'];
-                        }
-                        $balance -= (int)$amount;
-                        mysqli_query($link, "UPDATE `stu_fee_master_data` SET Last_Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
-                        mysqli_query($link, "UPDATE `fee_balances` SET Balance = '$balance' WHERE Id_No = '$id' AND Type = '$type'");
-                    }
-                    if (mysqli_query($link, $sql)) {
-                        $text = "Dear parent ,We received with thanks, the amount of Rs " . $amount . " towards the " . $type . " of your child " . $name . " on " . format_date($_SESSION['DOP']) . " Principal, Victory High school,KDR";
-                        if (str_contains($mobile, ',')) {
-                            $mobile = explode(',', $mobile, 2)[0];
-                        } else if (str_contains($mobile, ' ')) {
-                            $mobile = explode(' ', $mobile, 2)[0];
-                        } else {
-                            $mobile = $mobile;
-                        }
-                        echo '<a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707173494146888652&format=JSON" id="sms_link" hidden>' . $mobile . '</a>';
-                        echo '<script>
-                        //Send Message API
-                        async function send(url){
-                            response = await fetch(url)
-                        }
-                        send(document.getElementById("sms_link").href);
-                    </script>';
-                        echo "<script>alert('Fee Inserted Successfully!!')</script>";
-                    } else {
-                        echo "<script>alert('Fee Insertion Failed!!')</script>";
-                    }
-                }
-            } else {
-                echo "<script>alert('Please Enter Bill No.!')</script>";
-            }
-        } else {
-            echo "<script>alert('Please Enter Amount!')</script>";
-        }
-    } else {
+    /* ---------- Basic Inputs ---------- */
+    if (empty($_POST['Type'])) {
         echo "<script>alert('Please Select Fee Type!')</script>";
+        exit;
+    }
+
+    if (empty($_POST['Id_No'])) {
+        echo "<script>alert('Please Enter ID No!')</script>";
+        exit;
+    }
+
+    if (empty($_POST['Amount'])) {
+        echo "<script>alert('Please Enter Amount!')</script>";
+        exit;
+    }
+
+    if (empty($_POST['Bill_No'])) {
+        echo "<script>alert('Please Enter Bill No.!')</script>";
+        exit;
+    }
+
+    $type         = $_POST['Type'];
+    $id           = $_POST['Id_No'];
+    $amount       = (int)$_POST['Amount'];
+    $bill         = $_POST['Bill_No'];
+    $payment_type = $_POST['Payment_Type'];
+    $date_raw     = $_POST['DOP'];
+
+    /* ---------- Session values from OK screen ---------- */
+    if (!isset($_SESSION['Final_Balance'], $_SESSION['FEE_SOURCE'], $_SESSION['FEE_KEY'])) {
+        echo "<script>alert('Session expired. Please fetch student details again.')</script>";
+        exit;
+    }
+
+    $final_balance = (int)$_SESSION['Final_Balance'];
+    $fee_source    = $_SESSION['FEE_SOURCE'];   // 'stu_fee_master_data' | 'fee_balances'
+    $fee_key       = $_SESSION['FEE_KEY'];      // class OR route
+
+    /* ---------- Amount Validation ---------- */
+    if ($amount <= 0) {
+        echo "<script>alert('Invalid payment amount!')</script>";
+        exit;
+    }
+
+    if ($amount > $final_balance) {
+        echo "<script>alert('Amount exceeds outstanding balance!')</script>";
+        exit;
+    }
+
+    /* ---------- Fetch student (safe) ---------- */
+    $stuQ = mysqli_query(
+        $link,
+        "SELECT First_Name, Stu_Class, Stu_Section, Mobile, Van_Route
+         FROM student_master_data
+         WHERE Id_No = '$id'
+         LIMIT 1"
+    );
+
+    if (!$stuQ || mysqli_num_rows($stuQ) == 0) {
+        echo "<script>alert('Student not found!')</script>";
+        exit;
+    }
+
+    $stu = mysqli_fetch_assoc($stuQ);
+
+    $name    = $stu['First_Name'];
+    $class   = $stu['Stu_Class'];
+    $section = $stu['Stu_Section'];
+    $mobile  = $stu['Mobile'];
+    $route   = $stu['Van_Route'];
+
+    /* ---------- Date Formatting ---------- */
+    $arr = explode('-', $date_raw);   // yyyy-mm-dd
+    $monthMap = [
+        1 => 'Jan',
+        2 => 'Feb',
+        3 => 'Mar',
+        4 => 'Apr',
+        5 => 'May',
+        6 => 'Jun',
+        7 => 'Jul',
+        8 => 'Aug',
+        9 => 'Sep',
+        10 => 'Oct',
+        11 => 'Nov',
+        12 => 'Dec'
+    ];
+    $date = $arr[2] . "-" . $monthMap[(int)$arr[1]] . "-" . $arr[0];
+
+    /* =========================================================
+       TRANSACTION START
+    ========================================================= */
+
+    mysqli_begin_transaction($link);
+
+    try {
+
+        /* ---------- Insert Payment Ledger ---------- */
+        if ($type === 'Vehicle Fee') {
+
+            $ins = mysqli_query(
+                $link,
+                "INSERT INTO stu_paid_fee VALUES (
+                    '',
+                    '$id',
+                    '$name',
+                    '$type',
+                    '$class',
+                    '$section',
+                    '$amount',
+                    '$date',
+                    '$payment_type',
+                    '$bill',
+                    '$route'
+                )"
+            );
+        } else {
+
+            $ins = mysqli_query(
+                $link,
+                "INSERT INTO stu_paid_fee VALUES (
+                    '',
+                    '$id',
+                    '$name',
+                    '$type',
+                    '$class',
+                    '$section',
+                    '$amount',
+                    '$date',
+                    '$payment_type',
+                    '$bill',
+                    NULL
+                )"
+            );
+        }
+
+        if (!$ins) {
+            throw new Exception('Payment insert failed');
+        }
+
+        /* ---------- Update fee_balances ONLY if fallback ---------- */
+        if ($fee_source === 'fee_balances') {
+
+            $upd = mysqli_query(
+                $link,
+                "UPDATE fee_balances
+                 SET Balance = Balance - $amount
+                 WHERE Id_No = '$id' AND Type = '$type'
+                 LIMIT 1"
+            );
+
+            if (!$upd) {
+                throw new Exception('Fee balance update failed');
+            }
+        }
+
+        mysqli_commit($link);
+
+        /* ---------- SMS (unchanged logic) ---------- */
+        if (str_contains($mobile, ',')) {
+            $mobile = explode(',', $mobile, 2)[0];
+        } elseif (str_contains($mobile, ' ')) {
+            $mobile = explode(' ', $mobile, 2)[0];
+        }
+
+        $text = "Dear parent, We received with thanks, the amount of Rs $amount towards the $type of your child $name on "
+            . format_date($_SESSION['DOP'])
+            . " Principal, Victory High School, KDR";
+
+        echo '<a href="http://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobile . '&message=' . $text . '&route=TRANS&TemplateID=1707173494146888652&format=JSON" id="sms_link" hidden></a>';
+
+        echo '<script>
+            async function send(url){ await fetch(url); }
+            send(document.getElementById("sms_link").href);
+        </script>';
+
+        echo "<script>alert('Fee Inserted Successfully!!')</script>";
+    } catch (Exception $e) {
+
+        mysqli_rollback($link);
+        error_log($e->getMessage());
+
+        echo "<script>alert('Payment failed. Please try again.')</script>";
     }
 }
 
