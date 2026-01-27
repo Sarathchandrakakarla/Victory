@@ -103,8 +103,12 @@ error_reporting(0);
                     <i class="fas fa-users"></i>
                     <select class="form-select" name="Role" id="role" style="padding-left: 60px;">
                         <option value="selectrole" selected disabled>-- Select Role --</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Super_Admin">Super Admin</option>
+                        <?php
+                        $roles_query = mysqli_query($link, "SELECT Role_Id, Role_Name FROM `roles` WHERE Login_Type = 'Admin'");
+                        while ($roles_row = mysqli_fetch_assoc($roles_query)) {
+                            echo '<option value="' . $roles_row['Role_Id'] . '">' . $roles_row['Role_Name'] . '</option>';
+                        }
+                        ?>
                     </select>
                 </div>
                 <div class="row button">
