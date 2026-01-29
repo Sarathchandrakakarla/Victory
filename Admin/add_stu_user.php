@@ -110,13 +110,13 @@ error_reporting(0);
                 <div class="row button">
                     <div class="btn-wrapper <?php echo !can('create', MENU_ID) ? 'rbac-disabled' : ''; ?>"
                         <?php if (!can('create', MENU_ID)) { ?>
-                        title="You don't have permission to add admin user"
+                        title="You don't have permission to add student/faculty user"
                         <?php } ?>>
                         <button type="submit"
                             class="btn"
                             name="Add"
                             id="add"
-                            onclick="return confirm('Confirm to Add New Admin?')"
+                            onclick="return confirm('Confirm to Add New User?')"
                             <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>
                             Add User
                         </button>
@@ -125,13 +125,13 @@ error_reporting(0);
                 <div class="row button">
                     <div class="btn-wrapper <?php echo !can('update', MENU_ID) ? 'rbac-disabled' : ''; ?>"
                         <?php if (!can('update', MENU_ID)) { ?>
-                        title="You don't have permission to update admin user"
+                        title="You don't have permission to update student/faculty user"
                         <?php } ?>>
                         <button type="submit"
                             class="btn"
                             name="Update"
                             id="update"
-                            onclick="return confirm('Confirm to Update Admin User?')"
+                            onclick="return confirm('Confirm to Update User?')"
                             <?php echo !can('update', MENU_ID) ? 'disabled' : ''; ?>>
                             Update User
                         </button>
@@ -140,13 +140,13 @@ error_reporting(0);
                 <div class="row button">
                     <div class="btn-wrapper <?php echo !can('delete', MENU_ID) ? 'rbac-disabled' : ''; ?>"
                         <?php if (!can('delete', MENU_ID)) { ?>
-                        title="You don't have permission to delete admin user"
+                        title="You don't have permission to delete student/faculty user"
                         <?php } ?>>
                         <button type="submit"
                             class="btn"
                             name="Delete"
                             id="delete"
-                            onclick="return confirm('Confirm to Delete Admin User?')"
+                            onclick="return confirm('Confirm to Delete User?')"
                             <?php echo !can('delete', MENU_ID) ? 'disabled' : ''; ?>>
                             Delete User
                         </button>
@@ -192,27 +192,27 @@ error_reporting(0);
                         if (mysqli_num_rows($check_sql) != 0) {
                             echo "<script>alert('User Already Exists!!')</script>";
                         } else {
-                            $sql = "INSERT INTO `faculty` VALUES('','$uid','$name','$password','$pass_hash','$role')";
+                            $sql = "INSERT INTO `faculty` VALUES('','$uid','$name','$password','$pass_hash','$role','Enabled')";
                             if (mysqli_query($link, $sql)) {
                                 echo "<script>
-            alert_row = document.getElementById('alert-row');
-            alert = document.getElementById('alert');
-            alert_parent = document.getElementById('alert-parent');
-            alert_row.style.display = 'block';
-            alert_parent.classList.remove('alert-danger');
-            alert_parent.classList.add('alert-success');
-            alert.innerHTML = 'Successfully Added " . $_POST['User'] . " User!!';
-            </script>";
+                                        alert_row = document.getElementById('alert-row');
+                                        alert = document.getElementById('alert');
+                                        alert_parent = document.getElementById('alert-parent');
+                                        alert_row.style.display = 'block';
+                                        alert_parent.classList.remove('alert-danger');
+                                        alert_parent.classList.add('alert-success');
+                                        alert.innerHTML = 'Successfully Added " . $_POST['User'] . " User!!';
+                                    </script>";
                             } else {
                                 echo "<script>
-            alert_row = document.getElementById('alert-row');
-            alert = document.getElementById('alert');
-            alert_parent = document.getElementById('alert-parent');
-            alert_row.style.display = 'block';
-            alert_parent.classList.remove('alert-success');
-            alert_parent.classList.add('alert-danger');
-            alert.innerHTML = 'User Insertion Failed due to SQL Error!!';
-            </script>";
+                                        alert_row = document.getElementById('alert-row');
+                                        alert = document.getElementById('alert');
+                                        alert_parent = document.getElementById('alert-parent');
+                                        alert_row.style.display = 'block';
+                                        alert_parent.classList.remove('alert-success');
+                                        alert_parent.classList.add('alert-danger');
+                                        alert.innerHTML = 'User Insertion Failed due to SQL Error!!';
+                                    </script>";
                             }
                         }
                     } else {
@@ -227,27 +227,27 @@ error_reporting(0);
                     if (mysqli_num_rows($check_sql) != 0) {
                         echo "<script>alert('User Already Exists!!')</script>";
                     } else {
-                        $sql = "INSERT INTO `student` VALUES('','$uid','$name','$password','$pass_hash')";
+                        $sql = "INSERT INTO `student` VALUES('','$uid','$name','$password','$pass_hash','Enabled')";
                         if (mysqli_query($link, $sql)) {
                             echo "<script>
-            alert_row = document.getElementById('alert-row');
-            alert = document.getElementById('alert');
-            alert_parent = document.getElementById('alert-parent');
-            alert_row.style.display = 'block';
-            alert_parent.classList.remove('alert-danger');
-            alert_parent.classList.add('alert-success');
-            alert.innerHTML = 'Successfully Added " . $_POST['User'] . " User!!';
-            </script>";
+                                    alert_row = document.getElementById('alert-row');
+                                    alert = document.getElementById('alert');
+                                    alert_parent = document.getElementById('alert-parent');
+                                    alert_row.style.display = 'block';
+                                    alert_parent.classList.remove('alert-danger');
+                                    alert_parent.classList.add('alert-success');
+                                    alert.innerHTML = 'Successfully Added " . $_POST['User'] . " User!!';
+                                </script>";
                         } else {
                             echo "<script>
-            alert_row = document.getElementById('alert-row');
-            alert = document.getElementById('alert');
-            alert_parent = document.getElementById('alert-parent');
-            alert_row.style.display = 'block';
-            alert_parent.classList.remove('alert-success');
-            alert_parent.classList.add('alert-danger');
-            alert.innerHTML = 'User Insertion Failed due to SQL Error!!';
-            </script>";
+                                    alert_row = document.getElementById('alert-row');
+                                    alert = document.getElementById('alert');
+                                    alert_parent = document.getElementById('alert-parent');
+                                    alert_row.style.display = 'block';
+                                    alert_parent.classList.remove('alert-success');
+                                    alert_parent.classList.add('alert-danger');
+                                    alert.innerHTML = 'User Insertion Failed due to SQL Error!!';
+                                </script>";
                         }
                     }
                 } else {
@@ -290,24 +290,24 @@ error_reporting(0);
                             $sql = "UPDATE `faculty` SET Password = '$password',Fac_Hash = '$pass_hash',Role = '$role' WHERE Id_No = '$uid'";
                             if (mysqli_query($link, $sql)) {
                                 echo "<script>
-            alert_row = document.getElementById('alert-row');
-            alert = document.getElementById('alert');
-            alert_parent = document.getElementById('alert-parent');
-            alert_row.style.display = 'block';
-            alert_parent.classList.remove('alert-danger');
-            alert_parent.classList.add('alert-success');
-            alert.innerHTML = 'Successfully Updated " . $_POST['User'] . " User!!';
-            </script>";
+                                        alert_row = document.getElementById('alert-row');
+                                        alert = document.getElementById('alert');
+                                        alert_parent = document.getElementById('alert-parent');
+                                        alert_row.style.display = 'block';
+                                        alert_parent.classList.remove('alert-danger');
+                                        alert_parent.classList.add('alert-success');
+                                        alert.innerHTML = 'Successfully Updated " . $_POST['User'] . " User!!';
+                                    </script>";
                             } else {
                                 echo "<script>
-            alert_row = document.getElementById('alert-row');
-            alert = document.getElementById('alert');
-            alert_parent = document.getElementById('alert-parent');
-            alert_row.style.display = 'block';
-            alert_parent.classList.remove('alert-success');
-            alert_parent.classList.add('alert-danger');
-            alert.innerHTML = 'User Updation Failed due to SQL Error!!';
-            </script>";
+                                        alert_row = document.getElementById('alert-row');
+                                        alert = document.getElementById('alert');
+                                        alert_parent = document.getElementById('alert-parent');
+                                        alert_row.style.display = 'block';
+                                        alert_parent.classList.remove('alert-success');
+                                        alert_parent.classList.add('alert-danger');
+                                        alert.innerHTML = 'User Updation Failed due to SQL Error!!';
+                                    </script>";
                             }
                         }
                     } else {
@@ -329,24 +329,24 @@ error_reporting(0);
                             $sql = "UPDATE `student` SET Stu_Password = '$password',Stu_Hash = '$pass_hash',Status = '$status' WHERE Id_No = '$uid'";
                             if (mysqli_query($link, $sql)) {
                                 echo "<script>
-        alert_row = document.getElementById('alert-row');
-        alert = document.getElementById('alert');
-        alert_parent = document.getElementById('alert-parent');
-        alert_row.style.display = 'block';
-        alert_parent.classList.remove('alert-danger');
-        alert_parent.classList.add('alert-success');
-        alert.innerHTML = 'Successfully Updated " . $_POST['User'] . " User!!';
-        </script>";
+                                        alert_row = document.getElementById('alert-row');
+                                        alert = document.getElementById('alert');
+                                        alert_parent = document.getElementById('alert-parent');
+                                        alert_row.style.display = 'block';
+                                        alert_parent.classList.remove('alert-danger');
+                                        alert_parent.classList.add('alert-success');
+                                        alert.innerHTML = 'Successfully Updated " . $_POST['User'] . " User!!';
+                                    </script>";
                             } else {
                                 echo "<script>
-        alert_row = document.getElementById('alert-row');
-        alert = document.getElementById('alert');
-        alert_parent = document.getElementById('alert-parent');
-        alert_row.style.display = 'block';
-        alert_parent.classList.remove('alert-success');
-        alert_parent.classList.add('alert-danger');
-        alert.innerHTML = 'User Updation Failed due to SQL Error!!';
-        </script>";
+                                        alert_row = document.getElementById('alert-row');
+                                        alert = document.getElementById('alert');
+                                        alert_parent = document.getElementById('alert-parent');
+                                        alert_row.style.display = 'block';
+                                        alert_parent.classList.remove('alert-success');
+                                        alert_parent.classList.add('alert-danger');
+                                        alert.innerHTML = 'User Updation Failed due to SQL Error!!';
+                                    </script>";
                             }
                         }
                     } else {

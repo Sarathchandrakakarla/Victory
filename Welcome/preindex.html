@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="An Official Web Portal For Victory Schools, Kodur."
+    />
+    <title>Victory Schools</title>
+
+    <link
+      rel="shortcut icon"
+      href="Victory/Images/favicon.ico"
+      type="image/x-icon"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css"
+    />
+
+    <!-- icon-link -->
+    <link rel="stylesheet" href="line-awesome.min.css" />
+    <!-- style-link -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="vs-hero">
+      <!-- background fingerprint / curves -->
+      <img
+        src="main-banner.svg"
+        class="vs-bg-pattern"
+        alt="Background pattern"
+      />
+
+      <!-- photo band using your existing image.jpg -->
+      <div class="vs-photo-band">
+        <img src="classroom-teacher.jpeg" alt="Students and classroom" />
+      </div>
+
+      <!-- logo -->
+      <div class="vs-logo-wrap">
+        <img
+          src="/Victory/Images/Victory Logo.png"
+          class="vs-logo"
+          alt="Victory School"
+          title="Victory School"
+        />
+      </div>
+
+      <!-- text + CTA -->
+      <section class="vs-content">
+        <h1>Welcome to Victory Schools Portal</h1>
+        <p class="vs-subtitle">
+          Pioneering holistic education for young minds.
+        </p>
+
+        <a href="/Victory/index.php" class="vs-btn-primary"> Enter Portal </a>
+      </section>
+
+      <!-- quick links -->
+      <section class="vs-quick-links">
+        <div class="vs-quick-card">
+          <span class="vs-quick-icon">
+            <i class="las la-graduation-cap"></i>
+          </span>
+          <span class="vs-quick-text">Academic Excellence</span>
+        </div>
+
+        <div class="vs-quick-card">
+          <span class="vs-quick-icon">
+            <i class="las la-users"></i>
+          </span>
+          <span class="vs-quick-text">Expert Faculty</span>
+        </div>
+
+        <div class="vs-quick-card">
+          <span class="vs-quick-icon">
+            <i class="las la-heart"></i>
+          </span>
+          <span class="vs-quick-text">Student Care</span>
+        </div>
+      </section>
+
+      <!-- footer -->
+      <p class="vs-copyright">
+        © <span id="year"></span>, Victory Educational Society. All rights
+        reserved.
+      </p>
+    </div>
+
+    <script type="text/javascript">
+      document.getElementById("year").innerHTML = new Date().getFullYear();
+    </script>
+  </body>
+</html>

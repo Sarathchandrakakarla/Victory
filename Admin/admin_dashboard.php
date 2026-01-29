@@ -34,7 +34,7 @@ if (!$_SESSION['Admin_Id_No']) {
 </head>
 <style>
     body {
-        background: linear-gradient(120deg, #136a8a, #267871);
+        background: #5f8790;
     }
 
     #sign-out {
@@ -62,8 +62,11 @@ if (!$_SESSION['Admin_Id_No']) {
     #vic_heading {
         margin-left: 200px;
         display: flex;
-        font-size: 3em;
-        color: yellow;
+        font-size: 3.5em;
+        letter-spacing: 2px;
+        font-weight: 700;
+        color: #f2e3a2;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
     }
 
     .typing-demo {
@@ -76,7 +79,8 @@ if (!$_SESSION['Admin_Id_No']) {
         font-weight: bold;
         /*font-family: 'Times New Roman';*/
         font-size: 2em;
-        color: yellow;
+        color: #f2e3a2;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
     }
 
     @keyframes typing {
@@ -113,12 +117,38 @@ if (!$_SESSION['Admin_Id_No']) {
             margin-left: 400px;
         }
     }
+
+    .system-notice {
+        background: rgba(0, 0, 0, 0.25);
+        border-left: 4px solid #00e6b8;
+        max-width: 600px;
+        padding: 10px 15px;
+        font-size: 14px;
+        color: #ffffff;
+        letter-spacing: 0.5px;
+        text-align: center;
+
+        /* 🔑 FIX */
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 15px 0;
+    }
+
+    @media screen and (max-width:960px) {
+        .system-notice {
+            left: 55%;
+        }
+    }
 </style>
 
 <body>
     <?php
     include 'sidebar.php';
     ?>
+    <div class="system-notice">
+        System access has been updated to improve security and control.
+    </div>
     <div class="container img-container" data-aos="fade-in">
         <img src="/Victory/Images/Victory Logo.png" alt="Logo" width="200px">
     </div>

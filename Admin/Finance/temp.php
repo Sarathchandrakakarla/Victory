@@ -1,7 +1,8 @@
 <?php
-include '../../link.php';
+include_once('../../link.php');
+include_once('../includes/rbac_helper.php');
 
-if (isset($_POST['Date']) && isset($_POST['Type'])) {
+if (isset($_POST['Action']) && $_POST['Action'] == "View" && isset($_POST['Date']) && isset($_POST['Type'])) {
     if (!can('view', 69)) {
         echo "permission";
         exit;
@@ -279,7 +280,7 @@ if (isset($_POST['Date']) && isset($_POST['Type'])) {
     }
 }
 
-if (isset($_POST['AC_No'])) {
+if (isset($_POST['Action']) && $_POST['Action'] == "View" && isset($_POST['AC_No'])) {
     if (!can('view', 70)) {
         echo "permission";
         exit;
@@ -302,8 +303,8 @@ if (isset($_POST['AC_No'])) {
     }
 }
 
-if (isset($_POST['Type'])) {
-    if (!can('delete', MENU_ID)) {
+if (isset($_POST['Action']) && $_POST['Action'] == "Delete" && isset($_POST['Type'])) {
+    if (!can('delete', 69)) {
         echo "permission";
         exit;
     }

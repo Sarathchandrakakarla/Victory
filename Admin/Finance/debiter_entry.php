@@ -265,7 +265,7 @@ if (isset($_POST["delete"])) {
     </div>
 
     <!-- Scripts -->
-     
+
     <!-- Global Const Variables for can_update,can_allocate -->
     <script>
         const CAN_VIEW = <?= can('view', MENU_ID) ? 'true' : 'false' ?>;
@@ -284,6 +284,7 @@ if (isset($_POST["delete"])) {
                 type: 'post',
                 url: 'temp.php',
                 data: {
+                    Action: 'View',
                     AC_No: ac
                 },
                 success: function(data) {

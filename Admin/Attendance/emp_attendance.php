@@ -202,7 +202,7 @@ error_reporting(0);
                             <input class="form-check-input"
                                   type="radio"
                                   name="att[' . $i . ']"
-                                  id="' . strtolower($val) . '_' . $id . '"
+                                  id="' . strtolower($val) . '[' . $id . ']"
                                   value="' . $val . '"
                                   ' . $checked . '
                                   ' . (!$canCreate ? 'disabled' : '') . '>

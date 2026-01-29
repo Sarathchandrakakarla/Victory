@@ -7,7 +7,7 @@ define('MENU_ID', 69);
 requireLogin();
 requireMenuAccess(MENU_ID);
 
-error_reporting(0);
+//error_reporting(0);
 ?>
 
 <?php
@@ -556,6 +556,7 @@ if (isset($_POST['Ok'])) {
                 type: 'post',
                 url: 'temp.php',
                 data: {
+                    Action: 'View',
                     Date: date,
                     Type: type
                 },
@@ -581,13 +582,14 @@ if (isset($_POST['Ok'])) {
             date = document.getElementById('date').innerHTML
             if (type == "expenses") {
                 ac_no = $(e).parent().siblings().eq(1).text();
-                amount = $(e).parent().siblings().eq(2).text();
-                purpose = $(e).parent().siblings().eq(3).text();
+                amount = $(e).parent().siblings().eq(3).text();
+                purpose = $(e).parent().siblings().eq(4).text();
                 if (confirm('Confirm to Delete Payment ' + ac_no + '  ' + amount + '  ' + purpose + ' on ' + date + '?')) {
                     $.ajax({
                         type: 'post',
                         url: 'temp.php',
                         data: {
+                            Action: 'Delete',
                             ac_No: ac_no,
                             Amount: amount,
                             Purpose: purpose,
@@ -595,11 +597,12 @@ if (isset($_POST['Ok'])) {
                             Type: type,
                         },
                         success: function(data) {
+                            console.log(data)
                             if (data == "success") {
                                 alert('Payment Deleted Successfully!!');
                             } else if (data == "failure") {
                                 alert('Payment Deletion Failed!');
-                            } else if (data = "permission") {
+                            } else if (data == "permission") {
                                 alert('You don\'t have permission to delete expenses');
                             } else {
                                 alert('No Payment Found!');
@@ -616,6 +619,7 @@ if (isset($_POST['Ok'])) {
                         type: 'post',
                         url: 'temp.php',
                         data: {
+                            Action: 'Delete',
                             Id_No: id_no,
                             Date: date,
                             Bill_No: bill_no,
