@@ -7,7 +7,7 @@ define('MENU_ID', 100);
 requireLogin();
 requireMenuAccess(MENU_ID);
 
-error_reporting(0);
+//error_reporting(0);
 ?>
 <?php
 function Export_Database($host, $user, $pass, $name,  $tables = false, $backup_name = false)
@@ -93,6 +93,7 @@ function restoreDatabaseTables($dbHost, $dbUsername, $dbPassword, $dbName, $file
 
     $error = '';
 
+    $db->query('SET foreign_key_checks = 0');
     // Loop through each line
     foreach ($lines as $line) {
         // Skip it if it's a comment
@@ -114,6 +115,7 @@ function restoreDatabaseTables($dbHost, $dbUsername, $dbPassword, $dbName, $file
             $templine = '';
         }
     }
+    $db->query('SET foreign_key_checks = 1');
     return !empty($error) ? $error : true;
 }
 
