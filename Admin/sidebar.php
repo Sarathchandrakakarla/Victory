@@ -32,10 +32,10 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
 ?>
 <nav>
     <div class="logo">
-        <img src="/Victory/Images/Victory Logo.png" alt="..." width="70px">
+        <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
     </div>
     <div class="heading">
-        <h3>Victory Schools, Kodur</h3>
+        <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
     </div>
     <input type="checkbox" id="click" />
     <label for="click" class="menu-btn">
@@ -43,7 +43,7 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
     </label>
     <ul>
         <li>
-            <img src="/Victory/Images/admin_img/<?php echo $_SESSION['Admin_Id_No']; ?>.jpg" alt="Admin Image">
+            <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/admin_img/<?php echo $_SESSION['Admin_Id_No']; ?>.jpg" alt="Admin Image">
         </li>
         <li>
             <a href="#"><?php echo $_SESSION['Admin_Id_No'] . '(' . $_SESSION['Role_Name'] . ')'; ?></a>
@@ -54,6 +54,11 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
                         <input type='file' id="getFile" name="img" accept=".png,.jpg,.jpeg" onchange="saveImg()">
                     </li>
                 <?php endif; ?>
+                <li>
+                    <a href="#" onclick="openSwitchSchoolModal()">
+                        🏫 Switch School
+                    </a>
+                </li>
                 <li><a href="/Victory/php/logout.php">Sign Out</a></li>
             </ul>
         </li>
@@ -63,7 +68,7 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
 <div class="sidebar close">
     <div class="logo-details">
         <i class="bx bx-menu"></i>
-        <span class="logo_name">Administrator</span>
+        <span class="logo_name"><?= $_SESSION['Role_Name'] ?></span>
     </div>
     <ul class="nav-links">
         <?php foreach ($parents as $parent):
@@ -129,5 +134,40 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
         <?php endforeach; ?>
     </ul>
 </div>
+
+<div id="switchSchoolModal" class="modal" role="dialog">
+    <div class="modal-content">
+        <h3>Switch School</h3>
+        <p>
+            Switching school will log you out from the current school.
+            You will need to log in again for the selected school.
+        </p>
+
+        <div class="modal-actions">
+            <button onclick="closeSwitchSchoolModal()">Cancel</button>
+            <button class="danger" onclick="confirmSwitchSchool()">Continue</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openSwitchSchoolModal() {
+        const modal = document.getElementById('switchSchoolModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closeSwitchSchoolModal() {
+        const modal = document.getElementById('switchSchoolModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function confirmSwitchSchool() {
+        window.location.href = '/Victory/Admin/switch_school.php';
+    }
+    // Optional: close on ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeSwitchSchoolModal();
+    });
+</script>
 
 <script src="/Victory/js/script.js"></script>

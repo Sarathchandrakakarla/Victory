@@ -62,8 +62,8 @@ if (isset($_POST['add'])) {
 
 <head>
     <meta charset="UTF-8" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon">
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
     <!-- Controlling Cache -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -454,7 +454,7 @@ if (isset($_POST['add'])) {
     <!-- Print Table -->
     <script type="text/javascript">
         function printDiv() {
-            window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'>VICTORY HIGH SCHOOL</h2>";
+            window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h2>";
             window.frames["print_frame"].document.body.innerHTML += document.querySelector('.table-container').innerHTML;
             window.frames["print_frame"].window.focus();
             window.frames["print_frame"].window.print();

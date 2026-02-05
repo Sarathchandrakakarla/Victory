@@ -291,8 +291,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
   <meta charset="UTF-8" />
-  <title>Victory Schools</title>
-  <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon" />
+  <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+  <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon" />
 
   <!-- CSS and JS -->
   <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />

@@ -220,9 +220,9 @@ $roles = mysqli_query(
 
 <head>
     <meta charset="UTF-8" />
-    <title>Victory Schools</title>
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
     <!-- Controlling Cache -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />

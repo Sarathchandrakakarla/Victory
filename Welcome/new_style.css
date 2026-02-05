@@ -24,16 +24,16 @@ html {
 /* body: no flex, just background color if you want */
 body {
   margin: 0;
-  font-family: 'Karla', sans-serif;
+  font-family: "Karla", sans-serif;
   background: #05060a;
 }
 
 /* make vs-hero full screen and centered */
 .vs-hero {
   position: relative;
-  min-height: 100vh;           /* full screen */
+  min-height: 100vh; /* full screen */
   width: 100%;
-  max-width: none;             /* let it stretch full width */
+  max-width: none; /* let it stretch full width */
   background: radial-gradient(circle at top, #171c2c 0, #05060a 65%);
   display: flex;
   flex-direction: column;
@@ -44,7 +44,6 @@ body {
   overflow: hidden;
   color: #ffffff;
 }
-
 
 /* Background pattern */
 
@@ -154,12 +153,127 @@ body {
   text-decoration: none;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
   transition: var(--vs-transition-fast);
+  cursor: pointer;
 }
 
 .vs-btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
   filter: brightness(1.05);
+}
+
+.vs-schools h2 {
+  position: relative;
+  text-align: center;
+  margin-top: -1.2rem; /* pull onto photo band */
+  margin-bottom: 2.25rem;
+}
+
+.vs-switch-banner {
+  background: rgba(255, 255, 255, 0.9);
+  color: #222;
+  padding: 12px 16px;
+  margin: 16px auto;
+  max-width: 520px;
+  text-align: center;
+  border-left: 4px solid #00bfa6;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* ===============================
+   SWITCH LOGIN SECTION
+   =============================== */
+
+.vs-switch-login {
+  background: rgba(255, 255, 255, 0.95);
+  max-width: 420px;
+  margin: 30px auto 0;
+  padding: 28px 26px;
+  border-radius: 14px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  animation: fadeUp 0.4s ease;
+}
+
+.vs-switch-login h2 {
+  margin: 0 0 18px;
+  font-size: 1.35rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* Form layout */
+.vs-switch-login form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Inputs & selects */
+.vs-switch-login input,
+.vs-switch-login select {
+  width: 100%;
+  padding: 11px 12px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  outline: none;
+  transition:
+    border 0.2s,
+    box-shadow 0.2s;
+}
+
+.vs-switch-login input[readonly] {
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.vs-switch-login input:focus,
+.vs-switch-login select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Submit button */
+.vs-switch-login button {
+  margin-top: 6px;
+  padding: 12px;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.vs-switch-login button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 25px rgba(37, 99, 235, 0.35);
+}
+
+.vs-switch-login button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Animation */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* QUICK LINKS */

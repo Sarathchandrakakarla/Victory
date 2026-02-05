@@ -28,7 +28,7 @@ function sanitizeFilename($filename)
 // Create media folder for post or request (pass folder suffix: '' or '_request')
 function createPostFolder($postId, $suffix = '')
 {
-  $folder = "../../Images/blog/posts_images/post_" . intval($postId) . $suffix;
+  $folder = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . intval($postId) . $suffix;
   if (!is_dir($folder)) {
     mkdir($folder, 0775, true);
   }
@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $postFolder = createPostFolder($requestId, '_request');
 
       // Copying Existing Media
-      $src = "../../Images/blog/posts_images/post_" . $postId;
+      $src = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $postId;
       $dst = $postFolder;
 
       // Ensure source directory exists
@@ -259,8 +259,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ==== DELETE POST OR REQUEST ====
 
     $postId = intval($_POST['Post_Id']);
-    $postFolderRequest = "../../Images/blog/posts_images/post_" . $postId . "_request";
-    $postFolderPublished = "../../Images/blog/posts_images/post_" . $postId;
+    $postFolderRequest = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $postId . "_request";
+    $postFolderPublished = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $postId;
 
     // Check if post request exists for this postId by this user
     $res = mysqli_query($link, "SELECT * FROM posts_requests WHERE Post_Id=$postId AND Author='" . $_SESSION['Id_No'] . "'");
@@ -373,13 +373,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       /* ===== COVER IMAGE ===== */
       if ($_POST['data'] == 'requests') {
         echo "<td style='width:200px;height:100px'>
-            <img src='../../Images/blog/posts_images/post_" . $row['Post_Id'] . "_request/" . htmlspecialchars($row['Cover_Photo']) . "'
+            <img src='" . $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $row['Post_Id'] . "_request/" . htmlspecialchars($row['Cover_Photo']) . "'
                  class='img-thumbnail rounded'
                  style='width:200px;height:100px'>
           </td>";
       } else {
         echo "<td style='width:200px;height:100px'>
-            <img src='../../Images/blog/posts_images/post_" . $row['Post_Id'] . "/" . htmlspecialchars($row['Cover_Photo']) . "'
+            <img src='" . $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $row['Post_Id'] . "/" . htmlspecialchars($row['Cover_Photo']) . "'
                  class='img-thumbnail rounded'
                  style='width:200px;height:100px'>
           </td>";
@@ -506,8 +506,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
   <meta charset="UTF-8" />
-  <title>Victory Schools</title>
-  <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon" />
+  <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+  <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon" />
 
   <!-- CSS and JS -->
   <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
@@ -731,7 +731,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </div>
               <div class="mb-3">
                 <label>Cover Photo (current) <span style="color:red;">*</span></label><br />
-                <img src="../../Images/blog/posts_images/post_<?= $row['Post_Id']; ?>_request/<?= htmlspecialchars($row['Cover_Photo']); ?>" class="img-thumbnail mb-2" style="width: 200px;height:100px" />
+                <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/blog/posts_images/post_<?= $row['Post_Id']; ?>_request/<?= htmlspecialchars($row['Cover_Photo']); ?>" class="img-thumbnail mb-2" style="width: 200px;height:100px" />
                 <input type="file" name="Cover_Photo" accept="image/*" class="form-control" id="requesteditcoverPhotoInput<?= $row['Post_Id']; ?>" onchange="handleEditCoverPhotoInput(event,<?= $row['Post_Id']; ?>,'request')" />
                 <div id="requesteditcoverPhotoPreview<?= $row['Post_Id']; ?>" class="mt-2"></div>
               </div>
@@ -741,7 +741,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   <?php
                   foreach ($mediaFiles as $mediaFile) {
                     $ext = strtolower(pathinfo($mediaFile, PATHINFO_EXTENSION));
-                    $mediaPath = "../../Images/blog/posts_images/post_" . $row['Post_Id'] . "_request/" . htmlspecialchars($mediaFile);
+                    $mediaPath = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $row['Post_Id'] . "_request/" . htmlspecialchars($mediaFile);
                     echo '<div class="me-2 mb-2 text-center">';
                     if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'])) {
                       echo '<img src="' . $mediaPath . '" class="img-thumbnail" width="100">';
@@ -844,7 +844,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </div>
               <div class="mb-3">
                 <label>Cover Photo (current) <span style="color:red;">*</span></label><br />
-                <img src="../../Images/blog/posts_images/post_<?= $row1['Post_Id']; ?>/<?= htmlspecialchars($row1['Cover_Photo']); ?>" class="img-thumbnail mb-2" style="width: 200px;height:100px" />
+                <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/blog/posts_images/post_<?= $row1['Post_Id']; ?>/<?= htmlspecialchars($row1['Cover_Photo']); ?>" class="img-thumbnail mb-2" style="width: 200px;height:100px" />
                 <input type="file" name="Cover_Photo" accept="image/*" class="form-control" id="posteditcoverPhotoInput<?= $row1['Post_Id']; ?>" onchange="handleEditCoverPhotoInput(event,<?= $row1['Post_Id']; ?>,'post')" />
                 <div id="posteditcoverPhotoPreview<?= $row1['Post_Id']; ?>" class="mt-2"></div>
               </div>
@@ -854,7 +854,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   <?php
                   foreach ($mediaFiles as $mediaFile) {
                     $ext = strtolower(pathinfo($mediaFile, PATHINFO_EXTENSION));
-                    $mediaPath = "../../Images/blog/posts_images/post_" . $row1['Post_Id'] . "/" . htmlspecialchars($mediaFile);
+                    $mediaPath = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $row1['Post_Id'] . "/" . htmlspecialchars($mediaFile);
                     echo '<div class="me-2 mb-2 text-center">';
                     if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'])) {
                       echo '<img src="' . $mediaPath . '" class="img-thumbnail" width="100">';

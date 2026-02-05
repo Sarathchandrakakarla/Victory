@@ -65,8 +65,8 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
 
 <head>
     <meta charset="UTF-8" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon">
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
     <!-- Boxiocns CDN Link -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
@@ -177,7 +177,7 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
                 <td></td>
                 <td></td>
                 <td></td>
-                <td style="font-size:30px;" colspan="4">VICTORY HIGH SCHOOL</td>
+                <td style="font-size:30px;" colspan="4"><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></td>
             </tr>
         </table>
         <table class="table table-striped table-hover" border="1">
@@ -410,7 +410,7 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Delete") {
 
             // Hide them before printing
             noPrintElements.forEach(el => el.style.display = "none");
-            window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'>VICTORY HIGH SCHOOL</h2>";
+            window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h2>";
             window.frames["print_frame"].document.body.innerHTML += document.querySelector('.table-container').innerHTML;
             window.frames["print_frame"].window.focus();
             window.frames["print_frame"].window.print();

@@ -31,10 +31,10 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
 ?>
 <nav>
   <div class="logo">
-    <img src="/Victory/Images/Victory Logo.png" alt="..." width="70px">
+    <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
   </div>
   <div class="heading">
-    <h3>Victory Schools, Kodur</h3>
+    <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
   </div>
   <input type="checkbox" id="click" />
   <label for="click" class="menu-btn">
@@ -42,7 +42,7 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
   </label>
   <ul>
     <li>
-      <img src="/Victory/Images/<?php echo $_SESSION['Id_No']; ?>.jpg" alt="Faculty Image">
+      <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/emp_img/<?php echo $_SESSION['Id_No']; ?>.jpg" alt="Faculty Image">
     </li>
     <li>
       <a href="#"><?php echo $_SESSION['Id_No'] . '(' . $_SESSION['Role_Name'] . ')' ?></a>
@@ -56,7 +56,7 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
 <div class="sidebar close">
   <div class="logo-details">
     <i class="bx bx-menu"></i>
-    <span class="logo_name">Faculty</span>
+    <span class="logo_name"><?= $_SESSION['Role_Name'] ?></span>
   </div>
   <ul class="nav-links">
     <?php foreach ($parents as $parent):

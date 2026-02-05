@@ -56,8 +56,8 @@ if ($totalPages <= 2) {
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="shortcut icon" href="../Images/favicon.ico" type="image/x-icon" />
-  <title>Victory EM School</title>
+  <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon" />
+  <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
   <!-- Controlling Cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />

@@ -28,7 +28,7 @@ function sanitizeFilename($filename)
 
 function createPostFolder($postId)
 {
-  $folder = "../../Images/blog/posts_images/post_" . intval($postId);
+  $folder = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . intval($postId);
   if (!is_dir($folder)) {
     mkdir($folder, 0755, true);
   }
@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     // === DELETE POST ===
     $postId = intval($_POST['Post_Id']);
-    $postFolder = "../../Images/blog/posts_images/post_" . $postId;
+    $postFolder = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $postId;
 
     // Delete folder content & folder
     if (is_dir($postFolder)) {
@@ -305,7 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       // Output each row - keep your existing table row HTML here
       echo "<tr>";
       echo "<td>" . htmlspecialchars($row['Post_Id']) . "</td>";
-      echo "<td><img src='../../Images/blog/posts_images/post_" . $row['Post_Id'] . "/" . htmlspecialchars($row['Cover_Photo']) . "' class='img-thumbnail rounded' style='width: 200px; height: 100px'></td>";
+      echo "<td><img src='" . $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $row['Post_Id'] . "/" . htmlspecialchars($row['Cover_Photo']) . "' class='img-thumbnail rounded' style='width: 200px; height: 100px'></td>";
       echo "<td>" . htmlspecialchars($row['Title']) . "</td>";
       echo "<td>" . htmlspecialchars($row['Description']) . "</td>";
       echo "<td>" . htmlspecialchars($row['Author']) . "</td>";
@@ -388,8 +388,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
   <meta charset="UTF-8" />
-  <title>Victory Schools</title>
-  <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon" />
+  <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+  <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon" />
 
   <!-- CSS and JS -->
   <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
@@ -571,7 +571,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="mb-3">
                   <label>Cover Photo (current) <span style="color:red;">*</span></label><br />
-                  <img src="../../Images/blog/posts_images/post_<?= $row['Post_Id']; ?>/<?= htmlspecialchars($row['Cover_Photo']); ?>" class="img-thumbnail mb-2" style="width: 200px;height:100px" />
+                  <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/blog/posts_images/post_<?= $row['Post_Id']; ?>/<?= htmlspecialchars($row['Cover_Photo']); ?>" class="img-thumbnail mb-2" style="width: 200px;height:100px" />
                   <input type="file" name="Cover_Photo" accept="image/*" class="form-control" id="editcoverPhotoInput<?= $row['Post_Id']; ?>" onchange="handleEditCoverPhotoInput(event,<?= $row['Post_Id']; ?>)" />
                   <div id="editcoverPhotoPreview<?= $row['Post_Id']; ?>" class="mt-2"></div>
                 </div>
@@ -581,7 +581,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php
                     foreach ($mediaFiles as $mediaFile) {
                       $ext = strtolower(pathinfo($mediaFile, PATHINFO_EXTENSION));
-                      $mediaPath = "../../Images/blog/posts_images/post_" . $row['Post_Id'] . "/" . htmlspecialchars($mediaFile);
+                      $mediaPath = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $row['Post_Id'] . "/" . htmlspecialchars($mediaFile);
                       echo '<div class="me-2 mb-2 text-center">';
                       if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'])) {
                         echo '<img src="' . $mediaPath . '" class="img-thumbnail" width="100">';

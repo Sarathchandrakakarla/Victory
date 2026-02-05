@@ -356,3 +356,52 @@ button.btn-success {
 .btn-success:disabled {
   box-shadow: none;
 }
+
+/* Switch  Modal */
+/* ===== Global Modal ===== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 9999;
+}
+
+.modal-content {
+  background: #1f2933;
+  color: #fff;
+  width: 90%;
+  max-width: 420px;
+  margin: 15vh auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-actions .danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.modal-actions button:not(.danger) {
+  background: #4b5563;
+  color: #fff;
+}

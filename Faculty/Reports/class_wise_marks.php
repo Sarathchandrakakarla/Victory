@@ -15,8 +15,8 @@ error_reporting(0);
 
 <head>
     <meta charset="UTF-8" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon">
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
     <!-- Boxiocns CDN Link -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
@@ -188,7 +188,7 @@ error_reporting(0);
                 <td></td>
                 <td></td>
                 <td></td>
-                <td style="font-size:30px;" colspan="4">VICTORY HIGH SCHOOL</td>
+                <td style="font-size:30px;" colspan="4"><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></td>
             </tr>
             <tr>
                 <td style="font-size:20px;color:red">Name of Class:</td>
@@ -508,7 +508,7 @@ error_reporting(0);
     <!-- Print Table -->
     <script type="text/javascript">
         function printDiv() {
-            window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'>VICTORY HIGH SCHOOL</h2>";
+            window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h2>";
             window.frames["print_frame"].document.body.innerHTML += "<div class = 'container'><table><tr><td style='font-size:25px;'>Name of Class:</td><td><?php echo $class . ' ' . $section; ?></td></tr><br></table></div>";
             window.frames["print_frame"].document.body.innerHTML += "<div class = 'container'><table style='margin-bottom:20px;'><tr><td style='font-size:25px;'>Name of Exam:</td><td><?php echo $exam; ?></td></tr></table></div>";
             window.frames["print_frame"].document.body.innerHTML += document.querySelector('.table-container').innerHTML;

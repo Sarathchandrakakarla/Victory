@@ -2,7 +2,7 @@
 session_start();
 if (!$_SESSION['Admin_Id_No']) {
     echo "<script>
-  alert('Admin Id Not Rendered');
+  alert('Session Expired!Please Login Again!');
   location.replace('/Victory/Admin/admin_login.php');
   </script>
   </script>";
@@ -13,8 +13,8 @@ if (!$_SESSION['Admin_Id_No']) {
 
 <head>
     <meta charset="UTF-8" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon">
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
     <!-- Controlling Cache -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -150,7 +150,7 @@ if (!$_SESSION['Admin_Id_No']) {
         System access has been updated to improve security and control.
     </div>
     <div class="container img-container" data-aos="fade-in">
-        <img src="/Victory/Images/Victory Logo.png" alt="Logo" width="200px">
+        <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="Logo" width="200px">
     </div>
     <div class="container type-container">
         <div class="head">

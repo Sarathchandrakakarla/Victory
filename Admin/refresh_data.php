@@ -10,7 +10,7 @@ requireMenuAccess(MENU_ID);
 error_reporting(0);
 ?>
 <?php
-$link = mysqli_connect("localhost", "root", "", "vtest");
+$link = mysqli_connect("localhost", "root", "", $_SESSION['school_db']['db_name']);
 if ($link === false) {
   echo "<script>alert('Could not Connect to Database!')
     location.replace('index.html')</script>";
@@ -600,8 +600,8 @@ if (isset($_POST['Promotion'])) {
 
 <head>
   <meta charset="UTF-8" />
-  <title>Victory Schools</title>
-  <link rel="shortcut icon" href="../Images/favicon.ico" type="image/x-icon">
+  <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+  <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="../css/sidebar-style.css" />
   <!-- Boxiocns CDN Link -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />

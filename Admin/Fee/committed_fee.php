@@ -162,37 +162,37 @@ if (isset($_POST['add'])) {
   if ($type == "Vehicle Fee") {
     $route = $_POST['Van_Route'];
   }
-  if ($route != "") {
-    $sql1 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
-    if (mysqli_num_rows($sql1) == 0) {
-      if ($type != "Vehicle Fee") {
-        $sql = "INSERT INTO `stu_fee_master_data` VALUES ('','$id','$name','$class','$section','$village','$type','$actual','$last','$committed','$total','')";
-      } else {
-        $sql = "INSERT INTO `stu_fee_master_data` VALUES ('','$id','$name','$class','$section','$village','$type','$actual','$last','$committed','$total','$route')";
-      }
-      if (mysqli_query($link, $sql)) {
-        echo "<script>alert('Fee Inserted Successfully!!')</script>";
-      } else {
-        echo "<script>alert('Fee Insertion Failed!!')</script>";
-      }
+  $sql1 = mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
+  if (mysqli_num_rows($sql1) == 0) {
+    if ($type != "Vehicle Fee") {
+      $sql = "INSERT INTO `stu_fee_master_data` VALUES ('','$id','$name','$class','$section','$village','$type','$actual','$last','$committed','$total','')";
     } else {
-      if ($pass_class != "") {
-        $class = $pass_class;
-        $section = "";
-      }
-      if ($type != "Vehicle Fee") {
-        $sql = "UPDATE `stu_fee_master_data` SET Class = '$class', Section = '$section', Street = '$village', Last_Balance = '$last',Current_Balance = '$committed', Total = '$total' WHERE Id_No = '$id' AND Type = '$type'";
+      if ($route != "") {
+        $sql = "INSERT INTO `stu_fee_master_data` VALUES ('','$id','$name','$class','$section','$village','$type','$actual','$last','$committed','$total','$route')";
       } else {
-        $sql = "UPDATE `stu_fee_master_data` SET Class = '$class', Section = '$section', Street = '$village',Route = '$route', Last_Balance = '$last',Current_Balance = '$committed', Total = '$total' WHERE Id_No = '$id' AND Type = '$type'";
-      }
-      if (mysqli_query($link, $sql)) {
-        echo "<script>alert('Fee Updated Successfully!!')</script>";
-      } else {
-        echo "<script>alert('Fee Updation Failed!!')</script>";
+        echo "<script>alert('Please Update Van Route in Student Details!')</script>";
       }
     }
+    if (mysqli_query($link, $sql)) {
+      echo "<script>alert('Fee Inserted Successfully!!')</script>";
+    } else {
+      echo "<script>alert('Fee Insertion Failed!!')</script>";
+    }
   } else {
-    echo "<script>alert('Please Update Van Route in Student Details!')</script>";
+    if ($pass_class != "") {
+      $class = $pass_class;
+      $section = "";
+    }
+    if ($type != "Vehicle Fee") {
+      $sql = "UPDATE `stu_fee_master_data` SET Class = '$class', Section = '$section', Street = '$village', Last_Balance = '$last',Current_Balance = '$committed', Total = '$total' WHERE Id_No = '$id' AND Type = '$type'";
+    } else {
+      $sql = "UPDATE `stu_fee_master_data` SET Class = '$class', Section = '$section', Street = '$village',Route = '$route', Last_Balance = '$last',Current_Balance = '$committed', Total = '$total' WHERE Id_No = '$id' AND Type = '$type'";
+    }
+    if (mysqli_query($link, $sql)) {
+      echo "<script>alert('Fee Updated Successfully!!')</script>";
+    } else {
+      echo "<script>alert('Fee Updation Failed!!')</script>";
+    }
   }
 }
 
@@ -203,8 +203,8 @@ if (isset($_POST['add'])) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Victory Schools</title>
-  <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon">
+  <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+  <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
   <!-- Boxiocns CDN Link -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />

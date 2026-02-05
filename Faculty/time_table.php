@@ -22,8 +22,8 @@ error_reporting(0);
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="../Images/favicon.ico" type="image/x-icon">
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../css/sidebar-style.css" />
 
     <!-- Bootstrap Links -->
@@ -253,7 +253,7 @@ error_reporting(0);
     <!-- Print Table -->
     <script type="text/javascript">
         function printDiv() {
-            window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'>VICTORY HIGH SCHOOL</h2>";
+            window.frames["print_frame"].document.body.innerHTML = "<h2 style='text-align:center;'><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h2>";
             window.frames["print_frame"].document.body.innerHTML += "<h2 style='text-align:center;'>Time Table</h2>";
             window.frames["print_frame"].document.body.innerHTML += document.querySelector('.table-container').innerHTML;
             window.frames["print_frame"].window.focus();

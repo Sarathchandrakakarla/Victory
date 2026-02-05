@@ -1,5 +1,9 @@
 <?php
 include '../link.php';
+if (!isset($_SESSION['school_db'])) {
+  header('Location: /Victory/Welcome/preindex.php');
+  exit;
+}
 
 // School posts pagination
 $school_limit = 3;
@@ -60,8 +64,8 @@ function pagination($totalPages, $page, $prefix)
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="shortcut icon" href="../Images/favicon.ico" type="image/x-icon" />
-  <title>Victory EM School</title>
+  <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon" />
+  <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
   <!-- Controlling Cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -361,35 +365,35 @@ function pagination($totalPages, $page, $prefix)
   <!-- Header -->
   <nav>
     <div class="logo">
-      <img src="../Images/Victory Logo.png" alt="..." width="70px" />
+      <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
     </div>
     <div class="heading">
-      <h3>Victory Schools, Kodur</h3>
+      <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
     </div>
     <input type="checkbox" id="click" />
     <label for="click" class="menu-btn">
       <i class="fas fa-bars"></i>
     </label>
     <ul>
-      <li><a href="../index.php">Home</a></li>
-      <li><a href="../about.html">About</a></li>
-      <li><a href="../Gallery/gallery.html">Gallery</a></li>
-      <li><a href="../contact.html">Contact</a></li>
-      <li><a href="../youtube.php" id="link">Our Stories</a></li>
-      <li><a class="active" href="blog_index.php" id="link">Our Blog</a></li>
+      <li><a href="/Victory/index.php">Home</a></li>
+      <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/about.php">About</a></li>
+      <li><a href="/Victory/Gallery/gallery.php">Gallery</a></li>
+      <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/contact.php">Contact</a></li>
+      <li><a href="/Victory/youtube.php" id="link">Our Stories</a></li>
+      <li><a class="active" href="/Victory/blog/blog_index.php" id="link">Our Blog</a></li>
       <li>
         <a href="#">Login</a>
         <ul class="login-sub-menu sub-menu">
-          <li><a href="../Admin/admin_login.php">Admin Login</a></li>
-          <li><a href="../Student/student_login.php">Student Login</a></li>
-          <li><a href="../Faculty/faculty_login.php">Faculty Login</a></li>
+          <li><a href="/Victory/Admin/admin_login.php">Admin Login</a></li>
+          <li><a href="/Victory/Student/student_login.php">Student Login</a></li>
+          <li><a href="/Victory/Faculty/faculty_login.php">Faculty Login</a></li>
         </ul>
       </li>
     </ul>
   </nav>
   <div class="container-fluid" style="padding:0;">
     <div class="img-container">
-      <img src="../Images/blog/main-bg.jpg" alt="">
+      <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/blog/main-bg.jpg" alt="">
       <div class="title">
         <h4>Celebrating Student Achievements Together as a Community</h4>
       </div>
@@ -413,7 +417,7 @@ function pagination($totalPages, $page, $prefix)
         <?php while ($row = mysqli_fetch_assoc($query_school)) { ?>
           <div class="col-md-4 mb-4">
             <div class="card h-100">
-              <img src="../Images/blog/posts_images/post_<?php echo $row['Post_Id']; ?>/<?php echo $row['Cover_Photo']; ?>" class="card-img-top" alt="">
+              <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/blog/posts_images/post_<?php echo $row['Post_Id']; ?>/<?php echo $row['Cover_Photo']; ?>" class="card-img-top" alt="">
               <div class="card-body">
                 <h5 class="card-title"><?php echo $row['Title']; ?></h5>
                 <p class="card-text"><?php echo $row['Description']; ?></p>
@@ -448,7 +452,7 @@ function pagination($totalPages, $page, $prefix)
           ?>
             <div class="col-md-4 mb-4">
               <div class="card h-100">
-                <img src="../Images/blog/posts_images/post_<?php echo $row['Post_Id']; ?>/<?php echo $row['Cover_Photo']; ?>" class="card-img-top" alt="">
+                <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/blog/posts_images/post_<?php echo $row['Post_Id']; ?>/<?php echo $row['Cover_Photo']; ?>" class="card-img-top" alt="">
                 <div class="card-body">
                   <h5 class="card-title"><?php echo $row['Title']; ?></h5>
                   <p class="card-text"><?php echo $row['Description']; ?></p>
@@ -486,7 +490,7 @@ function pagination($totalPages, $page, $prefix)
           ?>
             <div class="col-md-4 mb-4">
               <div class="card h-100">
-                <img src="../Images/blog/posts_images/post_<?php echo $row['Post_Id']; ?>/<?php echo $row['Cover_Photo']; ?>" class="card-img-top" alt="">
+                <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/blog/posts_images/post_<?php echo $row['Post_Id']; ?>/<?php echo $row['Cover_Photo']; ?>" class="card-img-top" alt="">
                 <div class="card-body">
                   <h5 class="card-title"><?php echo $row['Title']; ?></h5>
                   <p class="card-text"><?php echo $row['Description']; ?></p>
@@ -514,7 +518,7 @@ function pagination($totalPages, $page, $prefix)
 
   <footer class="bg-dark text-light py-3 mt-5">
     <div class="container text-center">
-      <p class="mb-1">&copy; <?php echo date('Y'); ?> Victory Schools, Kodur. All Rights Reserved.</p>
+      <p class="mb-1">&copy; <?php echo date('Y'); ?> <?= (isset($_SESSION['school_db']) && isset($_SESSION['school_db']['footer_msg'])) ? $_SESSION['school_db']['footer_msg'] : ''; ?>. All Rights Reserved.</p>
       <small>
         Developed by
         <a href="https://sarathtechgenics.netlify.app" target="_blank" class="text-info">Sarath Techgenics</a>

@@ -15,8 +15,8 @@ error_reporting(0);
 
 <head>
     <meta charset="UTF-8" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon">
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
     <!-- Boxiocns CDN Link -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
@@ -534,7 +534,7 @@ error_reporting(0);
     <!-- Print Table -->
     <script type="text/javascript">
         function printDiv() {
-            window.frames["print_frame"].document.body.innerHTML = "<div class='container' style='display:flex;margin-left:30px;'><img src='/Victory/Images/Victory Logo.png' alt='...' width='70px' style='margin-bottom:20px;'><h2 style='margin-left:150px;'>Student Marks Details Report</h2>";
+            window.frames["print_frame"].document.body.innerHTML = "<div class='container' style='display:flex;margin-left:30px;'><img src='<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png' alt='...' width='70px' style='margin-bottom:20px;'><h2 style='margin-left:150px;'>Student Marks Details Report</h2>";
             window.frames["print_frame"].document.body.innerHTML += "<div class = 'container'><table><tr><th>Id No:</th><td><?php echo $id; ?></td></tr></table></div>";
             window.frames["print_frame"].document.body.innerHTML += "<div class = 'container'><table><tr><th>Name:</th><td><?php echo $name; ?></td></tr></table></div>";
             window.frames["print_frame"].document.body.innerHTML += "<div class = 'container'><table><tr><th>Name of Examination:<td><?php if ($examtype == "All_Exams") {

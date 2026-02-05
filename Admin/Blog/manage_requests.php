@@ -28,7 +28,7 @@ function sanitizeFilename($filename)
 
 function createPostFolder($postId, $suffix = '')
 {
-    $folder = "../../Images/blog/posts_images/post_" . intval($postId) . $suffix;
+    $folder = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . intval($postId) . $suffix;
     if (!is_dir($folder)) {
         mkdir($folder, 0775, true);
     }
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $updateQuery = "INSERT INTO posts (Title, Description, Body, Cover_Photo, Media, Links, Author, Author_Type, Posted_On,Remarks) SELECT Title, Description, Body, Cover_Photo, Media, Links, Author, Author_Type, Posted_On,'$remarks' AS Remarks FROM posts_requests WHERE Post_Id = $postId;";
             if (mysqli_query($link, $updateQuery)) {
                 $new_post_id = mysqli_insert_id($link);
-                if (!rename('../../Images/blog/posts_images/post_' . $postId . '_request', '../../Images/blog/posts_images/post_' . $new_post_id)) {
+                if (!rename($_SESSION['school_db']['Media_Root_Dir'] . '/blog/posts_images/post_' . $postId . '_request', $_SESSION['school_db']['Media_Root_Dir'] . '/blog/posts_images/post_' . $new_post_id)) {
                     mysqli_query($link, "DELETE FROM posts WHERE Post_Id = $new_post_id");   //Delete Post to avoid files path issues
                     echo "<script>alert('Folder Rename Failed!');location.replace('manage_requests.php');</script>";
                     exit;
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     echo "<script>alert('Post Published Successfully!');location.replace('manage_requests.php');</script>";
                 } else {
                     mysqli_query($link, "DELETE FROM posts WHERE Post_Id = $new_post_id");
-                    rename('../../Images/blog/posts_images/post_' . $new_post_id . '_request', '../../Images/blog/posts_images/post_' . $postId);
+                    rename($_SESSION['school_db']['Media_Root_Dir'] . '/blog/posts_images/post_' . $new_post_id . '_request', $_SESSION['school_db']['Media_Root_Dir'] . '/blog/posts_images/post_' . $postId);
                     echo "<script>alert('Failed to delete Request!');location.replace('manage_requests.php');</script>";
                     exit;
                 }
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $updateQuery = "UPDATE posts p JOIN posts_requests pr ON pr.Original_Post_Id = p.Post_Id SET p.Title = pr.Title, p.Description = pr.Description, p.Body = pr.Body, p.Cover_Photo = pr.Cover_Photo, p.Media = pr.Media, p.Links = pr.Links, p.Author = pr.Author, p.Author_Type = pr.Author_Type, p.Posted_On = pr.Posted_On, p.Remarks = '$remarks' WHERE p.Post_Id = $original_post_id;";
 
             // Deleting Existing Post Media Folder
-            $folderPath = '../../Images/blog/posts_images/post_' . $original_post_id;
+            $folderPath = $_SESSION['school_db']['Media_Root_Dir'] . '/blog/posts_images/post_' . $original_post_id;
             if (is_dir($folderPath)) {
                 $files = array_diff(scandir($folderPath), ['.', '..']);
                 foreach ($files as $file) {
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Renaming Request Folder to Post Folder
-            if (!rename('../../Images/blog/posts_images/post_' . $postId . '_request', '../../Images/blog/posts_images/post_' . $original_post_id)) {
+            if (!rename($_SESSION['school_db']['Media_Root_Dir'] . '/blog/posts_images/post_' . $postId . '_request', $_SESSION['school_db']['Media_Root_Dir'] . '/blog/posts_images/post_' . $original_post_id)) {
                 echo "<script>alert('Request Folder Rename Failed!');location.replace('manage_requests.php');</script>";
                 exit;
             }
@@ -305,7 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Output each row - keep your existing table row HTML here
             echo "<tr>";
             echo "<td>" . htmlspecialchars($row['Post_Id']) . "</td>";
-            echo "<td style='width: 200px; height: 100px'><img src='../../Images/blog/posts_images/post_" . $row['Post_Id'] . "_request/" . htmlspecialchars($row['Cover_Photo']) . "' class='img-thumbnail rounded' style='width: 200px; height: 100px'></td>";
+            echo "<td style='width: 200px; height: 100px'><img src='" . $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $row['Post_Id'] . "_request/" . htmlspecialchars($row['Cover_Photo']) . "' class='img-thumbnail rounded' style='width: 200px; height: 100px'></td>";
             echo "<td>" . htmlspecialchars($row['Title']) . "</td>";
             echo "<td>" . htmlspecialchars($row['Description']) . "</td>";
             echo "<td>" . htmlspecialchars($row['Author']) . "</td>";
@@ -390,8 +390,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
     <meta charset="UTF-8" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon" />
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon" />
 
     <!-- CSS and JS -->
     <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
@@ -563,7 +563,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                                 <div class="mb-3">
                                     <label>Cover Photo (current) <span style="color:red;">*</span></label><br />
-                                    <img src="../../Images/blog/posts_images/post_<?= $row['Post_Id']; ?>_request/<?= htmlspecialchars($row['Cover_Photo']); ?>" class="img-thumbnail mb-2" style="width: 200px;height:100px" />
+                                    <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/blog/posts_images/post_<?= $row['Post_Id']; ?>_request/<?= htmlspecialchars($row['Cover_Photo']); ?>" class="img-thumbnail mb-2" style="width: 200px;height:100px" />
                                     <input type="file" name="Cover_Photo" accept="image/*" class="form-control" id="editcoverPhotoInput<?= $row['Post_Id']; ?>" onchange="handleEditCoverPhotoInput(event,<?= $row['Post_Id']; ?>)" />
                                     <div id="editcoverPhotoPreview<?= $row['Post_Id']; ?>" class="mt-2"></div>
                                 </div>
@@ -573,7 +573,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <?php
                                         foreach ($mediaFiles as $mediaFile) {
                                             $ext = strtolower(pathinfo($mediaFile, PATHINFO_EXTENSION));
-                                            $mediaPath = "../../Images/blog/posts_images/post_" . $row['Post_Id'] . "/" . htmlspecialchars($mediaFile);
+                                            $mediaPath = $_SESSION['school_db']['Media_Root_Dir'] . "/blog/posts_images/post_" . $row['Post_Id'] . "/" . htmlspecialchars($mediaFile);
                                             echo '<div class="me-2 mb-2 text-center">';
                                             if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'])) {
                                                 echo '<img src="' . $mediaPath . '" class="img-thumbnail" width="100">';

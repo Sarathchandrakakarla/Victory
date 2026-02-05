@@ -15,8 +15,8 @@ error_reporting(0);
 
 <head>
     <meta charset="UTF-8" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="../../Images/favicon.ico" type="image/x-icon">
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../../css/sidebar-style.css" />
     <link rel="stylesheet" href="../../css/style.css">
     <!-- Boxiocns CDN Link -->

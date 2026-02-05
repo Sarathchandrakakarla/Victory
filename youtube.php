@@ -1,5 +1,9 @@
 <?php
 include "link.php";
+if (!isset($_SESSION['school_db'])) {
+  header('Location: /Victory/Welcome/preindex.php');
+  exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +12,7 @@ include "link.php";
   <!-- Required meta tags -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="shortcut icon" href="Images/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="css/header.css" />
   <link
     rel="stylesheet"
@@ -31,7 +35,7 @@ include "link.php";
   <link
     href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css"
     rel="stylesheet" />
-  <title>Victory EM School</title>
+  <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
 </head>
 <style>
   body {
@@ -182,28 +186,28 @@ include "link.php";
 <body>
   <nav>
     <div class="logo">
-      <img src="Images/Victory Logo.png" alt="..." width="70px" />
+      <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
     </div>
     <div class="heading">
-      <h3>Victory Schools, Kodur</h3>
+      <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
     </div>
     <input type="checkbox" id="click" />
     <label for="click" class="menu-btn">
       <i class="fas fa-bars"></i>
     </label>
     <ul>
-      <li><a id="link" href="index.php">Home</a></li>
-      <li><a href="about.html" id="link">About</a></li>
-      <li><a href="Gallery/gallery.html" id="link">Gallery</a></li>
-      <li><a href="contact.html" id="link">Contact</a></li>
-      <li><a class="active" href="youtube.php" id="link">Our Stories</a></li>
-      <li><a href="blog/blog_index.php" id="link">Blog</a></li>
+      <li><a href="/Victory/index.php">Home</a></li>
+      <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/about.php">About</a></li>
+      <li><a href="/Victory/Gallery/gallery.php">Gallery</a></li>
+      <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/contact.php">Contact</a></li>
+      <li><a class="active" href="/Victory/youtube.php" id="link">Our Stories</a></li>
+      <li><a href="/Victory/blog/blog_index.php" id="link">Our Blog</a></li>
       <li>
         <a href="#">Login</a>
         <ul class="login-sub-menu sub-menu">
-          <li><a href="Admin/admin_login.php">Admin Login</a></li>
-          <li><a href="Student/student_login.php">Student Login</a></li>
-          <li><a href="Faculty/faculty_login.php">Faculty Login</a></li>
+          <li><a href="/Victory/Admin/admin_login.php">Admin Login</a></li>
+          <li><a href="/Victory/Student/student_login.php">Student Login</a></li>
+          <li><a href="/Victory/Faculty/faculty_login.php">Faculty Login</a></li>
         </ul>
       </li>
     </ul>
@@ -243,23 +247,11 @@ include "link.php";
   </div>
   <footer>
     <div class="footer-bottom">
-      <p>
-        &copy;
-        <span id="year"></span>, <a href="/">Victory Schools </a>. All Rights
-        Reserved.
-      </p>
+      <p>&copy; <?php echo date('Y'); ?>, <a href="/"> <?= (isset($_SESSION['school_db']) && isset($_SESSION['school_db']['footer_msg'])) ? $_SESSION['school_db']['footer_msg'] : ''; ?> </a>. All Rights Reserved. </p>
       <p class="company-tag">
         Developed and Maintained by
         <u><a href="https://sarathtechgenics.netlify.app" target="_blank">Sarath Techgenics</a></u>
       </p>
-      <!-- <div class="footer-menu">
-          <ul class="f-menu">
-            <li><a href="index.php">Home</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="Gallery/gallery.html">Gallery</a></li>
-            <li><a href="contact.html">Contact</a></li>
-          </ul>
-        </div> -->
     </div>
   </footer>
 

@@ -72,7 +72,7 @@ function Export_Database($host, $user, $pass, $name,  $tables = false, $backup_n
 function restoreDatabaseTables($dbHost, $dbUsername, $dbPassword, $dbName, $filePath)
 {
     //Drop all Tables in old database
-    $mysqli = new mysqli("localhost", "root", "", "vtest");
+    $mysqli = new mysqli("localhost", "root", "", $_SESSION['school_db']['db_name']);
     $mysqli->query('SET foreign_key_checks = 0');
     if ($result = $mysqli->query("SHOW TABLES")) {
         while ($row = $result->fetch_array(MYSQLI_NUM)) {
@@ -124,7 +124,7 @@ function restoreDatabaseTables($dbHost, $dbUsername, $dbPassword, $dbName, $file
 $mysqlUserName      = "root";
 $mysqlPassword      = "";
 $mysqlHostName      = "localhost";
-$DbName             = "vtest";
+$DbName             = $_SESSION['school_db']['db_name'];
 $backup_name        = "mybackup.sql";
 $tables             = "Your tables";
 //or add 5th parameter(array) of specific tables:    array("mytable1","mytable2","mytable3") for multiple tables
@@ -163,8 +163,8 @@ if (isset($_POST['Restore'])) {
 
 <head>
     <meta charset="UTF-8" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="../Images/favicon.ico" type="image/x-icon">
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../css/sidebar-style.css" />
 
     <!-- Bootstrap Links -->

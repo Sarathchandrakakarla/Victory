@@ -14,8 +14,8 @@ error_reporting(0);
 
 <head>
     <meta charset="UTF-8" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon">
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <!-- Boxiocns CDN Link -->
@@ -314,7 +314,7 @@ error_reporting(0);
     <!-- Print Table -->
     <script type="text/javascript">
         function printDiv() {
-            window.frames["print_frame"].document.body.innerHTML = "<p style='text-align:center;font-size:30px;font-family:'Times New Roman''>VICTORY HIGH SCHOOL</p>";
+            window.frames["print_frame"].document.body.innerHTML = "<p style='text-align:center;font-size:30px;font-family:'Times New Roman''><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></p>";
             window.frames["print_frame"].document.body.innerHTML += document.querySelector('.table-container').innerHTML;
             window.frames["print_frame"].window.focus();
             window.frames["print_frame"].window.print();

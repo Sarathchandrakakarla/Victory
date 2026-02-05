@@ -1,13 +1,17 @@
 <?php
 include '../link.php';
+if (!isset($_SESSION['school_db'])) {
+    header('Location: /Victory/Welcome/preindex.php');
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html>
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="shortcut icon" href="../Images/favicon.ico" type="image/x-icon" />
-    <title>Victory EM School</title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon" />
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
     <!-- Controlling Cache -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
@@ -216,28 +220,28 @@ include '../link.php';
     <!-- Header -->
     <nav>
         <div class="logo">
-            <img src="../Images/Victory Logo.png" alt="..." width="70px" />
+            <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
         </div>
         <div class="heading">
-            <h3>Victory Schools, Kodur</h3>
+            <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
         </div>
         <input type="checkbox" id="click" />
         <label for="click" class="menu-btn">
             <i class="fas fa-bars"></i>
         </label>
         <ul>
-            <li><a href="../index.php">Home</a></li>
-            <li><a href="../about.html">About</a></li>
-            <li><a href="../Gallery/gallery.html">Gallery</a></li>
-            <li><a href="../contact.html">Contact</a></li>
-            <li><a href="../youtube.php" id="link">Our Stories</a></li>
-            <li><a href="blog_index.php" id="link">Our Blog</a></li>
+            <li><a href="/Victory/index.php">Home</a></li>
+            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/about.php">About</a></li>
+            <li><a href="/Victory/Gallery/gallery.php">Gallery</a></li>
+            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/contact.php">Contact</a></li>
+            <li><a href="/Victory/youtube.php" id="link">Our Stories</a></li>
+            <li><a class="active" href="/Victory/blog/blog_index.php" id="link">Our Blog</a></li>
             <li>
                 <a href="#">Login</a>
                 <ul class="login-sub-menu sub-menu">
-                    <li><a href="../Admin/admin_login.php">Admin Login</a></li>
-                    <li><a href="../Student/student_login.php">Student Login</a></li>
-                    <li><a href="../Faculty/faculty_login.php">Faculty Login</a></li>
+                    <li><a href="/Victory/Admin/admin_login.php">Admin Login</a></li>
+                    <li><a href="/Victory/Student/student_login.php">Student Login</a></li>
+                    <li><a href="/Victory/Faculty/faculty_login.php">Faculty Login</a></li>
                 </ul>
             </li>
         </ul>
@@ -259,16 +263,16 @@ include '../link.php';
         if (!$post) {
             // Reusable "Not Found" block
             echo '
-    <div class="container my-5">
-        <div class="text-center">
-            <img src="../Images/blog/not_found.jpg" alt="Not Found" class="img-fluid not-found mb-4">
-            <h2 class="fw-bold">Post Not Found</h2>
-            <p class="text-muted mb-4">
-                The post you are looking for doesn\'t exist or may have been removed.
-            </p>
-            <a href="blog_index.php" class="btn btn-primary">← Back to Blog</a>
-        </div>
-    </div>';
+            <div class="container my-5">
+                <div class="text-center">
+                    <img src="' . $_SESSION['school_db']['Media_Root_Dir'] . '/blog/not_found.jpg" alt="Not Found" class="img-fluid not-found mb-4">
+                    <h2 class="fw-bold">Post Not Found</h2>
+                    <p class="text-muted mb-4">
+                        The post you are looking for doesn\'t exist or may have been removed.
+                    </p>
+                    <a href="blog_index.php" class="btn btn-primary">← Back to Blog</a>
+                </div>
+            </div>';
         } else {
             $author = htmlspecialchars($post['Author']);
             if (str_contains($post['Author'], 'VHST')) {
@@ -297,7 +301,7 @@ include '../link.php';
                 if (!empty($post['Cover_Photo'])) {
                     echo '
                     <div class="mb-4 text-center">
-                        <img src="../Images/blog/posts_images/post_' . $post_id . '/' . htmlspecialchars(trim($post['Cover_Photo'])) . '" 
+                        <img src="' . $_SESSION['school_db']['Media_Root_Dir'] . '/blog/posts_images/post_' . $post_id . '/' . htmlspecialchars(trim($post['Cover_Photo'])) . '" 
                             class="img-fluid rounded shadow-sm w-100" 
                             alt="Cover Photo"
                             style="max-height: 400px; object-fit: contain;">
@@ -362,7 +366,7 @@ include '../link.php';
                             $file = trim($file);
                             $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
                             $colClass = ($count == 1) ? 'col-12' : (($count == 2) ? 'col-6' : (($count == 3) ? 'col-4' : 'col-3'));
-                            $fileUrl = '../Images/blog/posts_images/post_' . $post_id . '/' . htmlspecialchars($file);
+                            $fileUrl = $_SESSION['school_db']['Media_Root_Dir'] . '/blog/posts_images/post_' . $post_id . '/' . htmlspecialchars($file);
 
                             echo "<div class='{$colClass}'>";
 
@@ -433,7 +437,7 @@ include '../link.php';
 
     <footer class="bg-dark text-light py-3 mt-5">
         <div class="container text-center">
-            <p class="mb-1">&copy; <?php echo date('Y'); ?> Victory Schools, Kodur. All Rights Reserved.</p>
+            <p class="mb-1">&copy; <?php echo date('Y'); ?> <?= (isset($_SESSION['school_db']) && isset($_SESSION['school_db']['footer_msg'])) ? $_SESSION['school_db']['footer_msg'] : ''; ?>. All Rights Reserved.</p>
             <small>
                 Developed by
                 <a href="https://sarathtechgenics.netlify.app" target="_blank" class="text-info">Sarath Techgenics</a>

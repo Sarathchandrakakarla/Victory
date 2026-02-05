@@ -1,6 +1,5 @@
 <?php
 include '../link.php';
-session_start();
 if (isset($_POST['Login'])) {
     function validate($data)
     {
@@ -88,7 +87,7 @@ if (isset($_POST['Login'])) {
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="shortcut icon" href="../Images/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/footer.css">
     <link rel="stylesheet" href="../css/style.css">
@@ -96,7 +95,7 @@ if (isset($_POST['Login'])) {
     <!-- Bootstrap Links -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <title>Victory EM School</title>
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
 </head>
 <style>
     nav {
@@ -145,28 +144,28 @@ if (isset($_POST['Login'])) {
 <body>
     <nav>
         <div class="logo">
-            <img src="../Images/Victory Logo.png" alt="..." width="70px">
+            <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
         </div>
         <div class="heading">
-            <h3>Victory Schools, Kodur</h3>
+            <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
         </div>
         <input type="checkbox" id="click" />
         <label for="click" class="menu-btn">
             <i class="fas fa-bars"></i>
         </label>
         <ul>
-            <li><a href="../index.php">Home</a></li>
-            <li><a href="../about.html">About</a></li>
-            <li><a href="../Gallery/gallery.html">Gallery</a></li>
-            <li><a href="../contact.html">Contact</a></li>
-            <li><a href="../youtube.php" id="link">Our Stories</a></li>
-            <li><a href="../blog/blog_index.php" id="link">Blog</a></li>
+            <li><a href="/Victory/index.php">Home</a></li>
+            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>about.html">About</a></li>
+            <li><a href="/Victory/Gallery/gallery.html">Gallery</a></li>
+            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>contact.html">Contact</a></li>
+            <li><a href="/Victory/youtube.php" id="link">Our Stories</a></li>
+            <li><a href="/Victory/blog/blog_index.php" id="link">Blog</a></li>
             <li>
                 <a class="active" href="#">Login</a>
                 <ul class="login-sub-menu sub-menu">
-                    <li><a class="active" href="admin_login.php">Admin Login</a></li>
-                    <li><a href="../Student/student_login.php">Student Login</a></li>
-                    <li><a href="../Faculty/faculty_login.php">Faculty Login</a></li>
+                    <li><a class="active" href="/Victory/Admin/admin_login.php">Admin Login</a></li>
+                    <li><a href="/Victory/Student/student_login.php">Student Login</a></li>
+                    <li><a href="/Victory/Faculty/faculty_login.php">Faculty Login</a></li>
                 </ul>
             </li>
         </ul>
@@ -193,11 +192,7 @@ if (isset($_POST['Login'])) {
     </div>
     <footer>
         <div class="footer-bottom">
-            <p>
-                &copy;
-                <?php echo date('Y'); ?>, <a href="/">Victory Schools </a>. All
-                Rights Reserved.
-            </p>
+            <p>&copy; <?php echo date('Y'); ?>, <a href="/"> <?= (isset($_SESSION['school_db']) && isset($_SESSION['school_db']['footer_msg'])) ? $_SESSION['school_db']['footer_msg'] : ''; ?> </a>. All Rights Reserved. </p>
             <p class="company-tag">
                 Developed and Maintained by <u><a href="https://sarathtechgenics.netlify.app" target="_blank">Sarath Techgenics</a></u>
             </p>

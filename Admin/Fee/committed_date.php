@@ -176,8 +176,8 @@ if (isset($_POST['delete'])) {
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Victory Schools</title>
-    <link rel="shortcut icon" href="/Victory/Images/favicon.ico" type="image/x-icon">
+    <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
+    <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/Victory/css/sidebar-style.css" />
     <!-- Boxiocns CDN Link -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
@@ -746,7 +746,7 @@ if (isset($_POST['delete'])) {
     <!-- Print Table -->
     <script type="text/javascript">
         function printDiv() {
-            window.frames["print_frame"].document.body.innerHTML = "<p style='text-align:center;font-size:35px;'>VICTORY HIGH SCHOOL</p>";
+            window.frames["print_frame"].document.body.innerHTML = "<p style='text-align:center;font-size:35px;'><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></p>";
             window.frames["print_frame"].document.body.innerHTML += "<p style='text-align:center;font-size:20px;'>Commitment Date Details</p>";
             window.frames["print_frame"].document.body.innerHTML += "<div class = 'container'><table style='margin-bottom:8px;'><tr><td style='text-align:center;'><?php if (isset($view_by) && $view_by != "Id_Wise") {
                                                                                                                                                                         echo str_replace('_', ' ', $view_by) . ":";

@@ -1,8 +1,90 @@
 <?php
+session_start();
 
-$myfile = fopen("test.txt", "r");
-if (filesize("test.txt") != 0) {
-  $text = fread($myfile, filesize("test.txt"));
+/**
+ * STEP 1: Accept school selection (POST only)
+ */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['school_code'])) {
+
+  $schoolCode = trim($_POST['school_code']);
+
+  $central = mysqli_connect('localhost', 'root', '', 'central');
+  if (!$central) {
+    die('System unavailable');
+  }
+
+  $stmt = mysqli_prepare(
+    $central,
+    "SELECT
+            school_id,
+            school_code,
+            school_name,
+            display_name,
+            parent_org,
+            db_host,
+            db_user,
+            db_pass,
+            db_name,
+            Root_Dir,
+            Media_Root_Dir
+         FROM school_master
+         WHERE school_code = ?
+           AND active_flag = 1
+         LIMIT 1"
+  );
+
+  mysqli_stmt_bind_param($stmt, 's', $schoolCode);
+  mysqli_stmt_execute($stmt);
+  $result = mysqli_stmt_get_result($stmt);
+
+  if ($school = mysqli_fetch_assoc($result)) {
+    $_SESSION['school_db'] = [
+      'school_id'     => (int)$school['school_id'],
+      'school_code'   => $school['school_code'],
+      'school_name'   => $school['school_name'],
+      'display_name'  => $school['display_name'],
+      'parent_org'    => $school['parent_org'],
+      'db_host'       => $school['db_host'],
+      'db_user'       => $school['db_user'],
+      'db_pass'       => $school['db_pass'],
+      'db_name'       => $school['db_name'],
+      'Root_Dir'      => $school['Root_Dir'],
+      'Media_Root_Dir' => $school['Media_Root_Dir'],
+    ];
+    switch ($_SESSION['school_db']['school_code']) {
+      case 'VHS':
+        $_SESSION['school_db']['footer_msg'] = "Victory Educational Society";
+        break;
+      case 'FGS':
+        $_SESSION['school_db']['footer_msg'] = "Futuregen International School";
+        break;
+    }
+    header("Location: /Victory/index.php", true, 303);
+    exit;
+  } else {
+    unset($_SESSION['school_db']);
+    header('Location: /Victory/Welcome/preindex.php');
+    exit;
+  }
+}
+
+/**
+ * STEP 2: Enforce school selection
+ */
+if (!isset($_SESSION['school_db'])) {
+  header('Location: /Victory/Welcome/preindex.php');
+  exit;
+}
+
+/**
+ * STEP 3: Now routing is allowed
+ */
+//require_once __DIR__ . '/db_router.php';
+
+$rootDir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . $_SESSION['school_db']['Root_Dir'];
+$myfile = fopen($rootDir . "/test.txt", "r");
+if (filesize($rootDir . "/test.txt") != 0) {
+  $text = fread($myfile, filesize($rootDir . "/test.txt"));
   if ($text != "") {
     $_SESSION['Text'] = $text;
   }
@@ -16,8 +98,8 @@ if (filesize("test.txt") != 0) {
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="shortcut icon" href="Images/favicon.ico" type="image/x-icon" />
-  <title>Victory EM School</title>
+  <link rel="shortcut icon" href="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/favicon.ico" type="image/x-icon" />
+  <title><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></title>
   <!-- Controlling Cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -59,7 +141,7 @@ if (filesize("test.txt") != 0) {
 
   nav .heading {
     color: #fff;
-    font-size: large;
+    font-size: 15px;
   }
 
   nav ul {
@@ -339,28 +421,28 @@ if (filesize("test.txt") != 0) {
   <!-- Header -->
   <nav>
     <div class="logo">
-      <img src="Images/Victory Logo.png" alt="..." width="70px" />
+      <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
     </div>
     <div class="heading">
-      <h3>Victory Schools, Kodur</h3>
+      <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
     </div>
     <input type="checkbox" id="click" />
     <label for="click" class="menu-btn">
       <i class="fas fa-bars"></i>
     </label>
     <ul>
-      <li><a class="active" href="index.php">Home</a></li>
-      <li><a href="about.html">About</a></li>
-      <li><a href="Gallery/gallery.html">Gallery</a></li>
-      <li><a href="contact.html">Contact</a></li>
-      <li><a href="youtube.php" id="link">Our Stories</a></li>
-      <li><a href="blog/blog_index.php" id="link">Our Blog</a></li>
+      <li><a class="active" href="/Victory/index.php">Home</a></li>
+      <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/about.php">About</a></li>
+      <li><a href="/Victory/Gallery/gallery.php">Gallery</a></li>
+      <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/contact.php">Contact</a></li>
+      <li><a href="/Victory/youtube.php" id="link">Our Stories</a></li>
+      <li><a href="/Victory/blog/blog_index.php" id="link">Our Blog</a></li>
       <li>
         <a href="#">Login</a>
         <ul class="login-sub-menu sub-menu">
-          <li><a href="Admin/admin_login.php">Admin Login</a></li>
-          <li><a href="Student/student_login.php">Student Login</a></li>
-          <li><a href="Faculty/faculty_login.php">Faculty Login</a></li>
+          <li><a href="/Victory/Admin/admin_login.php">Admin Login</a></li>
+          <li><a href="/Victory/Student/student_login.php">Student Login</a></li>
+          <li><a href="/Victory/Faculty/faculty_login.php">Faculty Login</a></li>
         </ul>
       </li>
     </ul>
@@ -368,7 +450,7 @@ if (filesize("test.txt") != 0) {
   <?php if (isset($_SESSION['Text'])) { ?>
     <div class="container-fluid marquee-container">
       <marquee width="100%" behavior="alternate" scrollamount="12">
-        <img src="Images/new.png" alt="..." class="icon" width="50px" />
+        <img src="/Victory/Images/new.png" alt="..." class="icon" width="50px" />
         <b style="font-family: 'Times New Roman'" id="marquee-text"><?php if (isset($_SESSION['Text'])) {
                                                                       echo $_SESSION['Text'];
                                                                     } ?></b>
@@ -389,19 +471,19 @@ if (filesize("test.txt") != 0) {
           </ol>
           <div class="carousel-inner">
             <div class="carousel-item active">
-              <img class="d-block w-100" src="Images/slides/event1.jpg" alt="First slide" />
+              <img class="d-block w-100" src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/slides/event1.jpg" alt="First slide" />
             </div>
             <div class="carousel-item">
-              <img class="d-block w-100" src="Images/slides/event2.jpg" alt="Second slide" />
+              <img class="d-block w-100" src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/slides/event2.jpg" alt="Second slide" />
             </div>
             <div class="carousel-item">
-              <img class="d-block w-100" src="Images/slides/event3.jpg" alt="Third slide" />
+              <img class="d-block w-100" src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/slides/event3.jpg" alt="Third slide" />
             </div>
             <div class="carousel-item">
-              <img class="d-block w-100" src="Images/slides/event4.jpg" alt="Fourth slide" />
+              <img class="d-block w-100" src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/slides/event4.jpg" alt="Fourth slide" />
             </div>
             <div class="carousel-item">
-              <img class="d-block w-100" src="Images/slides/event5.jpg" alt="Fifth slide" />
+              <img class="d-block w-100" src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/slides/event5.jpg" alt="Fifth slide" />
             </div>
           </div>
           <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
@@ -416,30 +498,24 @@ if (filesize("test.txt") != 0) {
       </div>
     </div>
   </div>
-  <div class="play-div p-2">
-    <div class="row justify-content-center">
-      <div class="col-lg-4 mt-4" id="play-text">
-        <p><b>Download Android App of our Victory School</b></p>
-      </div>
-      <div class="col-lg-4">
-        <a href="https://play.google.com/store/apps/details?id=com.victoryschools" target="_blank" id="play-icon">
-          <img src="/Victory/Images/GooglePlay.png" alt="..." width="50%">
-        </a>
+  <?php if (isset($_SESSION['school_db']['school_code']) && $_SESSION['school_db']['school_code'] == "VHS") { ?>
+    <div class="play-div p-2">
+      <div class="row justify-content-center">
+        <div class="col-lg-4 mt-4" id="play-text">
+          <p><b>Download Android App of our Victory School</b></p>
+        </div>
+        <div class="col-lg-4">
+          <a href="https://play.google.com/store/apps/details?id=com.victoryschools" target="_blank" id="play-icon">
+            <img src="/Victory/Images/GooglePlay.png" alt="..." width="50%">
+          </a>
+        </div>
       </div>
     </div>
-  </div>
+  <?php } ?>
   <footer>
     <div class="footer-bottom">
-      <p>&copy; <?php echo date('Y'); ?>, <a href="/">Victory Schools </a>. All Rights Reserved. </p>
+      <p>&copy; <?php echo date('Y'); ?>, <a href="/"> <?= (isset($_SESSION['school_db']) && isset($_SESSION['school_db']['footer_msg'])) ? $_SESSION['school_db']['footer_msg'] : ''; ?> </a>. All Rights Reserved. </p>
       <p class="company-tag">Developed and Maintained by <u><a href="https://sarathtechgenics.netlify.app" target="_blank">Sarath Techgenics</a></u></p>
-      <!-- <div class="footer-menu">
-        <ul class="f-menu">
-          <li><a href="index.php">Home</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="Gallery/gallery.html">Gallery</a></li>
-          <li><a href="contact.html">Contact</a></li>
-        </ul>
-      </div> -->
     </div>
   </footer>
   <!-- Scripts -->

@@ -38,10 +38,10 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
 ?>
 <nav>
     <div class="logo">
-        <img src="/Victory/Images/Victory Logo.png" alt="..." width="70px">
+        <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
     </div>
     <div class="heading">
-        <h3>Victory Schools, Kodur</h3>
+        <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
     </div>
     <input type="checkbox" id="click" />
     <label for="click" class="menu-btn">
@@ -49,7 +49,7 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
     </label>
     <ul>
         <li>
-            <img src="/Victory/Images/stu_img/<?php echo $_SESSION['Id_No']; ?>.jpg" style="color: white;" alt="Student Image">
+            <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/stu_img/<?php echo $_SESSION['Id_No']; ?>.jpg" style="color: white;" alt="Student Image">
         </li>
         <li>
             <a href="#"><?php echo $_SESSION['Id_No'] . '(' . $_SESSION['Role_Name'] . ')' ?></a>
