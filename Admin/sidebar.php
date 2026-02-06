@@ -54,11 +54,11 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
                         <input type='file' id="getFile" name="img" accept=".png,.jpg,.jpeg" onchange="saveImg()">
                     </li>
                 <?php endif; ?>
-                <li>
+                <!-- <li>
                     <a href="#" onclick="openSwitchSchoolModal()">
                         🏫 Switch School
                     </a>
-                </li>
+                </li> -->
                 <li><a href="/Victory/php/logout.php">Sign Out</a></li>
             </ul>
         </li>

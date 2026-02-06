@@ -554,6 +554,23 @@ if (isset($_POST['SaveMappings'])) {
     button:disabled {
         opacity: 0.6;
     }
+
+    .legend {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #212529;
+    }
 </style>
 
 <body>
@@ -680,6 +697,19 @@ if (isset($_POST['SaveMappings'])) {
                 <strong>Managing permissions for:</strong>
                 <?= htmlspecialchars($selectedRole['Role_Name']) ?>
                 <?= !$selectedRole['Active_Flag'] ? '(Inactive - Read Only)' : '' ?>
+            </div>
+        </div>
+        <div class="container">
+            <div class="alert alert-info mt-3" style="margin-left: 8%;">
+                <strong>Permissions Legend:</strong><br>
+                <div class="legend">
+                    <span>V : View</span>
+                    <span>C : Create/Insert</span>
+                    <span>U : Update</span>
+                    <span>D : Delete</span>
+                    <span>P : Print</span>
+                    <span>E : Export Excel</span>
+                </div>
             </div>
         </div>
 
