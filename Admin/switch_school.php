@@ -6,7 +6,7 @@ session_start();
  */
 $_SESSION['switch_context'] = [
     'username'   => $_SESSION['Admin_Id_No'] ?? null,
-    'parent_id'  => $_SESSION['school_db']['parent_id'] ?? null,
+    'parent_id'  => $_SESSION['school_db']['parent_org'] ?? null,
     'from_school' => $_SESSION['school_db']['school_code'] ?? null
 ];
 

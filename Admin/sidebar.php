@@ -1,6 +1,34 @@
 <?php
 include $_SERVER['DOCUMENT_ROOT'] . '/Victory/link.php';
 
+$showSwitchSchool = false;
+
+if (!empty($_SESSION['school_db']['parent_org'])) {
+
+    $parentOrg = $_SESSION['school_db']['parent_org'];
+
+    $central = mysqli_connect('localhost', 'root', '', 'central');
+    if ($central) {
+
+        $stmt = mysqli_prepare(
+            $central,
+            "SELECT COUNT(*) 
+             FROM school_master 
+             WHERE parent_org = ? 
+               AND active_flag = 1"
+        );
+        mysqli_stmt_bind_param($stmt, "s", $parentOrg);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_bind_result($stmt, $schoolCount);
+        mysqli_stmt_fetch($stmt);
+        mysqli_stmt_close($stmt);
+
+        if ($schoolCount > 1) {
+            $showSwitchSchool = true;
+        }
+    }
+}
+
 if (!isset($_SESSION['RBAC'])) {
     $_SESSION['RBAC'] = [];
 }
@@ -54,11 +82,13 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
                         <input type='file' id="getFile" name="img" accept=".png,.jpg,.jpeg" onchange="saveImg()">
                     </li>
                 <?php endif; ?>
-                <!-- <li>
-                    <a href="#" onclick="openSwitchSchoolModal()">
-                        🏫 Switch School
-                    </a>
-                </li> -->
+                <?php if ($showSwitchSchool): ?>
+                    <li>
+                        <a href="#" onclick="openSwitchSchoolModal()">
+                            🏫 Switch School
+                        </a>
+                    </li>
+                <?php endif; ?>
                 <li><a href="/Victory/php/logout.php">Sign Out</a></li>
             </ul>
         </li>
