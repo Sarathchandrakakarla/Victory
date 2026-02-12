@@ -45,12 +45,12 @@ if (isset($_POST['Delete_All'])) {
     $today = new DateTime($today);
     foreach ($classes as $class) {
         foreach ($sections as $section) {
-            if (is_dir("../../Files/Homework/" . $class . " " . $section . "/")) {
-                $files = array_slice(scandir("../../Files/Homework/" . $class . " " . $section . "/"), 2);
+            if (is_dir($_SESSION['school_db']['Root_Dir'] . "/Files/Homework/" . $class . " " . $section . "/")) {
+                $files = array_slice(scandir($_SESSION['school_db']['Root_Dir'] . "/Files/Homework/" . $class . " " . $section . "/"), 2);
                 foreach ($files as $file) {
                     $d = new DateTime($file);
                     if ($d->getTimestamp() < $today->getTimestamp()) {
-                        deleteDirectory("../../Files/Homework/" . $class . " " . $section . "/" . $file);
+                        deleteDirectory($_SESSION['school_db']['Root_Dir'] . "/Files/Homework/" . $class . " " . $section . "/" . $file);
                     }
                 }
             }
@@ -92,8 +92,8 @@ if (isset($_POST['Previous'])) {
                     break 3;
                 }
             }
-            if (is_dir("../../Files/Homework/" . $class . " " . $section . "/")) {
-                $files = array_slice(scandir("../../Files/Homework/" . $class . " " . $section . "/"), 2);
+            if (is_dir($_SESSION['school_db']['Root_Dir'] . "/Files/Homework/" . $class . " " . $section . "/")) {
+                $files = array_slice(scandir($_SESSION['school_db']['Root_Dir'] . "/Files/Homework/" . $class . " " . $section . "/"), 2);
                 foreach ($files as $file) {
                     $d = new DateTime($file);
                     if ($d->getTimestamp() < $date->getTimestamp()) {
@@ -156,11 +156,11 @@ if (isset($_POST['Action'])) {
             exit;
         }
 
-        $location = '../../Files/Homework/' . $class . ' ' . $section;
+        $location = $_SESSION['school_db']['Root_Dir'] . '/Files/Homework/' . $class . ' ' . $section;
         if (!is_dir($location)) {
             mkdir($location);
         }
-        $location = '../../Files/Homework/' . $class . ' ' . $section . '/' . $date . '/';
+        $location = $_SESSION['school_db']['Root_Dir'] . '/Files/Homework/' . $class . ' ' . $section . '/' . $date . '/';
         if (!is_dir($location)) {
             mkdir($location);
         }
@@ -280,7 +280,7 @@ if (isset($_POST['Action'])) {
             $html2pdf = new Html2Pdf($orientation = 'P', $format = 'A4');
             $html2pdf->writeHTML($html);
             $d = str_replace('\\', '/', dirname(dirname(__DIR__)));
-            $html2pdf->output($_SERVER['DOCUMENT_ROOT'] . "Victory/Files/Homework/" . $class . ' ' . $section . '/' . $date . '/' . $subject . '.pdf', 'F');
+            $html2pdf->output($_SESSION['school_db']['Root_Dir'] . "/Files/Homework/" . $class . ' ' . $section . '/' . $date . '/' . $subject . '.pdf', 'F');
         } catch (Exception $e) {
             echo $e->getmessage();
         }
@@ -328,10 +328,10 @@ if (isset($_POST['Action'])) {
                     location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
             exit;
         }
-        if (is_dir("../../Files/Homework/" . $class . " " . $section . "/" . $date)) {
-            foreach (array_slice(scandir("../../Files/Homework/" . $class . " " . $section . "/" . $date), 2) as $file) {
+        if (is_dir($_SESSION['school_db']['Root_Dir'] . "/Files/Homework/" . $class . " " . $section . "/" . $date)) {
+            foreach (array_slice(scandir($_SESSION['school_db']['Root_Dir'] . "/Files/Homework/" . $class . " " . $section . "/" . $date), 2) as $file) {
                 if (str_contains($file, $subject)) {
-                    unlink("../../Files/Homework/" . $class . " " . $section . "/" . $date . "/" . $file);
+                    unlink($_SESSION['school_db']['Root_Dir'] . "/Files/Homework/" . $class . " " . $section . "/" . $date . "/" . $file);
                 }
             }
         }
@@ -411,6 +411,10 @@ if (isset($_POST['Action'])) {
         color: grey !important;
         cursor: not-allowed !important;
         pointer-events: none;
+    }
+
+    .modal-title {
+        color: #000 !important;
     }
 </style>
 
@@ -609,7 +613,7 @@ if (isset($_POST['Action'])) {
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#modal"
                                                         onclick="' . ($canCreate
-                                                ? 'modal_form.reset();ShowModal(this.id)'
+                                                ? 'modal_form.reset();ShowModal(this)'
                                                 : 'return false;') . '">
                                                     <i class="bx bx-message-square-add"></i> New
                                                 </button>
@@ -617,7 +621,7 @@ if (isset($_POST['Action'])) {
                                             ';
                                         } else {
                                             echo '
-                                            <a href="/Victory/Files/Homework/' . $class . ' ' . $section . '/' . $date . '/' . $row1['Subjects'] . '.pdf"
+                                            <a href="' . $_SESSION['school_db']['Root_Dir'] . '/Files/Homework/' . $class . ' ' . $section . '/' . $date . '/' . $row1['Subjects'] . '.pdf"
                                             target="_blank"
                                             class="btn btn-warning ' . (!$canView ? 'disabled' : '') . '"
                                             ' . (!$canView ? 'title="You don\'t have permission to view"' : '') . '>
@@ -632,7 +636,7 @@ if (isset($_POST['Action'])) {
                                                         data-allowed="' . ($canUpdate ? '1' : '0') . '"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#modal"
-                                                        onclick="' . ($canUpdate ? 'ShowModal(this.id)' : 'return false;') . '">
+                                                        onclick="' . ($canUpdate ? 'ShowModal(this)' : 'return false;') . '">
                                                     <i class="bx bx-edit-alt"></i> Update
                                                 </button>
                                             </span>
@@ -759,6 +763,7 @@ if (isset($_POST['Action'])) {
 
         function ShowModal(el) {
 
+
             // 🔐 RBAC check (client-side safety)
             if (el.dataset.allowed !== "1") {
                 alert("You don't have permission to perform this action");
@@ -782,7 +787,7 @@ if (isset($_POST['Action'])) {
                 $('.modal-title').html(
                     $('#class').val() + " " +
                     $('#section').val() + " " +
-                    subject + " (" + mode.toUpperCase() + ")"
+                    subject
                 );
 
                 $('#modal_details').val(
@@ -955,7 +960,7 @@ if (isset($_POST['Action'])) {
                                 }
                             })
                             p.empty();
-                            p.append('<a href="/Victory/Files/Homework/' + cls + ' ' + section + '/' + date + '/' + subject + '.pdf" target="_blank" class="btn btn-warning me-1"><i class="fas fa-eye"></i> View</a><button class="btn btn-success me-1" data-bs-toggle="modal" id="update_' + subject + '" data-bs-target="#modal" onclick="ShowModal(this.id)"><i class="bx bx-edit-alt"></i> Update</button><button class="btn btn-danger" id="delete_' + subject + '" onclick="deletework(this.id)"><i class="bx bx-trash"></i> Delete</button>')
+                            p.append('<a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/Files/Homework/' + cls + ' ' + section + '/' + date + '/' + subject + '.pdf" target="_blank" class="btn btn-warning me-1"><i class="fas fa-eye"></i> View</a><button class="btn btn-success me-1" data-bs-toggle="modal" id="update_' + subject + '" data-bs-target="#modal" onclick="ShowModal(this.id)"><i class="bx bx-edit-alt"></i> Update</button><button class="btn btn-danger" id="delete_' + subject + '" onclick="deletework(this.id)"><i class="bx bx-trash"></i> Delete</button>')
                             text.innerHTML = ""
                         } else {
                             alert("Failed to Save!");

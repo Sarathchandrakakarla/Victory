@@ -146,7 +146,7 @@ error_reporting(0);
                                 <td>' . $row1['First_View'] . '</td>
                                 <td>' . $row1['Latest_View'] . '</td>';
                             if ($row1['Image'] || $row1['Text']) {
-                                echo '<td><a href="/Victory/Files/Homework/Student Homework/' . $date . '/' . $row1['Id_No'] . '-' . $subject . '.pdf" target="_blank" class="btn btn-warning"><i class="fas fa-eye"></i> View</a></td>
+                                echo '<td><a href="' . $_SESSION['school_db']['Root_Dir'] . '/Files/Homework/Student Homework/' . $date . '/' . $row1['Id_No'] . '-' . $subject . '.pdf" target="_blank" class="btn btn-warning"><i class="fas fa-eye"></i> View</a></td>
                                 <td>' . $row1['Response_Time'] . '</td>
                                 ';
                             } else {
