@@ -97,8 +97,8 @@ while ($row = mysqli_fetch_assoc($q)) {
         <select name="login_type" required>
           <option value="">Login As</option>
           <option value="Admin">Admin</option>
-          <option value="Faculty">Faculty</option>
-          <option value="Student">Student</option>
+          <!-- <option value="Faculty">Faculty</option>
+          <option value="Student">Student</option> -->
         </select>
 
         <!-- Password -->
