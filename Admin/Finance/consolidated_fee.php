@@ -9,6 +9,17 @@ requireMenuAccess(MENU_ID);
 
 error_reporting(0);
 ?>
+<?php
+function getAcademicYear($startMonth = 4)
+{
+    $year = date("Y");
+    $month = date("n");
+
+    $start = ($month < $startMonth) ? $year - 1 : $year;
+
+    return $start . "-" . substr($start + 1, -2);
+}
+?>
 
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -36,7 +47,7 @@ error_reporting(0);
 
     .table-container {
         max-width: 1200px;
-        max-height: 500px;
+        max-height: 700px;
         margin-left: 8%;
         overflow-x: scroll;
     }
@@ -123,6 +134,11 @@ error_reporting(0);
         <div class="row justify-content-center mt-4">
             <div class="col-lg-5">
                 <h3><b>Class Wise Consolidated Fee Report</b></h3>
+            </div>
+        </div>
+        <div class="row justify-content-center mt-4">
+            <div class="col-lg-5">
+                <h3><b>Victory High School (<?= getAcademicYear(); ?>)</b></h3>
             </div>
         </div>
     </div>
