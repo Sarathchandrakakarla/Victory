@@ -38,6 +38,7 @@ error_reporting(0);
     max-width: 1000px;
     max-height: 500px;
     overflow-x: scroll;
+    margin-left: 8%;
   }
 
   label {
@@ -469,9 +470,9 @@ error_reporting(0);
       if ($(this).hasClass('disabled-icon')) {
         return false;
       }
-      cls = $(this).parent().siblings().eq(1).text();
-      exm = $(this).parent().siblings().eq(2).text();
-      max = $(this).parent().siblings().eq(3).text();
+      cls = $(this).parent().parent().siblings().eq(1).text();
+      exm = $(this).parent().parent().siblings().eq(2).text();
+      max = $(this).parent().parent().siblings().eq(3).text();
       (async () => {
 
         const {
@@ -522,8 +523,8 @@ error_reporting(0);
       if ($(this).hasClass('disabled-icon')) {
         return false;
       }
-      cls = $(this).parent().siblings().eq(1).text();
-      exm = $(this).parent().siblings().eq(2).text();
+      cls = $(this).parent().parent().siblings().eq(1).text();
+      exm = $(this).parent().parent().siblings().eq(2).text();
       if (!confirm('Confirm to delete ' + cls + ' ' + exm + ' Exam?')) {
         return;
       } else {

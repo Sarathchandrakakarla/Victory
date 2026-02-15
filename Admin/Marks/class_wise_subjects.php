@@ -38,6 +38,7 @@ error_reporting(0);
         max-width: 1000px;
         max-height: 500px;
         overflow-x: scroll;
+        margin-left: 8%;
     }
 
     label {
@@ -337,13 +338,15 @@ error_reporting(0);
                     if ($('#subject').val() == null && $('#new_sub').val() == null) {
                         alert('Please Select Subject!');
                     } else {
-                        if ($('#subject').val() != null && $('#new_sub').val() == null) {
+                        if (($('#subject').val() != null || $('#subject').val() != '') && ($('#new_sub').val() == null || $('#new_sub').val() == '')) {
                             sub = $('#subject').val();
-                        } else if ($('#subject').val() == null && $('#new_sub').val() != null) {
+                        } else if (($('#subject').val() == null || $('#subject').val() == '') && ($('#new_sub').val() != null || $('#new_sub').val() != '')) {
                             sub = $('#new_sub').val();
-                        } else if ($('#subject').val() != null && $('#new_sub').val() != null) {
+                        } else if (($('#subject').val() != null || $('#subject').val() != '') && ($('#new_sub').val() != null || $('#new_sub').val() != '')) {
                             sub = $('#new_sub').val();
                         }
+                        console.log(sub)
+                        return;
                         if ($('#max').val() == "") {
                             alert('Please Enter Max Marks!');
                         } else {
@@ -390,10 +393,10 @@ error_reporting(0);
             if ($(this).hasClass('disabled-icon')) {
                 return false;
             }
-            cls = $(this).parent().siblings().eq(1).text();
-            exm = $(this).parent().siblings().eq(2).text();
-            sub = $(this).parent().siblings().eq(3).text();
-            max = $(this).parent().siblings().eq(4).text();
+            cls = $(this).parent().parent().siblings().eq(1).text();
+            exm = $(this).parent().parent().siblings().eq(2).text();
+            sub = $(this).parent().parent().siblings().eq(3).text();
+            max = $(this).parent().parent().siblings().eq(4).text();
             (async () => {
 
                 const {
@@ -449,9 +452,9 @@ error_reporting(0);
             if ($(this).hasClass('disabled-icon')) {
                 return false;
             }
-            cls = $(this).parent().siblings().eq(1).text();
-            exm = $(this).parent().siblings().eq(2).text();
-            sub = $(this).parent().siblings().eq(3).text();
+            cls = $(this).parent().parent().siblings().eq(1).text();
+            exm = $(this).parent().parent().siblings().eq(2).text();
+            sub = $(this).parent().parent().siblings().eq(3).text();
             if (!confirm('Confirm to delete ' + cls + ' ' + exm + ' ' + sub + ' Subject?')) {
                 return;
             } else {
