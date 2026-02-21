@@ -39,7 +39,7 @@ function hasMenuAccess(int $menuId): bool
 }
 $parents = [];
 $children = [];
-$menu_query = mysqli_query($link, "SELECT Menu_Id, Display_Name, Parent_Flag, Par_Menu_Id, Route, Icon, Menu_Type, Sequence_Id FROM menus WHERE Active_Flag = 1 AND Login_Type = 'Admin' ORDER BY (CASE WHEN Parent_Flag = 1 THEN Sequence_Id ELSE 999999 END), Par_Menu_Id, FIELD(Menu_Type, 'Entry', 'View'), Sequence_Id");
+$menu_query = mysqli_query($link, "SELECT Menu_Id, Display_Name, Parent_Flag, Par_Menu_Id, Route, Icon, Menu_Type, Sequence_Id FROM menus WHERE Active_Flag = 1 AND Login_Type = 'Admin' AND Platform_Type = 'Web' ORDER BY (CASE WHEN Parent_Flag = 1 THEN Sequence_Id ELSE 999999 END), Par_Menu_Id, FIELD(Menu_Type, 'Entry', 'View'), Sequence_Id");
 while ($menu_row = mysqli_fetch_assoc($menu_query)) {
     $menu_id = (int)$menu_row['Menu_Id'];
 
@@ -166,7 +166,7 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
 </div>
 
 <div id="switchSchoolModal" class="modal" role="dialog">
-    <div class="modal-content">
+    <div class="modal-content switch-modal-content">
         <h3>Switch School</h3>
         <p>
             Switching school will log you out from the current school.

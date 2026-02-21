@@ -7,7 +7,7 @@ define('MENU_ID', 107);
 requireLogin();
 requireMenuAccess(MENU_ID);
 
-error_reporting(0);
+//error_reporting(0);
 ?>
 <?php
 $success = '';
@@ -31,6 +31,7 @@ $menus      = [];
 $roleMaps   = [];
 $selectedRoleId = null;
 $login_type = null;
+$platform_type = null;
 
 /* ---------------- COPY ROLE–MENU MAPPINGS ---------------- */
 if (isset($_POST['CopyMappings'])) {
@@ -53,6 +54,7 @@ if (isset($_POST['CopyMappings'])) {
     }
 
     $loginType = $_POST['Login_Type'] ?? '';
+    $platformType = $_POST['Platform_Type'] ?? '';
 
     $chk = mysqli_query($link, "
         SELECT COUNT(*) AS cnt
@@ -60,6 +62,7 @@ if (isset($_POST['CopyMappings'])) {
         WHERE Role_Id IN ($sourceRole, $targetRole)
         AND Login_Type = '$loginType'
     ");
+
 
     $row = mysqli_fetch_assoc($chk);
     if ((int)$row['cnt'] !== 2) {
@@ -102,9 +105,12 @@ if (isset($_POST['CopyMappings'])) {
         /* ---------- FETCH SOURCE MAPPINGS ---------- */
         $sourceMaps = [];
         $srcMapQ = mysqli_query($link, "
-            SELECT *
-            FROM role_menu_map
-            WHERE Role_Id = $sourceRole
+            SELECT rm.*
+            FROM role_menu_map rm
+            JOIN menus m ON m.Menu_Id = rm.Menu_Id
+            WHERE rm.Role_Id = $sourceRole
+              AND m.Login_Type = '$loginType'
+              AND m.Platform_Type = '$platformType'
         ");
         while ($row = mysqli_fetch_assoc($srcMapQ)) {
             $sourceMaps[] = $row;
@@ -112,8 +118,12 @@ if (isset($_POST['CopyMappings'])) {
 
         /* ---------- CLEAR TARGET MAPPINGS ---------- */
         mysqli_query($link, "
-            DELETE FROM role_menu_map
-            WHERE Role_Id = $targetRole
+            DELETE rm
+            FROM role_menu_map rm
+            JOIN menus m ON m.Menu_Id = rm.Menu_Id
+            WHERE rm.Role_Id = $targetRole
+              AND m.Login_Type = '$loginType'
+              AND m.Platform_Type = '$platformType'
         ");
 
         /* ---------- FETCH ACTIVE PARENT MENUS ---------- */
@@ -123,19 +133,23 @@ if (isset($_POST['CopyMappings'])) {
             FROM menus
             WHERE Parent_Flag = 1
               AND Active_Flag = 1
+              AND Login_Type = '$loginType'
+              AND Platform_Type = '$platformType'
         ");
         while ($p = mysqli_fetch_assoc($pQ)) {
             $parentIds[] = (int)$p['Menu_Id'];
         }
 
         /* ---------- INSERT PARENTS (FLAGS = 0) ---------- */
-        foreach ($parentIds as $pid) {
-            mysqli_query($link, "
-                INSERT INTO role_menu_map
-                (Role_Id, Menu_Id, Created_By, Created_On)
-                VALUES
-                ($targetRole, $pid, '$admin', NOW())
-            ");
+        if ($platformType !== 'App') {
+            foreach ($parentIds as $pid) {
+                mysqli_query($link, "
+                    INSERT INTO role_menu_map
+                    (Role_Id, Menu_Id, Created_By, Created_On)
+                    VALUES
+                    ($targetRole, $pid, '$admin', NOW())
+                ");
+            }
         }
 
         /* ---------- INSERT CHILD MAPPINGS ---------- */
@@ -144,7 +158,7 @@ if (isset($_POST['CopyMappings'])) {
             $menuId = (int)$row['Menu_Id'];
 
             // Skip parents (already inserted)
-            if (in_array($menuId, $parentIds, true)) {
+            if ($platformType !== 'App' && in_array($menuId, $parentIds, true)) {
                 continue;
             }
 
@@ -167,6 +181,14 @@ if (isset($_POST['CopyMappings'])) {
         }
 
         mysqli_commit($link);
+
+        if ($platformType === 'App') {
+            mysqli_query($link, "
+                            UPDATE roles
+                            SET Permission_Version = Permission_Version + 1
+                            WHERE Role_Id = $targetRole
+                        ");
+        }
 
         $roleNames = [];
 
@@ -209,6 +231,7 @@ if (isset($_POST['ShowRoles'])) {
         exit;
     }
     $login_type = $_POST['Login_Type'];
+    $platform_type = $_POST['Platform_Type'];
     $status = $_POST['Role_Status'];
 
     $where = "";
@@ -235,6 +258,9 @@ if (isset($_POST['ShowMappings'])) {
     $selectedRole = null;
     $selectedRoleId = (int)$_POST['Role_Id'];
     $login_type = $_POST['Login_Type'];
+    $platformType = $_POST['Platform_Type'];
+    $platform_type = $platformType;
+    $isApp = ($platformType === 'App');
 
     $srQ = mysqli_query($link, "
         SELECT Role_Id, Role_Name, Active_Flag
@@ -253,11 +279,12 @@ if (isset($_POST['ShowMappings'])) {
     }
 
     $parentMenus = mysqli_query($link, "
-        SELECT Menu_Id, Menu_Name,Display_Name, Sequence_Id
+        SELECT Menu_Id, Menu_Name,Display_Name, Sequence_Id, Route
         FROM menus
         WHERE Active_Flag = 1
         AND Parent_Flag = 1
         AND Login_Type = '$login_type'
+        AND Platform_Type = '$platformType'
         ORDER BY Sequence_Id
     ");
 
@@ -294,6 +321,8 @@ if (isset($_POST['SaveMappings'])) {
 
     $roleId = (int)$_POST['Role_Id'];
     $admin  = $_SESSION['Admin_Id_No'];
+    $platformType = $_POST['Platform_Type'];
+    $isApp = ($platformType === 'App');
 
     /* ---------- Role Active Check ---------- */
     $rQ = mysqli_query($link, "
@@ -322,17 +351,24 @@ if (isset($_POST['SaveMappings'])) {
         $updateCount = 0;
         $deleteCount = 0;
 
-        /* ---------- Fetch Active Parent Menus ---------- */
-        $parentIds = [];
-        $pQ = mysqli_query($link, "
-            SELECT Menu_Id
+        /* ---------- Fetch Menu Metadata ---------- */
+        $menuMeta = [];
+        $metaQ = mysqli_query($link, "
+            SELECT Menu_Id, Parent_Flag, Route, Par_Menu_Id
             FROM menus
-            WHERE Parent_Flag = 1
-              AND Active_Flag = 1
+            WHERE Active_Flag = 1
               AND Login_Type = '$loginType'
+              AND Platform_Type = '$platformType'
         ");
-        while ($p = mysqli_fetch_assoc($pQ)) {
-            $parentIds[] = (int)$p['Menu_Id'];
+        while ($meta = mysqli_fetch_assoc($metaQ)) {
+            $menuMeta[(int)$meta['Menu_Id']] = $meta;
+        }
+
+        $parentIds = [];
+        foreach ($menuMeta as $menuId => $meta) {
+            if ((int)$meta['Parent_Flag'] === 1) {
+                $parentIds[] = (int)$menuId;
+            }
         }
 
         /* ---------- Fetch Existing Mappings ---------- */
@@ -347,26 +383,41 @@ if (isset($_POST['SaveMappings'])) {
         }
 
         /* ---------- Ensure Parent Rows Exist (Flags = 0) ---------- */
-        foreach ($parentIds as $pid) {
-            if (!isset($existing[$pid])) {
-                mysqli_query($link, "
-                    INSERT INTO role_menu_map
-                    (Role_Id, Menu_Id, Created_By, Created_On)
-                    VALUES
-                    ($roleId, $pid, '$admin', NOW())
-                ");
-                $existing[$pid] = ['Menu_Id' => $pid];
-                $insertCount++;
+        if (!$isApp) {
+            foreach ($parentIds as $pid) {
+                if (!isset($existing[$pid])) {
+                    mysqli_query($link, "
+                        INSERT INTO role_menu_map
+                        (Role_Id, Menu_Id, Created_By, Created_On)
+                        VALUES
+                        ($roleId, $pid, '$admin', NOW())
+                    ");
+                    $existing[$pid] = ['Menu_Id' => $pid];
+                    $insertCount++;
+                }
             }
         }
 
-        /* ---------- Process Submitted Child Permissions ---------- */
+        /* ---------- Process Submitted Permissions ---------- */
         foreach ($postedPerms as $menuId => $flags) {
 
             $menuId = (int)$menuId;
 
-            // Skip parents (safety)
-            if (in_array($menuId, $parentIds, true)) {
+            if (!isset($menuMeta[$menuId])) {
+                continue;
+            }
+
+            $meta = $menuMeta[$menuId];
+            $isParent = ((int)$meta['Parent_Flag'] == 1);
+            $isStandaloneParent = ($isParent && !empty($meta['Route']));
+            $isParentWithChildren = ($isParent && empty($meta['Route']));
+            $isChild = !$isParent;
+
+            if ($isApp && $isParentWithChildren) {
+                continue;
+            }
+
+            if (!$isApp && $isParent) {
                 continue;
             }
 
@@ -437,13 +488,52 @@ if (isset($_POST['SaveMappings'])) {
                 ");
                 $insertCount++;
             }
+
+            if ($isApp && $isChild) {
+                $parentId = (int)$meta['Par_Menu_Id'];
+                if ($parentId > 0 && isset($menuMeta[$parentId])) {
+                    $parentMeta = $menuMeta[$parentId];
+                    $isParentWithChildrenParent = ((int)$parentMeta['Parent_Flag'] == 1 && empty($parentMeta['Route']));
+
+                    if ($isParentWithChildrenParent) {
+                        $parentMapQ = mysqli_query($link, "
+                            SELECT COUNT(*) AS cnt
+                            FROM role_menu_map
+                            WHERE Role_Id = $roleId
+                              AND Menu_Id = $parentId
+                        ");
+                        $parentMapCnt = (int)mysqli_fetch_assoc($parentMapQ)['cnt'];
+                        if ($parentMapCnt === 0) {
+                            mysqli_query($link, "
+                                INSERT INTO role_menu_map
+                                (Role_Id, Menu_Id, Created_By, Created_On)
+                                VALUES
+                                ($roleId, $parentId, '$admin', NOW())
+                            ");
+                            $existing[$parentId] = ['Menu_Id' => $parentId];
+                            $insertCount++;
+                        }
+                    }
+                }
+            }
         }
 
-        /* ---------- Delete Removed Child Mappings ---------- */
+        /* ---------- Delete Removed Mappings ---------- */
         foreach ($existing as $menuId => $row) {
 
-            // Never delete parent rows
-            if (in_array($menuId, $parentIds, true)) {
+            if (!isset($menuMeta[$menuId])) {
+                continue;
+            }
+
+            $meta = $menuMeta[$menuId];
+            $isParent = ((int)$meta['Parent_Flag'] == 1);
+            $isParentWithChildren = ($isParent && empty($meta['Route']));
+
+            if (!$isApp && $isParent) {
+                continue;
+            }
+
+            if ($isApp && $isParentWithChildren) {
                 continue;
             }
 
@@ -457,13 +547,52 @@ if (isset($_POST['SaveMappings'])) {
             }
         }
 
+        if ($isApp) {
+            foreach ($menuMeta as $parentId => $meta) {
+                $isParentWithChildren = ((int)$meta['Parent_Flag'] == 1 && empty($meta['Route']));
+                if (!$isParentWithChildren) {
+                    continue;
+                }
+
+                $childCountQ = mysqli_query($link, "
+                    SELECT COUNT(*) AS cnt
+                    FROM role_menu_map rm
+                    JOIN menus m ON rm.Menu_Id = m.Menu_Id
+                    WHERE rm.Role_Id = $roleId
+                    AND m.Par_Menu_Id = $parentId
+                    AND m.Platform_Type = 'App'
+                ");
+                $childCount = (int)mysqli_fetch_assoc($childCountQ)['cnt'];
+
+                if ($childCount === 0) {
+                    mysqli_query($link, "
+                        DELETE FROM role_menu_map
+                        WHERE Role_Id = $roleId
+                          AND Menu_Id = $parentId
+                    ");
+                    $deleteCount++;
+                }
+            }
+        }
+
         mysqli_commit($link);
+
+        /* ---------- Increment Permission Version (App Only) ---------- */
+        if ($isApp && ($insertCount > 0 || $updateCount > 0 || $deleteCount > 0)) {
+
+            mysqli_query($link, "
+                        UPDATE roles
+                        SET Permission_Version = Permission_Version + 1
+                        WHERE Role_Id = $roleId
+                        ");
+        }
 
         $_SESSION['success_msg'] =
             "Permissions saved successfully for role <b>$roleName</b>. "
             . "Inserted: $insertCount, "
             . "Updated: $updateCount, "
             . "Deleted: $deleteCount.";
+
 
         header("Location: " . $_SERVER['PHP_SELF']);
         exit;
@@ -594,6 +723,13 @@ if (isset($_POST['SaveMappings'])) {
         <form method="post" class="mb-3">
             <div class="row justify-content-center">
                 <div class="col-md-3">
+                    <select name="Platform_Type" id="platform_type" class="form-select" required>
+                        <option value="" selected disabled>-- Select Platform Type --</option>
+                        <option value="Web" <?= isset($platform_type) && $platform_type == 'Web' ? 'selected' : '' ?>>Web</option>
+                        <option value="App" <?= isset($platform_type) && $platform_type == 'App' ? 'selected' : '' ?>>App</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <select name="Login_Type" id="login_type" class="form-select" required>
                         <option value="" selected disabled>-- Select Login Type --</option>
                         <option value="Admin" <?= isset($login_type) && $login_type == 'Admin' ? 'selected' : '' ?>>Admin</option>
@@ -628,6 +764,8 @@ if (isset($_POST['SaveMappings'])) {
                 value="<?= htmlspecialchars($_POST['Role_Status'] ?? 'A') ?>">
             <input type="hidden" name="Login_Type"
                 value="<?= $login_type ?>">
+            <input type="hidden" name="Platform_Type"
+                value="<?= htmlspecialchars($_POST['Platform_Type'] ?? '') ?>">
             <div class="container table-container" id="table-container">
 
                 <table class="table table-bordered table-striped">
@@ -742,6 +880,8 @@ if (isset($_POST['SaveMappings'])) {
             <input type="hidden" name="Role_Id" value="<?= $selectedRoleId ?>">
             <input type="hidden" name="Role_Status"
                 value="<?= htmlspecialchars($_POST['Role_Status']) ?>">
+            <input type="hidden" name="Platform_Type"
+                value="<?= htmlspecialchars($_POST['Platform_Type'] ?? '') ?>">
 
             <div class="container table-container mt-4">
 
@@ -765,46 +905,66 @@ if (isset($_POST['SaveMappings'])) {
                     <tbody>
                         <?php if ($parentMenus): ?>
                             <?php while ($p = mysqli_fetch_assoc($parentMenus)): ?>
-                                <!-- PARENT ROW -->
-                                <tr class="table-secondary">
-                                    <td>
-                                        <span <?= !can('create', MENU_ID) ? 'title="You don\'t have permission to update mappings"' : '' ?>>
-                                            <input type="checkbox" class="form-check-input sa-parent" data-parent="<?= $p['Menu_Id'] ?>" <?= !can('create', MENU_ID) ? 'disabled' : '' ?>>
-
-                                            <button type="button" class="btn btn-sm btn-outline-secondary ro-parent" data-parent="<?= $p['Menu_Id'] ?>" <?= !can('create', MENU_ID) ? 'disabled' : '' ?>>RO</button>
-
-                                            <button type="button" class="btn btn-sm btn-outline-success fa-parent" data-parent="<?= $p['Menu_Id'] ?>" <?= !can('create', MENU_ID) ? 'disabled' : '' ?>>FA</button>
-
-                                            <button type="button" class="btn btn-sm btn-outline-danger cc-parent" data-parent="<?= $p['Menu_Id'] ?>" <?= !can('create', MENU_ID) ? 'disabled' : '' ?>>CC</button>
-                                        </span>
-
-                                        <b><?= htmlspecialchars($p['Display_Name']) ?></b>
-                                    </td>
-
-                                    <?php foreach ($flags as $f): ?>
-                                        <td class="text-center">—</td>
-                                    <?php endforeach; ?>
-                                </tr>
-
-                                <!-- CHILD ROWS -->
                                 <?php
-                                $childMenus = mysqli_query($link, "
-                                    SELECT Menu_Id, Menu_Name,Display_Name
-                                    FROM menus
-                                    WHERE Active_Flag = 1
-                                    AND Parent_Flag = 0
-                                    AND Par_Menu_Id = {$p['Menu_Id']}
-                                    AND Login_Type = '$login_type'
-                                    ORDER BY Sequence_Id
-                                ");
+                                $isStandaloneParent = ($isApp && !empty($p['Route']));
+                                $isParentWithChildren = ($isApp && empty($p['Route']));
+                                ?>
+                                <?php if (!$isStandaloneParent): ?>
+                                    <tr class="table-secondary">
+                                        <td>
+                                            <span <?= !can('create', MENU_ID) ? 'title="You don\'t have permission to update mappings"' : '' ?>>
+                                                <input type="checkbox" class="form-check-input sa-parent" data-parent="<?= $p['Menu_Id'] ?>" <?= !can('create', MENU_ID) ? 'disabled' : '' ?>>
+
+                                                <button type="button" class="btn btn-sm btn-outline-secondary ro-parent" data-parent="<?= $p['Menu_Id'] ?>" <?= !can('create', MENU_ID) ? 'disabled' : '' ?>>RO</button>
+
+                                                <button type="button" class="btn btn-sm btn-outline-success fa-parent" data-parent="<?= $p['Menu_Id'] ?>" <?= !can('create', MENU_ID) ? 'disabled' : '' ?>>FA</button>
+
+                                                <button type="button" class="btn btn-sm btn-outline-danger cc-parent" data-parent="<?= $p['Menu_Id'] ?>" <?= !can('create', MENU_ID) ? 'disabled' : '' ?>>CC</button>
+                                            </span>
+
+                                            <b><?= htmlspecialchars($p['Display_Name']) ?></b>
+                                        </td>
+
+                                        <?php foreach ($flags as $f): ?>
+                                            <td class="text-center">—</td>
+                                        <?php endforeach; ?>
+                                    </tr>
+                                <?php endif; ?>
+                                <?php
+                                if ($isStandaloneParent) {
+                                    $childMenus = mysqli_query($link, "
+                                        SELECT Menu_Id, Menu_Name,Display_Name
+                                        FROM menus
+                                        WHERE Active_Flag = 1
+                                        AND Menu_Id = {$p['Menu_Id']}
+                                        AND Login_Type = '$login_type'
+                                        AND Platform_Type = '$platform_type'
+                                        ORDER BY Sequence_Id
+                                    ");
+                                } else {
+                                    $childMenus = mysqli_query($link, "
+                                        SELECT Menu_Id, Menu_Name,Display_Name
+                                        FROM menus
+                                        WHERE Active_Flag = 1
+                                        AND Parent_Flag = 0
+                                        AND Par_Menu_Id = {$p['Menu_Id']}
+                                        AND Login_Type = '$login_type'
+                                        AND Platform_Type = '$platform_type'
+                                        ORDER BY Sequence_Id
+                                    ");
+                                }
                                 ?>
 
                                 <?php while ($c = mysqli_fetch_assoc($childMenus)): ?>
                                     <?php $map = $roleMaps[$c['Menu_Id']] ?? []; ?>
 
-                                    <tr>
+                                    <tr <?php if ($isStandaloneParent) {
+                                            echo 'class="table-secondary"';
+                                        } ?>>
                                         <td>
-                                            &nbsp;&nbsp;&nbsp;
+                                            <?php if (!$isStandaloneParent) {
+                                                echo '&nbsp;&nbsp;&nbsp;';
+                                            } ?>
                                             <span <?= !can('create', MENU_ID) ? 'title="You don\'t have permission to update mappings"' : '' ?>>
                                                 <input type="checkbox" class="form-check-input sa-child" data-parent="<?= $p['Menu_Id'] ?>" data-menu="<?= $c['Menu_Id'] ?>" <?= !can('create', MENU_ID) ? 'disabled' : '' ?>>
 
@@ -912,6 +1072,8 @@ if (isset($_POST['SaveMappings'])) {
 
                         <input type="hidden" name="Login_Type"
                             value="<?= htmlspecialchars($login_type) ?>">
+                        <input type="hidden" name="Platform_Type"
+                            value="<?= htmlspecialchars($platform_type) ?>">
 
                         <!-- Source Role -->
                         <div class="mb-3">

@@ -11,7 +11,7 @@ error_reporting(0);
 ?>
 <?php
 
-function compactSequenceOnDeactivate($link, $isParent, $loginType, $platformType, $oldSeq, $parMenuId = null)  //Works for Both Parent & Child on Deactivation
+function compactSequenceOnDeactivate($link, $isParent, $loginType, $oldSeq, $parMenuId = null)  //Works for Both Parent & Child on Deactivation
 {
 
     if ($isParent == 1) {
@@ -22,7 +22,6 @@ function compactSequenceOnDeactivate($link, $isParent, $loginType, $platformType
              SET Sequence_Id = Sequence_Id - 1
              WHERE Parent_Flag = 1
                AND Login_Type = '$loginType'
-               AND Platform_Type = '$platformType'
                AND Active_Flag = 1
                AND Sequence_Id > $oldSeq"
         );
@@ -33,27 +32,25 @@ function compactSequenceOnDeactivate($link, $isParent, $loginType, $platformType
             "UPDATE menus
              SET Sequence_Id = Sequence_Id - 1
              WHERE Par_Menu_Id = $parMenuId
-               AND Platform_Type = '$platformType'
                AND Active_Flag = 1
                AND Sequence_Id > $oldSeq"
         );
     }
 }
 
-function compactChildDomain($link, $parentId, $platformType, $oldSeq)  //Used in Hard Child Deletion(No need to handle Parent)
+function compactChildDomain($link, $parentId, $oldSeq)  //Used in Hard Child Deletion(No need to handle Parent)
 {
     mysqli_query(
         $link,
         "UPDATE menus
          SET Sequence_Id = Sequence_Id - 1
          WHERE Par_Menu_Id = $parentId
-           AND Platform_Type = '$platformType'
            AND Active_Flag = 1
            AND Sequence_Id > $oldSeq"
     );
 }
 
-function compactParentDomain($link, $loginType, $platformType, $oldSeq)  //Used in Hard Parent Deletion(No need to handle Child-Children also deletes)
+function compactParentDomain($link, $loginType, $oldSeq)  //Used in Hard Parent Deletion(No need to handle Child-Children also deletes)
 {
     mysqli_query(
         $link,
@@ -61,7 +58,6 @@ function compactParentDomain($link, $loginType, $platformType, $oldSeq)  //Used 
          SET Sequence_Id = Sequence_Id - 1
          WHERE Parent_Flag = 1
            AND Login_Type = '$loginType'
-           AND Platform_Type = '$platformType'
            AND Active_Flag = 1
            AND Sequence_Id > $oldSeq"
     );
@@ -76,22 +72,15 @@ if (isset($_POST['Clear'])) {
 /* ---------------- AJAX: GET PARENT MENUS ---------------- */
 if (isset($_POST['Action']) && $_POST['Action'] === 'GetparentMenus') {
     $login_type = $_POST['Login_Type'];
-    $platform_type = $_POST['Platform_Type'];
     $ChildId = isset($_POST['ChildId']) ? (int)$_POST['ChildId'] : null;
     $data = [];
-    $q = mysqli_query($link, "SELECT Menu_Id, Menu_Name FROM menus WHERE Parent_Flag = 1 AND Active_Flag = 1 AND Login_Type = '$login_type' AND Platform_Type = '$platform_type' ORDER BY Sequence_Id");
+    $q = mysqli_query($link, "SELECT Menu_Id, Menu_Name FROM menus WHERE Parent_Flag = 1 AND Active_Flag = 1 AND Login_Type = '$login_type' ORDER BY Sequence_Id");
 
     while ($r = mysqli_fetch_assoc($q)) {
         $data[$r['Menu_Id']] = $r['Menu_Name'];
     }
     if ($ChildId) {
-        $parent_query = mysqli_query($link, "
-                        SELECT a.Active_Flag
-                        FROM menus a
-                        JOIN menus b 
-                            ON a.Menu_Id = b.Par_Menu_Id
-                        WHERE b.Menu_Id = $ChildId
-                        AND a.Platform_Type = '$platform_type'");
+        $parent_query = mysqli_query($link, "SELECT a.Active_Flag FROM `menus` a, `menus` b WHERE a.Menu_Id = b.Par_Menu_Id AND b.Menu_Id = $ChildId");
         $par_active = (int)mysqli_fetch_row($parent_query)[0];
         if ($par_active == 0) {
             echo json_encode(["success" => false, "data" => $data, "msg" => 'Parent Inactive']);
@@ -127,7 +116,6 @@ if (isset($_POST['Action']) && $_POST['Action'] === 'GetDeleteDetails') {
             SELECT Menu_Id, Display_Name, Active_Flag, Sequence_Id
             FROM menus
             WHERE Par_Menu_Id = $menuId
-              AND Platform_Type = '{$menu['Platform_Type']}'
             ORDER BY Sequence_Id ASC
         ");
         while ($c = mysqli_fetch_assoc($childQ)) {
@@ -155,54 +143,26 @@ if (isset($_POST['Insert'])) {
     $Parent_Flag = isset($_POST['Parent_Flag']) && $_POST['Parent_Flag'] == "on" ? 1 : 0;
     $Route = isset($_POST['Route']) ? $_POST['Route'] : null;
     $Icon = isset($_POST['Icon']) ? $_POST['Icon'] : null;
-    $Login_Type = $_POST['Login_Type'];
-    $Platform_Type = $_POST['Platform_Type'];
     $Par_Menu_Id = isset($_POST['Par_Menu_Id']) ? (int)$_POST['Par_Menu_Id'] : 0;
-    if (!$Parent_Flag) {
-
-        $parentCheck = mysqli_query($link, "SELECT Platform_Type, Login_Type FROM menus WHERE Menu_Id = $Par_Menu_Id");
-
-        if (mysqli_num_rows($parentCheck) == 0) {
-            echo json_encode(["success" => false, "msg" => "Invalid Parent Menu"]);
-            exit;
-        }
-
-        $parentData = mysqli_fetch_assoc($parentCheck);
-
-        if ($parentData['Platform_Type'] !== $Platform_Type) {
-            echo json_encode([
-                "success" => false,
-                "msg" => "Child must belong to same Platform as Parent"
-            ]);
-            exit;
-        }
-
-        if ($parentData['Login_Type'] !== $Login_Type) {
-            echo json_encode([
-                "success" => false,
-                "msg" => "Child must belong to same Login Type as Parent"
-            ]);
-            exit;
-        }
-    }
     $Menu_Type = $_POST['Menu_Type'];
     $Sequence_Id = (int)$_POST['Sequence_Id'];
+    $Login_Type = $_POST['Login_Type'];
 
-    $check_query = mysqli_query($link, "SELECT * FROM menus WHERE Menu_Name = '$Menu_Name' AND Login_Type = '$Login_Type' AND Platform_Type = '$Platform_Type'");
+    $check_query = mysqli_query($link, "SELECT * FROM `menus` WHERE Menu_Name = '$Menu_Name' AND Login_Type = '$Login_Type'");
     if (mysqli_num_rows($check_query) > 0) {
         echo json_encode(["success" => false, "msg" => 'Menu_Name Already Exists!']);
         exit;
     }
-    if ($Platform_Type != 'App' && !$Parent_Flag && $Route && !file_exists($_SERVER['DOCUMENT_ROOT'] . $Route)) {
+    if (!file_exists($_SERVER['DOCUMENT_ROOT'] . $Route)) {
         echo json_encode(["success" => false, "msg" => 'Route File does not exist!']);
         exit;
     }
     if ($Parent_Flag) {
-        $sequence_check_query = mysqli_query($link, "SELECT Sequence_Id FROM `menus` WHERE Parent_Flag = 1 AND Login_Type = '$Login_Type' AND Platform_Type = '$Platform_Type' ORDER BY Sequence_Id DESC LIMIT 1");
-        $sequence_update_query = "UPDATE `menus` SET Sequence_Id = Sequence_Id + 1 WHERE Parent_Flag = 1 AND Login_Type = '$Login_Type' AND Platform_Type = '$Platform_Type' AND Sequence_Id >= $Sequence_Id";
+        $sequence_check_query = mysqli_query($link, "SELECT Sequence_Id FROM `menus` WHERE Parent_Flag = 1 AND Login_Type = '$Login_Type' ORDER BY Sequence_Id DESC LIMIT 1");
+        $sequence_update_query = "UPDATE `menus` SET Sequence_Id = Sequence_Id + 1 WHERE Parent_Flag = 1 AND Login_Type = '$Login_Type' AND Sequence_Id >= $Sequence_Id";
     } else {
-        $sequence_check_query = mysqli_query($link, "SELECT Sequence_Id FROM `menus` WHERE Par_Menu_Id = $Par_Menu_Id AND Login_Type = '$Login_Type' AND Platform_Type = '$Platform_Type' ORDER BY Sequence_Id DESC LIMIT 1");
-        $sequence_update_query = "UPDATE `menus` SET Sequence_Id = Sequence_Id + 1 WHERE Par_Menu_Id = $Par_Menu_Id AND Login_Type = '$Login_Type' AND Platform_Type = '$Platform_Type' AND Sequence_Id >= $Sequence_Id";
+        $sequence_check_query = mysqli_query($link, "SELECT Sequence_Id FROM `menus` WHERE Par_Menu_Id = $Par_Menu_Id AND Login_Type = '$Login_Type' ORDER BY Sequence_Id DESC LIMIT 1");
+        $sequence_update_query = "UPDATE `menus` SET Sequence_Id = Sequence_Id + 1 WHERE Par_Menu_Id = $Par_Menu_Id AND Login_Type = '$Login_Type' AND Sequence_Id >= $Sequence_Id";
     }
     $last_sequence_id = mysqli_fetch_row($sequence_check_query)[0] ?? 0;
     if ($Sequence_Id > $last_sequence_id && ($Sequence_Id - $last_sequence_id) > 1) {
@@ -213,9 +173,9 @@ if (isset($_POST['Insert'])) {
         if (mysqli_query($link, $sequence_update_query)) {
             // Inserting New Menu
             if ($Parent_Flag) {
-                $main_insert_query = "INSERT INTO `menus`(Menu_Name,Display_Name,Parent_Flag,Icon,Menu_Type,Sequence_Id,Login_Type,Platform_Type) VALUES('$Menu_Name','$Display_Name',1,'$Icon','$Menu_Type',$Sequence_Id,'$Login_Type','$Platform_Type')";
+                $main_insert_query = "INSERT INTO `menus`(Menu_Name,Display_Name,Parent_Flag,Icon,Menu_Type,Sequence_Id,Login_Type) VALUES('$Menu_Name','$Display_Name',1,'$Icon','$Menu_Type',$Sequence_Id,'$Login_Type')";
             } else {
-                $main_insert_query = "INSERT INTO `menus`(Menu_Name,Display_Name,Parent_Flag,Route,Par_Menu_Id,Menu_Type,Sequence_Id,Login_Type,Platform_Type) VALUES('$Menu_Name','$Display_Name',0,'$Route',$Par_Menu_Id,'$Menu_Type',$Sequence_Id,'$Login_Type','$Platform_Type')";
+                $main_insert_query = "INSERT INTO `menus`(Menu_Name,Display_Name,Parent_Flag,Route,Par_Menu_Id,Menu_Type,Sequence_Id,Login_Type) VALUES('$Menu_Name','$Display_Name',0,'$Route',$Par_Menu_Id,'$Menu_Type',$Sequence_Id,'$Login_Type')";
             }
             if (mysqli_query($link, $main_insert_query)) {
                 echo json_encode(["success" => true, "msg" => 'New Menu Inserted Successfully!']);
@@ -257,7 +217,6 @@ if (isset($_POST['Update'])) {
     $Menu_Type = isset($_POST['Menu_Type']) ? $_POST['Menu_Type'] : $old['Menu_Type'];
     $Sequence_Id = isset($_POST['Sequence_Id']) ? (int)$_POST['Sequence_Id'] : (int)$old['Sequence_Id'];
     $Login_Type = $old['Login_Type'];
-    $Platform_Type = $old['Platform_Type'];
     $Cascade = (isset($_POST['Cascade']) && $_POST['Cascade'] === "1") ? 1 : 0;
 
     /* ---------- CASCADE CHECK ---------- */
@@ -267,12 +226,9 @@ if (isset($_POST['Update'])) {
             mysqli_query(
                 $link,
                 "SELECT COUNT(*) FROM menus
-                    WHERE Par_Menu_Id=$Menu_Id
-                    AND Platform_Type='$Platform_Type'
-                    AND Active_Flag=1"
+                 WHERE Par_Menu_Id=$Menu_Id AND Active_Flag=1"
             )
         )[0];
-
 
         if ($cnt > 0 && !$Cascade) {
             echo json_encode([
@@ -285,32 +241,8 @@ if (isset($_POST['Update'])) {
         if ($cnt > 0 && $Cascade) {
             mysqli_query(
                 $link,
-                "UPDATE menus 
-                    SET Active_Flag=0 
-                    WHERE Par_Menu_Id=$Menu_Id
-                    AND Platform_Type='$Platform_Type'"
+                "UPDATE menus SET Active_Flag=0 WHERE Par_Menu_Id=$Menu_Id"
             );
-        }
-    }
-
-    if ($Parent_Flag == 0) {
-
-        $parentCheck = mysqli_query($link, "
-        SELECT Platform_Type, Login_Type
-        FROM menus
-        WHERE Menu_Id = $Par_Menu_Id
-    ");
-
-        $parentData = mysqli_fetch_assoc($parentCheck);
-
-        if ($parentData['Platform_Type'] !== $Platform_Type) {
-            echo json_encode(["success" => false, "msg" => "Cross-platform parent not allowed"]);
-            exit;
-        }
-
-        if ($parentData['Login_Type'] !== $Login_Type) {
-            echo json_encode(["success" => false, "msg" => "Cross-login parent not allowed"]);
-            exit;
         }
     }
 
@@ -323,7 +255,6 @@ if (isset($_POST['Update'])) {
                 "SELECT COUNT(*) FROM menus
              WHERE Parent_Flag=1
                AND Login_Type='$Login_Type'
-               AND Platform_Type='$Platform_Type'
                AND Active_Flag=1"
             );
         } else {
@@ -332,7 +263,6 @@ if (isset($_POST['Update'])) {
                 "SELECT COUNT(*) FROM menus
              WHERE Par_Menu_Id=$Par_Menu_Id
                AND Login_Type='$Login_Type'
-               AND Platform_Type='$Platform_Type'
                AND Active_Flag=1"
             );
         }
@@ -359,7 +289,6 @@ if (isset($_POST['Update'])) {
                  FROM menus
                  WHERE Parent_Flag=1
                    AND Login_Type='$Login_Type'
-                   AND Platform_Type='$Platform_Type'
                    AND Active_Flag=1"
             );
         } else {
@@ -369,7 +298,6 @@ if (isset($_POST['Update'])) {
                  FROM menus
                  WHERE Par_Menu_Id=$Par_Menu_Id
                    AND Login_Type='$Login_Type'
-                   AND Platform_Type='$Platform_Type'
                    AND Active_Flag=1"
             );
         }
@@ -406,7 +334,7 @@ if (isset($_POST['Update'])) {
         $oldParentId = (int)$old['Par_Menu_Id'];
 
         // STEP 1: CHILD DOMAIN COMPACTION
-        compactChildDomain($link, $oldParentId, $Platform_Type, $old_seq);
+        compactChildDomain($link, $oldParentId, $old_seq);
 
         // STEP 2: PARENT DOMAIN INSERT + SHIFT
         mysqli_query(
@@ -415,7 +343,6 @@ if (isset($_POST['Update'])) {
          SET Sequence_Id = Sequence_Id + 1
          WHERE Parent_Flag = 1
            AND Login_Type = '$Login_Type'
-           AND Platform_Type = '$Platform_Type'
            AND Active_Flag = 1
            AND Sequence_Id >= $Sequence_Id"
         );
@@ -430,7 +357,6 @@ if (isset($_POST['Update'])) {
             $link,
             $old_parent,
             $Login_Type,
-            $Platform_Type,
             $old_seq,
             $old['Par_Menu_Id']
         );
@@ -439,31 +365,14 @@ if (isset($_POST['Update'])) {
 
     /* ---------- INSERT SHIFT ---------- */
     if ($old_active == 0 && $Active_Flag == 1) {
-        if ($Parent_Flag == 1) {
-
-            mysqli_query(
-                $link,
-                "UPDATE menus
-                 SET Sequence_Id = Sequence_Id + 1
-                 WHERE Parent_Flag=1
-                   AND Login_Type='$Login_Type'
-                   AND Platform_Type='$Platform_Type'
-                   AND Active_Flag=1
-                   AND Sequence_Id >= $Sequence_Id"
-            );
-        } else {
-
-            mysqli_query(
-                $link,
-                "UPDATE menus
-                 SET Sequence_Id = Sequence_Id + 1
-                 WHERE Par_Menu_Id=$Par_Menu_Id
-                   AND Login_Type='$Login_Type'
-                   AND Platform_Type='$Platform_Type'
-                   AND Active_Flag=1
-                   AND Sequence_Id >= $Sequence_Id"
-            );
-        }
+        mysqli_query(
+            $link,
+            "UPDATE menus
+             SET Sequence_Id = Sequence_Id + 1
+             WHERE Parent_Flag=$Parent_Flag
+               AND Login_Type='$Login_Type'
+               AND Sequence_Id >= $Sequence_Id"
+        );
     }
 
     /* ---------- ACTIVE → ACTIVE SEQUENCE MOVE ---------- */
@@ -479,14 +388,12 @@ if (isset($_POST['Update'])) {
             $domainWhere = "
             Parent_Flag=1
             AND Login_Type='$Login_Type'
-            AND Platform_Type='$Platform_Type'
             AND Active_Flag=1
         ";
         } else {
             $domainWhere = "
             Par_Menu_Id=$Par_Menu_Id
             AND Login_Type='$Login_Type'
-            AND Platform_Type='$Platform_Type'
             AND Active_Flag=1
         ";
         }
@@ -517,24 +424,6 @@ if (isset($_POST['Update'])) {
     }
 
 
-    /* ---------- DUPLICATE CHECK ON UPDATE ---------- */
-    $dupCheck = mysqli_query(
-        $link,
-        "SELECT Menu_Id FROM menus
-     WHERE Menu_Name = '$Menu_Name'
-       AND Login_Type = '$Login_Type'
-       AND Platform_Type = '$Platform_Type'
-       AND Menu_Id != $Menu_Id"
-    );
-
-    if (mysqli_num_rows($dupCheck) > 0) {
-        echo json_encode([
-            'success' => false,
-            'msg' => 'Menu_Name already exists for this Login Type and Platform'
-        ]);
-        exit;
-    }
-
     /* ---------- FINAL UPDATE ---------- */
     if ($Parent_Flag == 1) {
         $sql = "
@@ -547,7 +436,6 @@ if (isset($_POST['Update'])) {
                 Par_Menu_Id=NULL,
                 Menu_Type='Parent',
                 Sequence_Id=$Sequence_Id,
-                Platform_Type='$Platform_Type',
                 Active_Flag=$Active_Flag
             WHERE Menu_Id=$Menu_Id";
     } else {
@@ -561,7 +449,6 @@ if (isset($_POST['Update'])) {
                 Par_Menu_Id=$Par_Menu_Id,
                 Menu_Type='$Menu_Type',
                 Sequence_Id=$Sequence_Id,
-                Platform_Type='$Platform_Type',
                 Active_Flag=$Active_Flag
             WHERE Menu_Id=$Menu_Id";
     }
@@ -610,7 +497,7 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'SOFT') {
 
         // Fetch menu
         $menuQ = mysqli_query($link, "
-            SELECT Menu_Id, Parent_Flag, Active_Flag, Sequence_Id, Par_Menu_Id, Login_Type, Platform_Type
+            SELECT Menu_Id, Parent_Flag, Active_Flag, Sequence_Id, Par_Menu_Id, Login_Type
             FROM menus
             WHERE Menu_Id = $menuId
             FOR UPDATE
@@ -654,12 +541,11 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'SOFT') {
                 WHERE Menu_Id = $menuId
             ");
 
-            // 2. Inactivate all children (Platform scoped)
+            // 2. Inactivate all children
             mysqli_query($link, "
                 UPDATE menus 
                 SET Active_Flag = 0 
                 WHERE Par_Menu_Id = $menuId
-                  AND Platform_Type = '{$menu['Platform_Type']}'
             ");
 
             // Sequence compaction for parent + child
@@ -667,7 +553,6 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'SOFT') {
                 $link,
                 1,
                 $menu['Login_Type'],
-                $menu['Platform_Type'],
                 $old_seq
             );
         }
@@ -685,7 +570,6 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'SOFT') {
                 $link,
                 0,
                 $menu['Login_Type'],
-                $menu['Platform_Type'],
                 $old_seq,
                 $menu['Par_Menu_Id']
             );
@@ -726,7 +610,7 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
 
         // Lock menu
         $menuQ = mysqli_query($link, "
-            SELECT Menu_Id, Parent_Flag, Active_Flag, Sequence_Id, Par_Menu_Id, Login_Type, Platform_Type
+            SELECT Menu_Id, Parent_Flag, Active_Flag, Sequence_Id, Par_Menu_Id, Login_Type
             FROM menus
             WHERE Menu_Id = $menuId
             LIMIT 1
@@ -759,7 +643,7 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                 throw new Exception('Failed to delete child menu');
             }
 
-            compactChildDomain($link, $parentId, $menu['Platform_Type'], $old_seq);
+            compactChildDomain($link, $parentId, $old_seq);
 
             mysqli_commit($link);
 
@@ -789,17 +673,15 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
 
             $old_seq   = (int)$menu['Sequence_Id'];
             $loginType = $menu['Login_Type'];
-            $platformType = $menu['Platform_Type'];
             $wasActive = (int)$menu['Active_Flag'];
 
-            // 🔴 DELETE ROLE MAPPINGS FOR CHILD MENUS (Platform scoped)
+            // 🔴 DELETE ROLE MAPPINGS FOR CHILD MENUS
             if (!mysqli_query(
                 $link,
                 "DELETE rm
                     FROM role_menu_map rm
                     JOIN menus m ON rm.Menu_Id = m.Menu_Id
-                    WHERE m.Par_Menu_Id = $menuId
-                      AND m.Platform_Type = '$platformType'"
+                    WHERE m.Par_Menu_Id = $menuId"
             )) {
                 throw new Exception('Failed to delete child menu role mappings');
             }
@@ -813,12 +695,10 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
             }
 
 
-            // Delete children (Platform scoped)
+            // Delete children
             if (!mysqli_query(
                 $link,
-                "DELETE FROM menus 
-                 WHERE Par_Menu_Id = $menuId
-                   AND Platform_Type = '$platformType'"
+                "DELETE FROM menus WHERE Par_Menu_Id = $menuId"
             )) {
                 throw new Exception('Failed to delete child menus');
             }
@@ -833,7 +713,7 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
 
             // 🔒 COMPACT ONLY IF IT WAS ACTIVE
             if ($wasActive === 1) {
-                compactParentDomain($link, $loginType, $platformType, $old_seq);
+                compactParentDomain($link, $loginType, $old_seq);
             }
 
             mysqli_commit($link);
@@ -959,16 +839,6 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
     <form action="" method="post">
         <div class="container">
             <div class="row justify-content-center mt-5">
-                <div class="col-lg-3 mt-3">
-                    <select class="form-select" name="Platform_Type" id="platform_type">
-                        <option selected disabled>-- Select Platform --</option>
-                        <option value="Web">Web</option>
-                        <option value="App">App</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="row justify-content-center mt-1">
                 <div class="col-lg-3 rounded">
                     <select class="form-select" name="Type" id="type" aria-label="Default select example">
                         <option selected disabled>-- Select Login Type --</option>
@@ -1017,7 +887,7 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
         <table class="table table-bordered table-hover">
             <thead class="bg-secondary text-light">
                 <tr>
-                    <th colspan="13" id="actions_row">
+                    <th colspan="12" id="actions_row">
                         <form action="" method="post">
                             <div id="actions-wrapper">
                                 <input type="text" class="form-control" name="Query" id="query" placeholder="Enter Full SQL Query" style="width:50%;" hidden>
@@ -1076,7 +946,6 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                     <th>Menu Type</th>
                     <th>Sequence Id</th>
                     <th id="login_type_head">Login Type</th>
-                    <th id="platform_type_head">Platform Type</th>
                     <th>Active</th>
                     <th>Actions</th>
                 </tr>
@@ -1086,12 +955,10 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                 if (isset($_POST['Show'])) {
                     if (!can('view', MENU_ID)) {
                         echo "<script>alert('You don\'t have permission to view this report');
-                        location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
+                            location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
                         exit;
                     }
-                    $Platform_Type = $_POST['Platform_Type'];
-                    echo "<script>document.getElementById('platform_type').value='" . $Platform_Type . "';</script>";
-                    if ((isset($_POST['Type']) && isset($_POST['Platform_Type'])) || isset($_POST['Query'])) {
+                    if (isset($_POST['Type']) || isset($_POST['Query'])) {
                         if (isset($_POST['Query'])) {
                             $query = $_POST['Query'];
                             echo "<script>document.getElementById('query').hidden = '';
@@ -1107,20 +974,14 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                             }
                             $menu_status = $menu_status == "Active" ? 1 : 0;
                             if ($Type == "All") {
-                                echo "<script>
-                                login_type_head.hidden='';
-                                platform_type_head.hidden='';
-                                </script>";
+                                echo "<script>login_type_head.hidden='';</script>";
                             } else {
-                                echo "<script>
-                                login_type_head.hidden='hidden';
-                                platform_type_head.hidden='hidden';
-                                </script>";
+                                echo "<script>login_type_head.hidden='hidden';</script>";
                             }
                             if ($Type == "All") {
-                                $query1 = mysqli_query($link, "SELECT m.*, p.Display_Name AS Parent_Display_Name FROM menus m LEFT JOIN menus p ON p.Menu_Id = m.Par_Menu_Id WHERE m.Platform_Type = '$Platform_Type' AND m.Active_Flag = $menu_status ORDER BY FIELD(m.Login_Type,'Admin','Student','Faculty'), FIELD(m.Platform_Type,'Web','App'), CASE WHEN m.Parent_Flag=1 THEN m.Sequence_Id ELSE p.Sequence_Id END, m.Parent_Flag DESC, m.Sequence_Id ASC");
+                                $query1 = mysqli_query($link, "SELECT m.*, p.Display_Name AS Parent_Display_Name FROM menus m LEFT JOIN menus p ON p.Menu_Id = m.Par_Menu_Id WHERE m.Active_Flag = $menu_status ORDER BY FIELD(m.Login_Type,'Admin','Student','Faculty'), CASE WHEN m.Parent_Flag=1 THEN m.Sequence_Id ELSE p.Sequence_Id END, m.Parent_Flag DESC, m.Sequence_Id ASC");
                             } else {
-                                $query1 = mysqli_query($link, "SELECT m.*, p.Display_Name AS Parent_Display_Name FROM menus m LEFT JOIN menus p ON p.Menu_Id = m.Par_Menu_Id WHERE m.Login_Type = '$Type' AND m.Platform_Type = '$Platform_Type' AND m.Active_Flag = $menu_status ORDER BY CASE WHEN m.Parent_Flag=1 THEN m.Sequence_Id ELSE p.Sequence_Id END, m.Parent_Flag DESC, m.Sequence_Id ASC");
+                                $query1 = mysqli_query($link, "SELECT m.*, p.Display_Name AS Parent_Display_Name FROM menus m LEFT JOIN menus p ON p.Menu_Id = m.Par_Menu_Id WHERE m.Login_Type = '$Type' AND m.Active_Flag = $menu_status ORDER BY CASE WHEN m.Parent_Flag=1 THEN m.Sequence_Id ELSE p.Sequence_Id END, m.Parent_Flag DESC, m.Sequence_Id ASC");
                             }
                         }
 
@@ -1130,25 +991,19 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                                 <td>{$r['Menu_Id']}</td>
                                 <td style='width:300px;word-break: break-word; overflow-wrap: anywhere; white-space: normal;'>{$r['Menu_Name']}</td>
                                 <td>{$r['Display_Name']}</td>
-                                <td class='text-center'><input class='form-check-input' type='checkbox' " . ($r['Parent_Flag'] ? 'checked' : '') . " disabled></td>
-                                <td style='width:300px;word-break: break-word; overflow-wrap: anywhere; white-space: normal;'>";
-                            if ($Platform_Type != "App") {
-                                echo "<a href='{$r['Route']}' target='_blank'>{$r['Route']}</a>";
-                            } else {
-                                echo $r['Route'];
-                            }
-                            echo "</td>
+                                <td><input type='checkbox' " . ($r['Parent_Flag'] ? 'checked' : '') . " disabled></td>
+                                <td style='width:300px;word-break: break-word; overflow-wrap: anywhere; white-space: normal;'>
+                                <a href='{$r['Route']}' target='_blank'>{$r['Route']}</a>
+                                </td>
                                 <td>{$r['Icon']}</td>
                                 <td>" . (isset($r['Parent_Display_Name']) ? $r['Parent_Display_Name'] : '') . "</td>
                                 <td>{$r['Menu_Type']}</td>
                                 <td>{$r['Sequence_Id']}</td>";
                             if (isset($_POST['Query']) || (isset($Type) && $Type == "All")) {
-                                echo '<td>' . $r['Login_Type'] . '</td>
-                                <td>' . $r['Platform_Type'] . '</td>
-                                ';
+                                echo '<td>' . $r['Login_Type'] . '</td>';
                             }
-                            echo "<td class='text-center'>
-                                    <input class='form-check-input' type='checkbox' " . ($r['Active_Flag'] ? 'checked' : '') . " disabled>
+                            echo "<td>
+                                    <input type='checkbox' " . ($r['Active_Flag'] ? 'checked' : '') . " disabled>
                                 </td>
                                 <td>
                                     <div style='display:flex; gap:12px; justify-content:center;'>";
@@ -1163,7 +1018,6 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                                         data-mode='edit'
                                         data-id='{$r['Menu_Id']}'
                                         data-logintype='{$r['Login_Type']}'
-                                        data-platformtype='{$r['Platform_Type']}'
                                         data-menuname='{$r['Menu_Name']}'
                                         data-displayname='{$r['Display_Name']}'
                                         data-parentflag='" . ($r['Parent_Flag'] ? 'true' : 'false') . "'
@@ -1200,7 +1054,7 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                                 </tr>";
                         }
                     } else {
-                        echo "<script>alert('Please Select Login Type and Platform');</script>";
+                        echo "<script>alert('Please Select Login Type');</script>";
                     }
                 }
                 ?>
@@ -1242,15 +1096,8 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                             <div id="error_msg"></div>
                         </div>
 
-                        <label>Platform Type</label>
-                        <select id="platformType" name="Platform_Type" class="form-control" required onchange="getParentMenus(document.getElementById('loginType').value, this.value)">
-                            <option value="" disabled selected>-- Select Platform --</option>
-                            <option value="Web">Web</option>
-                            <option value="App">App</option>
-                        </select>
-
-                        <label class="mt-2">Login Type</label>
-                        <select id="loginType" name="Login_Type" class="form-control" required onchange="getParentMenus(this.value, document.getElementById('platformType').value)">
+                        <label>Login Type</label>
+                        <select id="loginType" name="Login_Type" class="form-control" required onchange="getParentMenus(this.value)">
                             <option value="" disabled selected>-- Select Login Type --</option>
                             <option>Admin</option>
                             <option>Faculty</option>
@@ -1455,11 +1302,10 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
         }
 
         // Get Parent Menus based on Login Type
-        async function getParentMenus(loginType, platformType, childId = null) {
+        async function getParentMenus(loginType, childId = null) {
             return $.post('', {
                 Action: 'GetparentMenus',
                 Login_Type: loginType,
-                Platform_Type: platformType,
                 ChildId: childId
             }, function(d) {
                 let o = '<option value="" disabled selected>-- Select Parent Menu Id --</option>';
@@ -1555,12 +1401,12 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
             }
         }
 
-        function validateInsertForm(e) {
+        function validateInsertForm() {
             if (!CAN_INSERT) {
                 alert("You do not have permission to create menu");
                 return;
             }
-            e.preventDefault();
+            event.preventDefault();
 
             const form = document.getElementById('modalForm');
             const alertDialogue = document.querySelector('.alert');
@@ -1579,7 +1425,6 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                 contentType: false,
 
                 success: function(data) {
-                    console.log(data)
                     try {
                         const res = JSON.parse(data);
 
@@ -1611,12 +1456,12 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
             });
         }
 
-        function validateUpdateForm(e) {
+        function validateUpdateForm() {
             if (!CAN_UPDATE) {
                 alert("You do not have permission to update menu");
                 return;
             }
-            e.preventDefault();
+            event.preventDefault();
 
             const form = document.getElementById('modalForm');
             const alertBox = document.querySelector('.alert');
@@ -1783,7 +1628,7 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
         }
 
         /* Insert/Edit Modal Control */
-        document.getElementById('menuModal').addEventListener('show.bs.modal', async e => {
+        document.getElementById('menuModal').addEventListener('show.bs.modal', async e => { 
 
             const b = e.relatedTarget;
             const m = b.dataset.mode;
@@ -1799,7 +1644,7 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                     return;
                 }
                 modal.classList.add('insert');
-                form.onsubmit = (e) => validateInsertForm(e);
+                form.onsubmit = validateInsertForm;
 
                 // Title & submit button
                 document.getElementById('modalTitle').innerText = 'Insert New Menu';
@@ -1813,7 +1658,6 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                 // Clear hidden fields
                 document.getElementById('menuId').value = '';
                 document.getElementById('login_type').value = '';
-                document.getElementById('platformType').disabled = false;
 
                 // Enable Parent checkbox
                 p.checked = false;
@@ -1838,7 +1682,7 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
                     return;
                 }
                 modal.classList.add('edit');
-                form.onsubmit = (e) => validateUpdateForm(e);
+                form.onsubmit = validateUpdateForm;
 
                 // Title & submit button
                 document.getElementById('modalTitle').innerText = 'Update Menu';
@@ -1853,17 +1697,15 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
 
                 if (!p.checked) {
                     if (isactive) {
-                        await getParentMenus(b.dataset.logintype, b.dataset.platformtype);
+                        await getParentMenus(b.dataset.logintype);
                     } else {
-                        await getParentMenus(b.dataset.logintype, b.dataset.platformtype, b.dataset.id);
+                        await getParentMenus(b.dataset.logintype, b.dataset.id);
                     }
                 }
 
                 menuId.value = b.dataset.id;
                 loginType.value = b.dataset.logintype;
                 loginType.disabled = true;
-                platformType.value = b.dataset.platformtype;
-                platformType.disabled = true;
                 login_type.value = b.dataset.logintype;
                 menuName.value = b.dataset.menuname;
                 displayName.value = b.dataset.displayname;
@@ -1912,7 +1754,6 @@ if (isset($_POST['Delete']) && $_POST['Delete_Type'] === 'HARD') {
 
         document.getElementById('menuModal').addEventListener('hide.bs.modal', async e => {
             let modal = document.getElementById('menuModal');
-            document.getElementById('modalForm').reset();
             const alertBox = document.querySelector('.alert');
             modal.classList.remove('insert');
             modal.classList.remove('edit');
