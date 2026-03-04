@@ -204,7 +204,7 @@ error_reporting(0);
                 </thead>
                 <tbody id="tbody">
                     <?php
-                    if (isset($_POST['Show'])) {
+                    if (isset($_POST['show'])) {
                         if (!can('view', MENU_ID)) {
                             echo "<script>alert('You don\'t have permission to view this report');
                             location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
@@ -363,7 +363,7 @@ error_reporting(0);
                                                 <td><a href="../../Files/' . $class . " " . $section . '/' . $exam . '/' . $id . '.pdf" target="_blank">Download File</a></td>
                                                 <td>';
                                             if (can("create", MENU_ID)) {
-                                                echo '<input type="checkbox" class="form-check-input student" id="student" name="student[]" value="' . $id . ',' . $class . ',' . $section . ',' . $exam . ',' . $data['Mobile'] . '">' . $data['Mobile'] . '';
+                                                echo '<input type="checkbox" class="form-check-input student" id="student" name="student[]" value="' . $id . ',' . $data['Name'] . ',' . $class . ',' . $section . ',' . $exam . ',' . $data['Mobile'] . '">' . $data['Mobile'] . '';
                                             } else {
                                                 echo '<span class="tooltip-wrapper" data-bs-toggle="tooltip" data-bs-placement="top" title="You don\'t have permission to select and send SMS">
                                                     <input type="checkbox" class="form-check-input student disabled" disabled> 
@@ -403,7 +403,7 @@ error_reporting(0);
     </form>
 
     <?php
-    if (isset($_POST['Send'])) {
+    /* if (isset($_POST['Send'])) {
         if (!can('create', MENU_ID)) {
             echo "<script>alert('You don\'t have permission to Send SMS');
                 location.replace('" . $_SERVER['PHP_SELF'] . "')</script>";
@@ -481,6 +481,394 @@ error_reporting(0);
                 </script>
             ";
             echo "<script>alert('No Student Selected!');</script>";
+        }
+    } */
+    /* if (isset($_POST['Send'])) {
+
+        if (!can('create', MENU_ID)) {
+            echo "<script>
+            alert('You don\'t have permission to Send WhatsApp');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')
+        </script>";
+            exit;
+        }
+
+        if (isset($_POST['student'])) {
+
+            $students = $_POST['student'];
+
+            $ch = curl_init("https://alots.io/v20.0/1028822190304505/messages");
+
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                "Content-Type: application/json",
+                "Authorization: Bearer 19bcb7e3-4b80-4613-b6fa-80d20fb13ae0"
+            ));
+
+            $send_count = 0;
+            $failed_mobiles = [];
+
+            foreach ($students as $student) {
+
+                $student = explode(',', $student);
+
+                $id      = $student[0];
+                $name    = $student[1];
+                $class   = $student[2];
+                $section = $student[3];
+                $exam    = $student[4];
+                $mobile  = $student[5];
+
+                // Document URL
+                $pdfUrl = "https://victoryschools.in/Victory/Files/"
+                    . $class . " " . $section . "/"
+                    . $exam . "/"
+                    . $id . ".pdf";
+
+
+                $body = array(
+
+                    "messaging_product" => "whatsapp",
+
+                    "recipient_type" => "individual",
+
+                    "to" => "919515744884", // . $mobile,
+
+                    "type" => "template",
+
+                    "template" => array(
+
+                        "name" => "student_report",
+
+                        "language" => array(
+                            "code" => "en"
+                        ),
+
+                        "components" => array(
+
+                            array(
+
+                                "type" => "header",
+
+                                "parameters" => array(
+
+                                    array(
+
+                                        "type" => "document",
+
+                                        "document" => array(
+
+                                            "link" => "https://victoryschools.in/Victory/Files/10 CLASS A/SA-1/VHST05254.pdf", //$pdfUrl,
+
+                                            "filename" => $id . ".pdf"
+
+                                        )
+
+                                    )
+
+                                )
+
+                            ),
+
+                            array(
+
+                                "type" => "body",
+
+                                "parameters" => array(
+
+                                    array(
+                                        "type" => "text",
+                                        "text" => $exam
+                                    ),
+
+                                    array(
+                                        "type" => "text",
+                                        "text" => $name
+                                    )
+
+                                )
+
+                            )
+
+                        )
+
+                    ),
+
+                    "biz_opaque_callback_data" => "VictoryStudentReport"
+
+                );
+
+
+                $data_string = json_encode($body);
+
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+
+                // Optional Debug
+                //echo $data_string;
+
+                $response = curl_exec($ch);
+
+                $responseArr = json_decode($response, true);
+
+                // Success Check
+                if (!isset($responseArr['messages'][0]['id'])) {
+
+                    $failed_mobiles[] = $mobile;
+                } else {
+
+                    $send_count++;
+                }
+            }
+
+            curl_close($ch);
+
+            $failed_count = count($students) - $send_count;
+
+            echo "
+                <script>
+                    send_alert_container.hidden = '';
+                    total.innerHTML = '" . count($students) . "';
+                    sent.innerHTML = '" . $send_count . "';
+                    failed.innerHTML = '" . $failed_count . "';
+                </script>
+                ";
+
+            if ($failed_count != 0) {
+
+                echo "
+                    <script>
+                        send_error_alert.hidden = '';
+                        error_mobiles.innerHTML = '" . implode(',', $failed_mobiles) . "';
+                    </script>
+                    ";
+            } else {
+
+                echo "
+                    <script>
+                        send_error_alert.hidden = 'hidden';
+                        error_mobiles.innerHTML = '';
+                    </script>
+                    ";
+            }
+        } else {
+
+            echo "
+                <script>
+                    send_alert_container.hidden = 'hidden';
+                </script>";
+
+            echo "<script>alert('No Student Selected!');</script>";
+        }
+    } */
+    if (isset($_POST['Send'])) {
+
+        if (!can('create', MENU_ID)) {
+            echo "<script>
+            alert('No permission');
+            location.replace('" . $_SERVER['PHP_SELF'] . "')
+        </script>";
+            exit;
+        }
+
+        if (!isset($_POST['student'])) {
+
+            echo "<script>alert('No Student Selected!');</script>";
+            return;
+        }
+
+        $students = $_POST['student'];
+
+        $url = "https://alots.io/v20.0/1028822190304505/messages";
+
+        $headers = array(
+            "Content-Type: application/json",
+            "Authorization: Bearer 19bcb7e3-4b80-4613-b6fa-80d20fb13ae0"
+        );
+
+
+        /* ===============================
+            CURL MULTI INITIALIZE
+        =============================== */
+
+        $mh = curl_multi_init();
+
+        $curlHandles = [];
+
+        $meta = []; // mobile tracking
+
+
+        foreach ($students as $index => $student) {
+
+            $student = explode(',', $student);
+
+            $id      = $student[0];
+            $name    = $student[1];
+            $class   = $student[2];
+            $section = $student[3];
+            $exam    = $student[4];
+            $mobile  = $student[5];
+
+
+            $pdfUrl = "https://victoryschools.in/Victory/Files/"
+                . $class . " " . $section . "/"
+                . $exam . "/"
+                . $id . ".pdf";
+
+
+            $body = [
+
+                "messaging_product" => "whatsapp",
+
+                "recipient_type" => "individual",
+
+                "to" => "919515744884", // . $mobile,
+
+                "type" => "template",
+
+                "template" => [
+
+                    "name" => "student_report",
+
+                    "language" => [
+                        "code" => "en"
+                    ],
+
+                    "components" => [
+
+                        [
+                            "type" => "header",
+
+                            "parameters" => [
+                                [
+                                    "type" => "document",
+
+                                    "document" => [
+                                        "link" => $pdfUrl,
+                                        "filename" => $id . ".pdf"
+                                    ]
+                                ]
+                            ]
+                        ],
+
+                        [
+                            "type" => "body",
+
+                            "parameters" => [
+                                [
+                                    "type" => "text",
+                                    "text" => $exam
+                                ],
+                                [
+                                    "type" => "text",
+                                    "text" => $name
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+
+                "biz_opaque_callback_data" => "VictoryStudentReport"
+            ];
+
+
+            $ch = curl_init($url);
+
+            curl_setopt_array($ch, [
+
+                CURLOPT_POST => true,
+
+                CURLOPT_RETURNTRANSFER => true,
+
+                CURLOPT_HTTPHEADER => $headers,
+
+                CURLOPT_POSTFIELDS => json_encode($body),
+
+                CURLOPT_TIMEOUT => 20
+
+            ]);
+
+            curl_multi_add_handle($mh, $ch);
+
+            $curlHandles[$index] = $ch;
+
+            $meta[$index] = $mobile;
+        }
+
+
+        /* ===============================
+            EXECUTE PARALLEL REQUESTS
+        =============================== */
+
+        $running = null;
+
+        do {
+
+            curl_multi_exec($mh, $running);
+
+            curl_multi_select($mh);
+        } while ($running > 0);
+
+
+
+        /* ===============================
+            RESPONSE PROCESSING
+        =============================== */
+
+        $send_count = 0;
+
+        $failed_mobiles = [];
+
+        foreach ($curlHandles as $index => $ch) {
+
+            $response = curl_multi_getcontent($ch);
+
+            $resp = json_decode($response, true);
+
+            if (isset($resp['messages'][0]['id'])) {
+
+                $send_count++;
+            } else {
+
+                $failed_mobiles[] = $meta[$index];
+            }
+
+            curl_multi_remove_handle($mh, $ch);
+        }
+
+        curl_multi_close($mh);
+
+
+        $failed_count = count($students) - $send_count;
+
+
+        echo "
+        <script>
+            send_alert_container.hidden='';
+            total.innerHTML='" . count($students) . "';
+            sent.innerHTML='" . $send_count . "';
+            failed.innerHTML='" . $failed_count . "';
+        </script>
+        ";
+
+
+        if ($failed_count) {
+
+            echo "
+            <script>
+                send_error_alert.hidden='';
+                error_mobiles.innerHTML='" . implode(',', $failed_mobiles) . "';
+            </script>
+            ";
+        } else {
+
+            echo "
+            <script>
+                send_error_alert.hidden='hidden';
+                error_mobiles.innerHTML='';
+            </script>
+            ";
         }
     }
     ?>
