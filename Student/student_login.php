@@ -1,7 +1,5 @@
 <?php
 include '../link.php';
-session_start();
-
 $flag = "";
 
 if (isset($_POST['Login'])) {

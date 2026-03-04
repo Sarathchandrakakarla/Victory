@@ -10,6 +10,24 @@ requireMenuAccess(MENU_ID);
 error_reporting(0);
 ?>
 
+<?php
+if (isset($_POST['Action']) && $_POST['Action'] == "Get_Roles") {
+    $result = mysqli_query($link, "SELECT Role_Id, Role_Name FROM roles WHERE Login_Type = 'Faculty' AND Active_Flag = 1 ORDER BY Role_Name ASC");
+
+    $roles = [];
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $roles[$row['Role_Id']] = $row['Role_Name'];
+        }
+    }
+
+    echo json_encode($roles);
+    exit;
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -409,7 +427,33 @@ error_reporting(0);
             if ($('#user').val() == "Faculty") {
                 $('.status').remove()
                 document.querySelector('.button').style.marginTop = '70px';
-                $('#c_password').parent().append('<div class="row role" style="margin-top:20px;"><i class="fas fa-users"></i><select class="form-select" name="Role" id="role" style="padding-left: 60px;"><option value="selectrole" selected disabled>-- Select Role --</option><option value="Faculty">Faculty</option><option value="Faculty_Admin">Faculty Admin</option><option value="Van_Incharge">Van Incharge</option></select></div>')
+                $.ajax({
+                    url: '',
+                    type: 'POST',
+                    data: {
+                        Action: 'Get_Roles'
+                    },
+                    success: function(roles) {
+
+                        let roleOptions = '<option value="selectrole" selected disabled>-- Select Role --</option>';
+
+                        let parsedRoles = JSON.parse(roles);
+
+                        Object.keys(parsedRoles).forEach(function(roleId) {
+                            roleOptions += '<option value="' + roleId + '">' + parsedRoles[roleId] + '</option>';
+                        });
+
+                        $('#c_password').parent().append(
+                            '<div class="row role" style="margin-top:20px;">' +
+                            '<i class="fas fa-users"></i>' +
+                            '<select class="form-select" name="Role" id="role" style="padding-left: 60px;">' +
+                            roleOptions +
+                            '</select>' +
+                            '</div>'
+                        );
+                        /* $('#c_password').parent().append('<div class="row role" style="margin-top:20px;"><i class="fas fa-users"></i><select class="form-select" name="Role" id="role" style="padding-left: 60px;"><option value="selectrole" selected disabled>-- Select Role --</option><option value="Faculty">Faculty</option><option value="Faculty_Admin">Faculty Admin</option><option value="Van_Incharge">Van Incharge</option></select></div>') */
+                    }
+                });
             } else if ($('#user').val() == "Student") {
                 $('.role').remove()
                 document.querySelector('.button').style.marginTop = '70px';

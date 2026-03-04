@@ -20,13 +20,13 @@ $parents = [];
 $children = [];
 $menu_query = mysqli_query($link, "SELECT Menu_Id, Display_Name, Parent_Flag, Par_Menu_Id, Route, Icon, Menu_Type, Sequence_Id FROM menus WHERE Active_Flag = 1 AND Login_Type = 'Student' AND Platform_Type = 'Web' ORDER BY (CASE WHEN Parent_Flag = 1 THEN Sequence_Id ELSE 999999 END), Par_Menu_Id, FIELD(Menu_Type, 'Entry', 'View'), Sequence_Id");
 while ($menu_row = mysqli_fetch_assoc($menu_query)) {
-    $id = (int)$menu_row['Menu_Id'];
+    $menu_id = (int)$menu_row['Menu_Id'];
 
     if ((int)$menu_row['Parent_Flag'] === 1) {
-        $parents[$id] = $menu_row;
+        $parents[$menu_id] = $menu_row;
     } else {
         // RBAC FILTER HERE
-        if (!hasMenuAccess($id)) {
+        if (!hasMenuAccess($menu_id)) {
             continue;
         }
 

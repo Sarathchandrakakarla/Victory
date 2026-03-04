@@ -78,7 +78,6 @@ error_reporting(0);
                         <?php } ?>>
                         <button class="btn btn-primary" type="submit" name="show" <?php echo !can('view', MENU_ID) ? 'disabled' : ''; ?>>Show</button>
                     </div>
-                    <button class="btn btn-primary" name="Show" type="submit">Show</button>
                     <button class="btn btn-warning" type="reset" onclick="hideTable()">Clear</button>
                 </div>
             </div>
