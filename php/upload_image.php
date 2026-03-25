@@ -157,6 +157,26 @@ if (isset($_POST['Action']) && $_POST['Action'] == "Student") {
     } catch (Exception $err) {
         echo json_encode(["success" => false, "message" => $err->getMessage()]);
     }
+} else if (isset($_POST['Action']) && $_POST['Action'] == "Application_Creation") {
+    try {
+        $filename = $_POST['FileName'];
+        $filepath = $_POST['FilePath'];
+
+        // Check if the directory exists
+        $uploadDir = "../Files/Applications/" . $filepath . '/';
+        if (!file_exists($uploadDir)) {         //Branch Folder Exists
+            mkdir($uploadDir);
+        }
+
+        // Check if file was uploaded and move it to the target directory
+        if (isset($_FILES['File']) && move_uploaded_file($_FILES['File']['tmp_name'], $uploadDir . $filename)) {
+            echo json_encode(["success" => true, "message" => "Application Uploaded Successfully"]);
+        } else {
+            echo json_encode(["success" => false, "message" => "Failed to Upload Application"]);
+        }
+    } catch (Exception $err) {
+        echo json_encode(["success" => false, "message" => $err->getMessage()]);
+    }
 } else {
     echo json_encode(["success" => false, "message" => "Invalid Request"]);
 }
