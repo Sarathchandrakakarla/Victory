@@ -31,7 +31,7 @@ $q = mysqli_query(
         Root_Dir
      FROM school_master
      WHERE active_flag = 1
-     and parent_org = 'Victory'
+     and school_code = 'VHS'
      ORDER BY school_id"
 );
 

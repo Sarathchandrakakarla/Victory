@@ -98,6 +98,9 @@ if (isset($_POST['Action']) && $_POST['Action'] == "View" && isset($_POST['Date'
         $sql = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Type = 'School Fee' AND DOP = '$date'");
         $sql1 = mysqli_query($link, "SELECT * FROM `stu_paid_fee` WHERE Type = 'Vehicle Fee' AND DOP = '$date'");
         $fee_types = array('School Fee', 'Vehicle Fee', 'Admission Fee', 'Computer fee', 'Examination Fee');
+        if ($_SESSION['school_db']['school_code'] == "FGS") {
+            $fee_types[] = 'Hostel Fee';
+        }
         $grand_total = 0;
         $grand_cash_total = 0;
         $grand_upi_total = 0;

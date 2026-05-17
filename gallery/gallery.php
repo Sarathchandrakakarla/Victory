@@ -157,7 +157,8 @@ if (!isset($_SESSION['school_db'])) {
       text-align: center;
       display: block;
       transition: all 0.3s ease;
-      z-index: 2;
+      z-index: 20;
+      overflow-y: auto;
     }
 
     #click:checked~ul {
@@ -166,7 +167,7 @@ if (!isset($_SESSION['school_db'])) {
 
     nav ul li {
       width: 100%;
-      margin: 25px 0;
+      margin: 20px 0;
     }
 
     nav ul li a {
@@ -185,6 +186,16 @@ if (!isset($_SESSION['school_db'])) {
     nav ul li a:hover {
       background: none;
       color: cyan;
+    }
+
+    nav ul li .sub-menu {
+      left: 80px;
+      height: 300px;
+    }
+
+    ul li .sub-menu li {
+      padding: 0 100px 0 0;
+      margin-left: 30px;
     }
   }
 
@@ -317,7 +328,7 @@ if (!isset($_SESSION['school_db'])) {
       <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
     </div>
     <div class="heading">
-      <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
+      <h3 style="<?php if($_SESSION['school_db']['school_code'] == 'FGS') echo 'font-size: medium;'; ?>"><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
     </div>
     <input type="checkbox" id="click" />
     <label for="click" class="menu-btn">

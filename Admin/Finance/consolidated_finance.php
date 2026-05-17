@@ -224,6 +224,9 @@ error_reporting(0);
                         }
                     } else if ($type == "Collections") {
                         $fee_types = ['School Fee', 'Admission Fee', 'Vehicle Fee', 'Book Fee'];
+                        if ($_SESSION['school_db']['school_code'] == "FGS") {
+                            $fee_types[] = 'Hostel Fee';
+                        }
                         foreach ($fee_types as $fee_type) {
                             if ($fee_type != "Vehicle Fee") {
                                 $query2 = mysqli_query($link, "SELECT Class,SUM(CAST(Fee AS INT)) AS Total_Amount FROM `stu_paid_fee` WHERE Type='$fee_type' AND STR_TO_DATE(DOP, '%d-%b-%Y') BETWEEN STR_TO_DATE('$from_date', '%Y-%m-%d') AND STR_TO_DATE('$to_date', '%Y-%m-%d') GROUP BY Class");

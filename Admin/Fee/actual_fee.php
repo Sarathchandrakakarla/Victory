@@ -101,6 +101,13 @@ error_reporting(0);
                             <option value="Admission Fee">Admission Fee</option>
                             <option value="Vehicle Fee">Vehicle Fee</option>
                             <option value="Book Fee">Book Fee</option>
+                            <?php
+                            if ($_SESSION['school_db']['school_code'] == "FGS") {
+                            ?>
+                                <option value="Hostel Fee">Hostel Fee</option>
+                            <?php
+                            }
+                            ?>
                         </select>
                     </div>
                 </div>
@@ -146,14 +153,16 @@ error_reporting(0);
                         <input type="number" id="fee" name="Fee">
                     </div>
                 </div>
-                <div class="row button">
+                <div class="row button g-2">
                     <div class="btn-wrapper"
                         <?php if (!can('create', MENU_ID)) { ?>
                         title="You don't have permission to insert actual fee"
                         <?php } ?>>
                         <input type="submit" class="button1" name="Insert" value="Insert" <?php echo !can('create', MENU_ID) ? 'disabled' : ''; ?>>
                     </div>
-                    <input type="reset" class="button1" onclick="document.getElementById('cls_row').hidden='hidden';document.getElementById('route_row').hidden='hidden';$('.wrapper').css('height','550px');" value="Clear">
+                    <div class="btn-wrapper">
+                        <input type="reset" class="button1" onclick="document.getElementById('cls_row').hidden='hidden';document.getElementById('route_row').hidden='hidden';$('.wrapper').css('height','550px');" value="Clear">
+                    </div>
                     <div class="btn-wrapper"
                         <?php if (!can('view', MENU_ID)) { ?>
                         title="You don't have permission to view actual fee"
@@ -339,7 +348,7 @@ error_reporting(0);
                     if ($_POST['Fee']) {
                         $fee = $_POST['Fee'];
                         echo "<script>document.getElementById('fee').value = '" . $fee . "';</script>";
-                        if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `actual_fee` WHERE Route = '$route' AND Type = '$type'")) != 0) {
+                        if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `actual_fee` WHERE Class = '$class' AND Type = '$type'")) != 0) {
                             $query2 = mysqli_query($link, "UPDATE `actual_fee` SET Fee = '$fee' WHERE Class = '$class' AND Type = '$type'");
                             if ($query2) {
                                 echo "<script>alert('Fee Updated Successfully!')</script>";

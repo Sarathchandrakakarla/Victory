@@ -10,7 +10,7 @@ if (isset($_POST['Login'])) {
     }
     $uname = validate($_POST['UserName']);
     $pass = validate($_POST['Password']);
-    $sql = "SELECT a.Admin_Id_No, a.Admin_Hash, a.Role,r.Role_Name, r.Active_Flag
+    $sql = "SELECT a.Admin_Id_No, a.Admin_Name, a.Admin_Hash, a.Role,r.Role_Name, r.Active_Flag
             FROM admin a
             JOIN roles r ON r.Role_Id = a.Role
             WHERE a.Admin_Id_No = '$uname'";
@@ -39,6 +39,7 @@ if (isset($_POST['Login'])) {
         session_regenerate_id(true);
 
         $_SESSION['Admin_Id_No'] = $row['Admin_Id_No'];
+        $_SESSION['Admin_Name'] = $row['Admin_Name'];
         $_SESSION['Role_Name'] = $row['Role_Name'];
 
         // 🔐 Load RBAC permissions
@@ -147,7 +148,7 @@ if (isset($_POST['Login'])) {
             <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
         </div>
         <div class="heading">
-            <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
+            <h3 style="<?php if($_SESSION['school_db']['school_code'] == 'FGS') echo 'font-size: medium;'; ?>"><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
         </div>
         <input type="checkbox" id="click" />
         <label for="click" class="menu-btn">
@@ -155,9 +156,9 @@ if (isset($_POST['Login'])) {
         </label>
         <ul>
             <li><a href="/Victory/index.php">Home</a></li>
-            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>about.html">About</a></li>
-            <li><a href="/Victory/Gallery/gallery.html">Gallery</a></li>
-            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>contact.html">Contact</a></li>
+            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/about.php">About</a></li>
+            <li><a href="/Victory/Gallery/gallery.php">Gallery</a></li>
+            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/contact.php">Contact</a></li>
             <li><a href="/Victory/youtube.php" id="link">Our Stories</a></li>
             <li><a href="/Victory/blog/blog_index.php" id="link">Blog</a></li>
             <li>

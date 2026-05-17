@@ -145,7 +145,7 @@ ul li .sub-menu a {
 .sidebar {
   position: absolute;
   left: 0;
-  height: 130%;
+  height: 135%;
   width: 300px;
   background: #11101d;
   box-shadow: 6px 0 18px rgba(0, 0, 0, 0.45);
@@ -313,7 +313,7 @@ ul li .sub-menu a {
 }
 @media screen and (max-width: 900px) {
   .sidebar {
-    height: 140%;
+    height: 160%;
   }
 }
 

@@ -123,6 +123,7 @@ ul li .sub-menu a {
   }
   nav ul li .sub-menu {
     left: 80px;
+    height: 300px;
   }
   ul li .sub-menu li {
     padding: 0 100px 0 0;

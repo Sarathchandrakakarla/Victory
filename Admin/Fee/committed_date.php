@@ -485,6 +485,17 @@ if (isset($_POST['delete'])) {
                                                         } else {
                                                             echo "";
                                                         } ?>>Book Fee</option>
+                            <?php
+                            if ($_SESSION['school_db']['school_code'] == "FGS") {
+                            ?>
+                                <option value="Hostel Fee" <?php if (isset($type) && $type == "Hostel Fee") {
+                                                                echo "selected";
+                                                            } else {
+                                                                echo "";
+                                                            } ?>>Hostel Fee</option>
+                            <?php
+                            }
+                            ?>
                         </select>
                     </div>
                     <div class="input-box">

@@ -119,6 +119,13 @@ error_reporting(0);
                         <option value="Vehicle Fee">Vehicle Fee</option>
                         <option value="Examination Fee">Examination Fee</option>
                         <option value="Book Fee">Book Fee</option>
+                        <?php
+                        if ($_SESSION['school_db']['school_code'] == "FGS") {
+                        ?>
+                            <option value="Hostel Fee">Hostel Fee</option>
+                        <?php
+                        }
+                        ?>
                     </select>
                 </div>
             </div>

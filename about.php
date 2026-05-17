@@ -511,13 +511,6 @@ if (!isset($_SESSION['school_db'])) {
 
   <!-- Scripts -->
 
-  <!-- Copyright Year -->
-
-  <script>
-    var d = new Date();
-    document.getElementById("year").innerHTML = d.getFullYear();
-  </script>
-
   <!-- Animation Scripts-->
   <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
   <script>

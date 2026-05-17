@@ -228,7 +228,7 @@ if (isset($_POST['Save'])) {
   {
     global $vvip_balance_status;
     $ids = [];
-    $query1 = mysqli_query($link, "SELECT v.Id_No FROM `vvip` v JOIN `student_master_data` smd ON smd.Id_No = v.Id_No WHERE smd.Stu_Class NOT IN ('PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS')");
+    $query1 = mysqli_query($link, "SELECT v.Id_No FROM `vvip` v JOIN `student_master_data` smd ON smd.Id_No = v.Id_No WHERE smd.Stu_Class IN ('PreKG','LKG','UKG','1 CLASS','2 CLASS','3 CLASS','4 CLASS','5 CLASS','6 CLASS','7 CLASS','8 CLASS','9 CLASS','10 CLASS')");
     while ($row1 = mysqli_fetch_assoc($query1)) {
       $ids[] = $row1['Id_No'];
     }

@@ -1,6 +1,5 @@
 <?php
 include '../link.php';
-session_start();
 
 if (isset($_POST['Login'])) {
 
@@ -13,12 +12,14 @@ if (isset($_POST['Login'])) {
     $pass  = validate($_POST['Password']);
 
     $sql = "SELECT f.Id_No,
+                emd.Emp_First_Name,
                 f.Fac_Hash,
                 f.Status,
                 f.Role,
                 r.Role_Name,
                 r.Active_Flag
             FROM faculty f
+            JOIN employee_master_data emd ON emd.Emp_Id = f.Id_No
             LEFT JOIN roles r ON r.Role_Id = f.Role
             WHERE f.Id_No = '$uname'
             ";
@@ -65,7 +66,8 @@ if (isset($_POST['Login'])) {
         session_regenerate_id(true);
 
         $_SESSION['Id_No']      = $row['Id_No'];
-        $_SESSION['Role_Name'] = $row['Role_Name'];   // UI only
+        $_SESSION['Faculty_Name'] = $row['Emp_First_Name'];
+        $_SESSION['Role_Name'] = $row['Role_Name'];  // UI only
 
         // 🔐 Load RBAC
         $_SESSION['RBAC'] = [];
@@ -172,7 +174,7 @@ if (isset($_POST['Login'])) {
             <img src="<?= $_SESSION['school_db']['Media_Root_Dir'] ?>/Victory Logo.png" alt="..." width="70px" />
         </div>
         <div class="heading">
-            <h3><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
+            <h3 style="<?php if ($_SESSION['school_db']['school_code'] == 'FGS') echo 'font-size: medium;'; ?>"><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></h3>
         </div>
         <input type="checkbox" id="click" />
         <label for="click" class="menu-btn">
@@ -180,17 +182,17 @@ if (isset($_POST['Login'])) {
         </label>
         <ul>
             <li><a href="/Victory/index.php">Home</a></li>
-            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>about.html">About</a></li>
-            <li><a href="/Victory/Gallery/gallery.html">Gallery</a></li>
-            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>contact.html">Contact</a></li>
+            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/about.php">About</a></li>
+            <li><a href="/Victory/Gallery/gallery.php">Gallery</a></li>
+            <li><a href="<?= $_SESSION['school_db']['Root_Dir'] ?>/contact.php">Contact</a></li>
             <li><a href="/Victory/youtube.php" id="link">Our Stories</a></li>
             <li><a href="/Victory/blog/blog_index.php" id="link">Blog</a></li>
             <li>
                 <a class="active" href="#">Login</a>
                 <ul class="login-sub-menu sub-menu">
-                    <li><a class="active" href="admin_login.php">Admin Login</a></li>
+                    <li><a href="/Victory/Admin/admin_login.php">Admin Login</a></li>
                     <li><a href="/Victory/Student/student_login.php">Student Login</a></li>
-                    <li><a href="/Victory/Faculty/faculty_login.php">Faculty Login</a></li>
+                    <li><a class="active" href="/Victory/Faculty/faculty_login.php">Faculty Login</a></li>
                 </ul>
             </li>
         </ul>

@@ -26,7 +26,7 @@ function requireMenuAccess(int $menuId)
     if (!isset($_SESSION['RBAC'][$menuId])) {
         echo "<script>
             alert('Access Denied!');
-            location.replace('/Victory/Admin/faculty_dashboard.php');
+            location.replace('/Victory/Faculty/faculty_dashboard.php');
         </script>";
         exit;
     }

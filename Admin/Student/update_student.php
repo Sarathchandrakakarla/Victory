@@ -19,6 +19,52 @@ if (!can('update', MENU_ID)) {
     location.replace('/Victory/Admin/Student/show_student_page.php')</script>";
   exit;
 }
+
+$central_link = $central ?? connectCentralDB();
+$branches = [];
+$branch_query = mysqli_query($central_link, "SELECT school_code AS School_Code, display_name AS Display_Name, db_name AS Db_Name FROM school_master WHERE active_flag = 1");
+
+while ($row = mysqli_fetch_assoc($branch_query)) {
+  $branches[] = $row;
+}
+
+if (isset($_POST['action']) && $_POST['action'] === 'fetch_users') {
+
+  $branch = mysqli_real_escape_string($link, $_POST['branch']);
+  $type = mysqli_real_escape_string($link, $_POST['type']);
+  $branch_db = '';
+
+  foreach ($branches as $b) {
+    if ($b['School_Code'] === $branch) {
+      $branch_db = $b['Db_Name'];
+      break;
+    }
+  }
+
+  if ($branch_db === '') {
+    echo json_encode([]);
+    exit;
+  }
+
+  if ($type === 'Admin') {
+    $sql = "SELECT Admin_Id_No AS Id_No, Admin_Name AS Name FROM {$branch_db}.admin";
+  } else {
+    $sql = "SELECT Emp_Id AS Id_No, Emp_First_Name AS Name FROM {$branch_db}.employee_master_data WHERE Status = 'Working'";
+  }
+
+  $result = mysqli_query($link, $sql);
+  $users = [];
+
+  if ($result) {
+    while ($row = mysqli_fetch_assoc($result)) {
+      $users[] = $row;
+    }
+  }
+
+  echo json_encode($users);
+  exit;
+}
+
 error_reporting(0);
 ?>
 
@@ -61,7 +107,25 @@ if (isset($_POST["update"])) {
   $doj = validate($_POST['DOJ']);
   $previous = validate($_POST['Previous_School']);
   $van = validate($_POST['Van_Route']);
-  $refer = validate($_POST['Referred_By']);
+  $refer = mysqli_real_escape_string($link, validate($_POST['Referred_By']));
+  $refer_id = isset($_POST['Referred_By_Id']) ? mysqli_real_escape_string($link, validate($_POST['Referred_By_Id'])) : '';
+  $referred_by_type = $_POST['Referred_By_Type'] ?? '';
+  $referral_update_status = true;
+
+  if ($referred_by_type === 'Staff') {
+    if ($refer == '' || $refer_id == '') {
+      $referral_update_status = false;
+      echo "<script>alert('Please select staff referral!')</script>";
+    }
+  } else {
+    if ($refer == '') {
+      $referral_update_status = false;
+      echo "<script>alert('Please enter referred by!')</script>";
+    }
+    $refer_id = '';
+  }
+
+  $refer_id_sql = $refer_id == '' ? "NULL" : "'$refer_id'";
   if ($_POST['Pass_Class'] && $pass_class != ' ' && $pass_class != '') {
     $class = $pass_class;
     $section = '';
@@ -85,7 +149,7 @@ if (isset($_POST["update"])) {
         SET Adm_No = '$adm', First_Name = '$firstname', Sur_Name = '$surname', Father_Name = '$fathername', Mother_Name = '$mothername',
          DOB = '$dob', Gender = '$gender', Mobile = '$mobile', Aadhar = '$aadhar', Mother_Aadhar = '$mother_aadhar', Father_Aadhar = '$father_aadhar', Stu_Class = '$class', Stu_Section = '$section',
           Religion = '$religion', Caste = '$caste', Category = '$category', House_No = '$houseno', Area = '$area',
-          Village = '$village', DOJ = '$doj', Previous_School = '$previous', Referred_By = '$refer',";
+          Village = '$village', DOJ = '$doj', Previous_School = '$previous', Referred_By = '$refer', Referred_By_Id = $refer_id_sql,";
   if ($van == "") {
     $update_sql .= " Van_Route = NULL,";
   } else {
@@ -113,7 +177,7 @@ if (isset($_POST["update"])) {
   } else {
     $update_sql .= "Siblings = NULL WHERE Id_No = '$id'";
   }
-  if ($siblings_update_status && isset($update_sql)) {
+  if ($referral_update_status && $siblings_update_status && isset($update_sql)) {
 
     /* if (mysqli_query($link, $update_sql)) {
       if (str_contains(strtolower($class), "drop")) {
@@ -440,6 +504,22 @@ if (isset($_POST["update"])) {
     }
   }
 }
+
+$current_referred_by = $_SESSION['Referred_By'] ?? '';
+$current_referred_by_id = '';
+
+if (isset($_SESSION['Stu_Id_No'])) {
+  $current_id = mysqli_real_escape_string($link, $_SESSION['Stu_Id_No']);
+  $current_referral_query = mysqli_query($link, "SELECT Referred_By, Referred_By_Id FROM `student_master_data` WHERE Id_No = '$current_id' LIMIT 1");
+  if ($current_referral_query && $current_referral_row = mysqli_fetch_assoc($current_referral_query)) {
+    $current_referred_by = $current_referral_row['Referred_By'];
+    $current_referred_by_id = $current_referral_row['Referred_By_Id'];
+  }
+}
+
+$form_referred_by = isset($_POST['Referred_By']) ? $_POST['Referred_By'] : $current_referred_by;
+$form_referred_by_id = isset($_POST['Referred_By_Id']) ? $_POST['Referred_By_Id'] : $current_referred_by_id;
+$form_referred_by_type = isset($_POST['Referred_By_Type']) ? $_POST['Referred_By_Type'] : ($current_referred_by_id == '' || $current_referred_by_id === null ? 'Non-Staff' : 'Staff');
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -506,6 +586,95 @@ if (isset($_POST["update"])) {
   .quantity__input {
     text-align: center;
   }
+
+  .referral-modal {
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    overflow-y: auto;
+  }
+
+  .referral-modal-content {
+    background: #fff;
+    width: 100%;
+    max-width: 500px;
+    padding: 24px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .referral-modal-content h3 {
+    margin-bottom: 20px;
+    font-size: 22px;
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .btn-primary {
+    background: #0d6efd;
+    color: #fff;
+  }
+
+  .btn-secondary {
+    background: #6c757d;
+    color: #fff;
+  }
+
+  #selected_staff {
+    margin-top: 8px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #f8f9fa;
+    min-height: 40px;
+  }
+
+  @media (max-width: 600px) {
+    .referral-modal {
+      align-items: flex-start;
+      padding-top: 80px;
+    }
+
+    .referral-modal-content {
+      padding: 18px;
+      border-radius: 8px;
+      max-width: 350px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .referral-modal-content h3 {
+      font-size: 18px;
+    }
+
+    .modal-buttons {
+      flex-direction: column;
+    }
+
+    .modal-buttons .btn {
+      width: 100%;
+    }
+  }
 </style>
 
 <body>
@@ -517,7 +686,8 @@ if (isset($_POST["update"])) {
 
     <div class="content">
       <div class="title">Student Personal Details</div>
-      <form action="" method="POST" onsubmit="if(!confirm('Confirm to Update Student Data?')){return false;}else{return true;}">
+      <form action="" method="POST" onsubmit="return validateStudentUpdate();">
+        <input type="hidden" name="Referred_By_Id" id="referred_by_id" value="<?php echo htmlspecialchars($form_referred_by_id); ?>">
         <div class="user-details main-section">
           <div class="input-box">
             <span class="details">Id No. <span class="required">*</span></span>
@@ -858,13 +1028,30 @@ if (isset($_POST["update"])) {
                                     } ?>>Drop</option>
             </select>
           </div>
-          <div class="input-box">
+          <div class="gender-details">
+            <span class="gender-title">Referred By Type <span class="required">*</span></span>
+            <div class="category">
+              <input type="radio" id="staff" value="Staff" name="Referred_By_Type" <?php if ($form_referred_by_type == 'Staff') {
+                                                                                      echo 'checked';
+                                                                                    } ?> />
+              <span><label for="staff">Staff</label></span>
+              <input type="radio" id="non-staff" value="Non-Staff" name="Referred_By_Type" <?php if ($form_referred_by_type != 'Staff') {
+                                                                                            echo 'checked';
+                                                                                          } ?> />
+              <span><label for="non-staff">Non-Staff</label></span>
+            </div>
+          </div>
+
+          <div class="input-box" id="staff_box">
             <span class="details">Referred By</span>
-            <input type="text" placeholder="Enter Referred By" value="<?php if (isset($_POST['Referred_By'])) {
-                                                                        echo $_POST['Referred_By'];
-                                                                      } else {
-                                                                        echo $_SESSION['Referred_By'];
-                                                                      } ?>" name="Referred_By" />
+            <input type="hidden" name="Referred_By" id="referred_by_hidden" value="<?php echo htmlspecialchars($form_referred_by_type == 'Staff' ? $form_referred_by : ''); ?>">
+            <div id="selected_staff"><?php echo htmlspecialchars($form_referred_by_type == 'Staff' && $form_referred_by_id != '' ? $form_referred_by . ' (' . $form_referred_by_id . ')' : ''); ?></div>
+            <button type="button" class="btn btn-primary" style="margin-top:8px;" onclick="openReferralModal()">Change Staff</button>
+          </div>
+
+          <div class="input-box" id="nonstaff_box">
+            <span class="details">Referred By</span>
+            <input type="text" placeholder="Enter Referred By" value="<?php echo htmlspecialchars($form_referred_by_type != 'Staff' ? $form_referred_by : ''); ?>" id="referred_by_text" name="Referred_By" />
           </div>
         </div>
         <div class="button">
@@ -876,6 +1063,45 @@ if (isset($_POST["update"])) {
           </div>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div id="referral_modal" class="referral-modal">
+    <div class="referral-modal-content">
+      <h3>Select Staff</h3>
+
+      <div class="input-box">
+        <span class="details">Branch</span>
+        <select id="branch" name="Branch">
+          <option value="">-- Select Branch --</option>
+          <?php foreach ($branches as $b) { ?>
+            <option value="<?= $b['School_Code'] ?>">
+              <?= $b['Display_Name'] ?>
+            </option>
+          <?php } ?>
+        </select>
+      </div>
+
+      <div class="input-box">
+        <span class="details">User Type</span>
+        <select id="user_type" name="User_Type">
+          <option value="">-- Select Type --</option>
+          <option value="Admin">Admin</option>
+          <option value="Faculty">Faculty</option>
+        </select>
+      </div>
+
+      <div class="input-box">
+        <span class="details">User</span>
+        <select id="user" name="Owner_Id">
+          <option value="">-- Select User --</option>
+        </select>
+      </div>
+
+      <div class="modal-buttons">
+        <button type="button" class="btn btn-primary" onclick="selectUser()">Select</button>
+        <button type="button" class="btn btn-secondary" onclick="closeReferralModal()">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -931,6 +1157,108 @@ if (isset($_POST["update"])) {
         } */
       <?php } ?>
     });
+  </script>
+
+  <!-- Referred By Staff / Non-Staff Flow -->
+  <script type="text/javascript">
+    const staffRadio = document.querySelector('input[value="Staff"]');
+    const nonStaffRadio = document.querySelector('input[value="Non-Staff"]');
+    const staff_box = document.getElementById('staff_box');
+    const nonstaff_box = document.getElementById('nonstaff_box');
+    const referred_by_text = document.getElementById('referred_by_text');
+    const referred_by_hidden = document.getElementById('referred_by_hidden');
+    const referred_by_id = document.getElementById('referred_by_id');
+    const selected_staff = document.getElementById('selected_staff');
+    const branch = document.getElementById('branch');
+    const user_type = document.getElementById('user_type');
+    const user = document.getElementById('user');
+
+    function toggleReferral(keepCurrentStaff) {
+      if (staffRadio.checked) {
+        staff_box.style.display = 'block';
+        nonstaff_box.style.display = 'none';
+        referred_by_text.disabled = true;
+        referred_by_hidden.disabled = false;
+        referred_by_text.value = '';
+
+        if (!keepCurrentStaff && !referred_by_id.value) {
+          referred_by_hidden.value = '';
+          selected_staff.innerText = '';
+        }
+      } else {
+        staff_box.style.display = 'none';
+        nonstaff_box.style.display = 'block';
+        referred_by_text.disabled = false;
+        referred_by_hidden.disabled = true;
+        referred_by_id.value = '';
+        referred_by_hidden.value = '';
+        selected_staff.innerText = '';
+      }
+    }
+
+    staffRadio.addEventListener('change', function() {
+      toggleReferral(false);
+    });
+    nonStaffRadio.addEventListener('change', function() {
+      toggleReferral(false);
+    });
+
+    function openReferralModal() {
+      document.getElementById('referral_modal').style.display = 'flex';
+    }
+
+    function closeReferralModal() {
+      document.getElementById('referral_modal').style.display = 'none';
+    }
+
+    function selectUser() {
+      let selected = user.value;
+      let text = user.options[user.selectedIndex].text;
+
+      if (!branch.value || !user_type.value) return alert("Please select Branch and Type");
+      if (!selected) return alert("Select user");
+
+      referred_by_id.value = selected;
+      referred_by_hidden.value = text;
+      selected_staff.innerText = text + " (" + selected + ")";
+
+      closeReferralModal();
+    }
+
+    function fetchReferralUsers() {
+      let selectedBranch = branch.value;
+      let selectedType = user_type.value;
+
+      if (!selectedBranch || !selectedType) {
+        user.innerHTML = '<option value="">-- Select User --</option>';
+        return;
+      }
+
+      let data = new FormData();
+      data.append('action', 'fetch_users');
+      data.append('branch', selectedBranch);
+      data.append('type', selectedType);
+
+      fetch('', {
+          method: 'POST',
+          body: data
+        })
+        .then(res => res.json())
+        .then(users => {
+          let options = '<option value="">-- Select User --</option>';
+
+          users.forEach(u => {
+            options += `<option value="${u.Id_No}">${u.Name}</option>`;
+          });
+
+          user.innerHTML = options;
+        });
+    }
+
+    branch.addEventListener('change', fetchReferralUsers);
+    user_type.addEventListener('change', fetchReferralUsers);
+
+    toggleReferral(true);
   </script>
 
   <!-- Add/Remove Slider and Sibling Text Boxes -->
@@ -1068,6 +1396,31 @@ if (isset($_POST["update"])) {
         }
       })
       return flag;
+    }
+
+    function validateStudentUpdate() {
+      if (!checkUpdate()) {
+        return false;
+      }
+
+      if (staffRadio.checked) {
+        if (!referred_by_hidden.value.trim() || !referred_by_id.value.trim()) {
+          alert("Select staff");
+          return false;
+        }
+      } else {
+        if (!referred_by_text.value.trim()) {
+          alert("Enter referred by");
+          return false;
+        }
+        referred_by_id.value = '';
+      }
+
+      if (!confirm('Confirm to Update Student Data?')) {
+        return false;
+      }
+
+      return true;
     }
   </script>
 </body>
