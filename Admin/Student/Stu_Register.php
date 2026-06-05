@@ -277,6 +277,7 @@ error_reporting(0);
                 <input type="hidden" name="app_id" id="app_id">
                 <input type="hidden" name="Referred_By_Id" id="referred_by_id">
                 <input type="hidden" name="selected_staff" id="selected_staff_value">
+                <input type="hidden" name="Original_Referred_By" id="Original_Referred_By">
                 <div class="user-details">
                     <div class="input-box">
                         <span class="details">Id No. <span class="required">*</span></span>
@@ -427,9 +428,9 @@ error_reporting(0);
                     <div class="gender-details">
                         <span class="gender-title">Referred By Type <span class="required">*</span></span>
                         <div class="category">
-                            <input type="radio" id="staff" value="Staff" name="Referred_By_Type" />
+                            <input type="radio" id="staff" value="Staff" name="Referred_By_Type" required />
                             <span><label for="staff">Staff</label></span>
-                            <input type="radio" id="non-staff" value="Non-Staff" name="Referred_By_Type" />
+                            <input type="radio" id="non-staff" value="Non-Staff" name="Referred_By_Type" required />
                             <span><label for="non-staff">Non-Staff</label></span>
                         </div>
                     </div>
@@ -520,23 +521,36 @@ error_reporting(0);
         const branch = document.getElementById('branch');
         const user_type = document.getElementById('user_type');
         const user = document.getElementById('user');
+        const originalReferredBy = document.getElementById('Original_Referred_By');
 
         function toggleReferral() {
             if (staffRadio.checked) {
+                if (referred_by_text.value.trim() !== '') {
+                    originalReferredBy.value = referred_by_text.value;
+                }
+
                 staff_box.style.display = 'block';
                 nonstaff_box.style.display = 'none';
-                referred_by_text.value = '';
             } else {
                 staff_box.style.display = 'none';
                 nonstaff_box.style.display = 'block';
                 document.getElementById('referred_by_id').value = '';
                 document.getElementById('selected_staff_value').value = '';
                 selected_staff.style.display = 'none';
+
+                if (referred_by_text.value.trim() === '' && originalReferredBy.value.trim() !== '') {
+                    referred_by_text.value = originalReferredBy.value;
+                }
             }
         }
 
         staffRadio.addEventListener('change', toggleReferral);
         nonStaffRadio.addEventListener('change', toggleReferral);
+        referred_by_text.addEventListener('input', function() {
+            if (nonStaffRadio.checked) {
+                originalReferredBy.value = referred_by_text.value;
+            }
+        });
 
         function openReferralModal() {
             document.getElementById('referral_modal').style.display = 'flex';
@@ -602,6 +616,11 @@ error_reporting(0);
         user_type.addEventListener('change', fetchReferralUsers);
 
         function validateStudentSubmit() {
+            if (!staffRadio.checked && !nonStaffRadio.checked) {
+                alert('Please select Referred By Type');
+                return false;
+            }
+
             if (staffRadio.checked && (!branch.value || !user_type.value || !user.value)) {
                 alert('Please select Branch, Type and User');
                 return false;
@@ -658,6 +677,7 @@ error_reporting(0);
             document.getElementById('area').value = " . json_encode($app_data['Area']) . ";
             document.getElementById('village').value = " . json_encode($app_data['Village']) . ";
             document.getElementById('previous_school').value = " . json_encode($app_data['Previous_School']) . ";
+            document.getElementById('Original_Referred_By').value = " . json_encode($app_data['Referred_By'] ?? '') . ";
         </script>";
         if ($app_data['Student_Type'] == "Vanner") {
             echo "<script>
@@ -718,7 +738,7 @@ error_reporting(0);
         $referred_by_id = $_POST['Referred_By_Id'] ?? null;
         $referred_by_name = '';
 
-        if ($_POST['Referred_By_Type'] === 'Staff') {
+        if (($_POST['Referred_By_Type'] ?? '') === 'Staff') {
 
             $selected_staff = $_POST['selected_staff'] ?? '';
             $selected_staff_parts = explode(' - ', $selected_staff, 2);
@@ -753,6 +773,9 @@ error_reporting(0);
         echo "<script>document.getElementById('app_id').value = '" . ($_POST['app_id'] ?? '') . "'</script>";
         echo "<script>document.getElementById('referred_by_id').value = '" . ($referred_by_id ?? '') . "'</script>";
         echo "<script>document.getElementById('selected_staff_value').value = '" . ($_POST['selected_staff'] ?? '') . "'</script>";
+        echo "<script>
+            document.getElementById('Original_Referred_By').value = " . json_encode($_POST['Original_Referred_By'] ?? $referred_by) . ";
+        </script>";
         if (($_POST['Referred_By_Type'] ?? '') === 'Staff') {
             echo "<script>document.querySelector('input[value=\"Staff\"]').checked = true; toggleReferral(); document.getElementById('selected_staff').innerText = '" . ($_POST['selected_staff'] ?? '') . "'; document.getElementById('selected_staff').style.display = 'block';</script>";
         } else {
@@ -1001,10 +1024,58 @@ error_reporting(0);
 
                                         mysqli_commit($link);
 
-                                        echo "<script>
-                                                alert('Student created successfully!');
-                                                location.replace('');
-                                            </script>";
+                                        $advance_query = !empty($_POST['app_id']) ? mysqli_query($link, "
+                                            SELECT Advance_Amount, DOP, Payment_Type, Transaction_Id
+                                            FROM central.applications
+                                            WHERE App_No = '$app_id'
+                                            LIMIT 1
+                                        ") : false;
+
+                                        $advance_data = $advance_query ? mysqli_fetch_assoc($advance_query) : null;
+                                        $advance_amount = $advance_data['Advance_Amount'] ?? 0;
+
+                                        if ($advance_data && $advance_amount > 0) {
+                                            $transaction_row = ($advance_data['Payment_Type'] == 'UPI')
+                                                ? "<p><strong>Transaction Id :</strong> " . htmlspecialchars($advance_data['Transaction_Id']) . "</p>"
+                                                : "";
+
+                                            echo "
+                                                <div id='advance_payment_modal' class='referral-modal' style='display:flex;'>
+                                                    <div class='referral-modal-content'>
+                                                        <h3>Advance Payment Found</h3>
+                                                        <p>This student paid advance amount during application creation.</p>
+                                                        <p><strong>Advance Amount :</strong> &#8377;" . htmlspecialchars($advance_data['Advance_Amount']) . "</p>
+                                                        <p><strong>Date Of Payment :</strong> " . htmlspecialchars($advance_data['DOP']) . "</p>
+                                                        <p><strong>Payment Type :</strong> " . htmlspecialchars($advance_data['Payment_Type']) . "</p>
+                                                        $transaction_row
+                                                        <p>Do you want to enter the fee payment now?</p>
+
+                                                        <form action='../Fee/stu_fee_pay.php' method='POST' id='advance_fee_form'>
+                                                            <input type='hidden' name='Id_No' value='" . htmlspecialchars($id, ENT_QUOTES) . "'>
+                                                            <input type='hidden' name='Advance_Amount' value='" . htmlspecialchars($advance_data['Advance_Amount'], ENT_QUOTES) . "'>
+                                                            <input type='hidden' name='DOP' value='" . htmlspecialchars($advance_data['DOP'], ENT_QUOTES) . "'>
+                                                            <input type='hidden' name='Payment_Type' value='" . htmlspecialchars($advance_data['Payment_Type'], ENT_QUOTES) . "'>
+                                                            <input type='hidden' name='Transaction_Id' value='" . htmlspecialchars($advance_data['Transaction_Id'], ENT_QUOTES) . "'>
+                                                        </form>
+
+                                                        <div class='modal-buttons'>
+                                                            <button type='submit' form='advance_fee_form' class='btn btn-primary'>
+                                                                Enter Now
+                                                            </button>
+                                                            <button type='button' class='btn btn-secondary' onclick=\"document.getElementById('advance_payment_modal').style.display='none'; location.replace('');\">
+                                                                Later
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <script>alert('Student created successfully!');</script>
+                                            ";
+                                        } else {
+                                            echo "<script>
+                                                    alert('Student created successfully!');
+                                                    location.replace('');
+                                                </script>";
+                                        }
                                     } catch (Exception $e) {
 
                                         mysqli_rollback($link);
