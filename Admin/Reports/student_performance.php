@@ -157,10 +157,7 @@ error_reporting(0);
         <div class="container table-container" id="table-container">
             <table hidden>
                 <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td colspan="4"></td>
                     <td style="font-size:30px;" colspan="4"><?= htmlspecialchars($_SESSION['school_db']['display_name']) ?></td>
                 </tr>
                 <tr>
@@ -484,26 +481,17 @@ error_reporting(0);
     </script>
 
     <!-- Export Table to Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    
     <script type="text/javascript">
         $('#export').on('click', function() {
             stuclass = '<?php echo $class; ?>';
             stusection = '<?php echo $section; ?>';
             filename = stuclass + stusection;
 
-            // Select table
-            var tableSelect = document.getElementById('table-container');
-
-            // Use SheetJS to export the table as an Excel file
-            var wb = XLSX.utils.table_to_book(tableSelect, {
-                sheet: 'Sheet1'
+            exportTableToExcel({
+                tableId: 'table-container',
+                filename: filename,
             });
-
-            // Specify filename
-            filename = filename ? filename + '.xlsx' : 'excel_data.xlsx';
-
-            // Download the file
-            XLSX.writeFile(wb, filename);
         });
     </script>
 

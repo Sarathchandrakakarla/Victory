@@ -123,3 +123,4 @@ while ($menu_row = mysqli_fetch_assoc($menu_query)) {
   </ul>
 </div>
 <script src="/Victory/js/script.js"></script>
+<script src="/Victory/js/export_xlsx.js"></script>
