@@ -782,6 +782,11 @@ error_reporting(0);
             echo "<script>document.querySelector('input[value=\"Non-Staff\"]').checked = true; toggleReferral(); document.getElementById('referred_by_text').value = '" . $referred_by . "'</script>";
         }
 
+        if (!preg_match('/^VHST\d{5}$/', $id)) {
+            echo "<script>alert('Please Enter Valid Id No. (Ex:VHST00000)')</script>";
+            exit;
+        }
+
         if ($_POST['Stu_Class']) {
             $class = validate($_POST['Stu_Class']);
             echo "<script>document.getElementById('class').value = '" . $class . "'</script>";
