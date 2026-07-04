@@ -514,8 +514,8 @@ if (isset($_POST['Promotion'])) {
 
     //Updating Actual Fee and Current Balance in stu_fee_master_data
     foreach ($classes as $class) {
-      $sql = mysqli_query($link, "UPDATE `stu_fee_master_data` SET Actual = '$actual[$class]',Current_Balance = '$actual[$class]' WHERE Class = '$class'");
-      $sql1 = mysqli_query($link, "UPDATE `stu_fee_master_data` SET Total = Last_Balance + Current_Balance WHERE Class = '$class'");
+      $sql = mysqli_query($link, "UPDATE `stu_fee_master_data` SET Actual = '$actual[$class]',Current_Balance = '$actual[$class]' WHERE Type = 'School Fee' AND Class = '$class'");
+      $sql1 = mysqli_query($link, "UPDATE `stu_fee_master_data` SET Total = Last_Balance + Current_Balance WHERE Type = 'School Fee' AND Class = '$class'");
       if ($sql && $sql1) {
         $actual_status = true;
       } else {
@@ -561,8 +561,8 @@ if (isset($_POST['Promotion'])) {
       if (mysqli_num_rows(mysqli_query($link, "SELECT * FROM `stu_fee_master_data` WHERE Route = '$route'")) == 0) {
         continue;
       } else {
-        $sql = mysqli_query($link, "UPDATE `stu_fee_master_data` SET Actual = '$actual[$route]',Current_Balance = '$actual[$route]' WHERE Route = '$route'");
-        $sql1 = mysqli_query($link, "UPDATE `stu_fee_master_data` SET Total = Last_Balance + Current_Balance WHERE Route = '$route'");
+        $sql = mysqli_query($link, "UPDATE `stu_fee_master_data` SET Actual = '$actual[$route]',Current_Balance = '$actual[$route]' WHERE Type = 'Vehicle Fee' AND Route = '$route'");
+        $sql1 = mysqli_query($link, "UPDATE `stu_fee_master_data` SET Total = Last_Balance + Current_Balance WHERE Type = 'Vehicle Fee' AND Route = '$route'");
         if ($sql && $sql1) {
           $actual_van_status = true;
         } else {
