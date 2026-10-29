@@ -399,7 +399,7 @@ error_reporting(0);
                                                 <td>' . $balances[$id] . '</td>
                                                 <td>';
                                             if (can('create', MENU_ID)) {
-                                                echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
+                                                echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1777178825088236675&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
                                             } else {
                                                 echo '<a href="javascript:void(0)"
                                                     class="text-secondary disabled"
@@ -493,7 +493,7 @@ error_reporting(0);
                                                 <td>' . $balances[$id] . '</td>
                                                 <td>';
                                             if (can('create', MENU_ID)) {
-                                                echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
+                                                echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1777178825088236675&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
                                             } else {
                                                 echo '<a href="javascript:void(0)"
                                                     class="text-secondary disabled"
@@ -567,7 +567,7 @@ error_reporting(0);
                                             //Fetching Committed Fees of Each Student
                                             $query2 = mysqli_query($link, "SELECT Total FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
                                             if (mysqli_num_rows($query2) == 0) {
-                                                if ($type != "Admission Fee") {
+                                                if ($type != "Admission Fee" && $type != "Hostel Fee") {
                                                     echo "<script>alert('" . $id . " Not Available in Stu Fee Master Data! ')</script>";
                                                 }
                                             } else {
@@ -608,7 +608,7 @@ error_reporting(0);
                                                     <td>' . $balances[$id] . '</td>
                                                     <td>';
                                                 if (can('create', MENU_ID)) {
-                                                    echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
+                                                    echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1777178825088236675&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
                                                 } else {
                                                     echo '<a href="javascript:void(0)"
                                                             class="text-secondary disabled"
@@ -663,7 +663,7 @@ error_reporting(0);
                                             //Fetching Committed Fees of Each Student
                                             $query2 = mysqli_query($link, "SELECT Total FROM `stu_fee_master_data` WHERE Id_No = '$id' AND Type = '$type'");
                                             if (mysqli_num_rows($query2) == 0) {
-                                                if ($type != "Admission Fee") {
+                                                if ($type != "Admission Fee" && $type != "Hostel Fee") {
                                                     echo "<script>alert('" . $id . " Not Available in Stu Fee Master Data! ')</script>";
                                                 }
                                             } else {
@@ -705,7 +705,7 @@ error_reporting(0);
                                                     <td>' . $balances[$id] . '</td>
                                                     <td>';
                                                 if (can('create', MENU_ID)) {
-                                                    echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1707164915284267071&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
+                                                    echo '<a href="https://www.alots.in/sms-panel/api/http/index.php?username=victoryschool&apikey=2A26D-FA42A&apirequest=Text&sender=VICKDR&mobile=' . $mobiles[$id] . '&message=' . $text . '&route=TRANS&TemplateID=1777178825088236675&format=JSON" class="sms_link">' . $mobiles[$id] . '</a>';
                                                 } else {
                                                     echo '<a href="javascript:void(0)"
                                                             class="text-secondary disabled"
