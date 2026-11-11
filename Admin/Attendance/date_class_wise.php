@@ -217,13 +217,25 @@ error_reporting(0);
                             $all_ids = [];
                             $ids = [];
                             $date = format_date($date);
+                            $not_punched_classes = [];
+                            $all_present_classes = [];
                             foreach ($cols as $col) {
                                 echo '<script>document.getElementById("' . $col . '").checked = true;</script>';
                                 $class = substr($col, 0, strlen($col) - 1);
                                 $section = $col[strlen($col) - 1];
-                                $sql = mysqli_query($link, "SELECT Id_No FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section'");
-                                while ($students_row = mysqli_fetch_assoc($sql)) {
-                                    array_push($all_ids, $students_row["Id_No"]);
+                                $att_check_query = mysqli_query($link, "SELECT * FROM `class_attendance` WHERE Class = '$class' AND Section = '$section' AND Date = '$date' AND " . $type . "_Status = 'Submitted'");
+                                if (mysqli_num_rows($att_check_query) == 0) {
+                                    array_push($not_punched_classes, $class . " " . $section);
+                                } else {
+                                    $all_present_check_query = mysqli_query($link, "SELECT ca.Class, ca.Section FROM class_attendance ca WHERE ca.Class = '$class' AND ca.Section = '$section' AND ca.Date = '$date' AND ca." . $type . "_Status = 'Submitted' AND EXISTS (SELECT 1 FROM student_master_data smd JOIN attendance_daily ad ON smd.Id_No = ad.Id_No WHERE smd.Stu_Class = ca.Class AND smd.Stu_Section = ca.Section AND ad.Date = ca.Date AND ad.$type IS NOT NULL AND ad.$type != '')");
+                                    if (mysqli_num_rows($all_present_check_query) == 0) {
+                                        array_push($all_present_classes, $class . " " . $section);
+                                    } else {
+                                        $sql = mysqli_query($link, "SELECT Id_No FROM `student_master_data` WHERE Stu_Class = '$class' AND Stu_Section = '$section'");
+                                        while ($students_row = mysqli_fetch_assoc($sql)) {
+                                            array_push($all_ids, $students_row["Id_No"]);
+                                        }
+                                    }
                                 }
                             }
                             foreach ($all_ids as $stu_id) {
@@ -239,6 +251,12 @@ error_reporting(0);
                             if (count($ids) == 0) {
                                 echo '<td colspan="7" class="text-center">No Absentees on ' . $date . '</td>';
                             } else {
+                                foreach ($not_punched_classes as $not_punched_cls) {
+                                    echo '<td colspan="7" class="text-center">Attendance Not Yet Submitted for ' . $not_punched_cls . '</td></tr>';
+                                }
+                                foreach ($all_present_classes as $all_present_cls) {
+                                    echo '<td colspan="7" class="text-center">All Students Present in ' . $all_present_cls . '</td></tr>';
+                                }
                                 foreach ($ids as $id) {
                                     $query2 = mysqli_query($link, "SELECT First_Name,Father_Name,Stu_Class,Stu_Section,Mobile,House_No,Area FROM `student_master_data` WHERE Id_No = '$id'");
                                     while ($row2 = mysqli_fetch_assoc($query2)) {
